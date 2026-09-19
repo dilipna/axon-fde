@@ -1,0 +1,292 @@
+# AxonFDE canonical observation taxonomy.
+#
+# This file is the keystone of the evidence model. Every observation that
+# enters the system - from SQL, telemetry, a document, a photograph, an
+# external API or the risk model - is normalised to one of these types.
+# Because the types are shared across modalities, contradiction detection is a
+# deterministic value comparison rather than a judgement call handed to an LLM.
+#
+# Field reference
+# ---------------
+#   kind                Value shape. numeric | categorical | boolean | set | interval
+#   unit                Canonical unit. Adapters MUST convert before persisting.
+#   safety_critical     If true, an unresolved conflict on this type blocks
+#                       automatic incident closure.
+#   conflict_tolerance  Two active observations of this type for the same entity
+#                       with overlapping validity windows conflict when they
+#                       differ by more than this. 0 means any difference
+#                       conflicts. `exact` is used for non-numeric kinds.
+#   ttl_seconds         Freshness budget. null means the value does not age
+#                       (contractual or structural facts).
+#   plausible_range     Hard validity bounds. Values outside are REJECTED at
+#                       ingestion, not stored with low confidence. This is what
+#                       stops a misread gauge from becoming evidence.
+#   source_reliability  Prior reliability per source, used to compute evidence
+#                       confidence. Sources absent from this map default to 0.5.
+#   authority_order     When sources conflict, the earliest listed source wins
+#                       authority. The conflict still remains visible; authority
+#                       decides which value is *used*, not whether we mention it.
+#
+# Confidence is computed as:
+#   source_reliability x extraction_confidence x freshness_penalty(age, ttl)
+# The LLM never supplies a confidence number that reaches the database.
+
+version: "1.0.0"
+
+freshness_penalty:
+  # Applied as a multiplier on confidence, keyed by age relative to ttl_seconds.
+  fresh: 1.0 # age <= 1.0 x ttl
+  aging: 0.6 # 1.0 x ttl < age <= 3.0 x ttl
+  stale: 0.3 # age > 3.0 x ttl
+  aging_threshold_multiplier: 1.0
+  stale_threshold_multiplier: 3.0
+
+# Hypotheses may not exceed this confidence when any supporting evidence is
+# stale. Prevents a confident diagnosis built on an hour-old reading.
+stale_evidence_confidence_cap: 0.45
+
+observations:
+  # ---------------------------------------------------------------------------
+  # Thermal state - the core of the cold-chain problem
+  # ---------------------------------------------------------------------------
+  cargo_temp_c:
+    kind: numeric
+    unit: celsius
+    safety_critical: true
+    conflict_tolerance: 0.5
+    ttl_seconds: 300
+    plausible_range: [-40.0, 60.0]
+    source_reliability:
+      telemetry: 0.95
+      visual_inspection: 0.80
+      document_extraction: 0.75
+      human_input: 0.70
+    authority_order: [telemetry, visual_inspection, human_input]
+    description: >
+      Measured cargo compartment temperature. A disagreement between the
+      telemetry feed and a photographed panel reading is the primary signal
+      distinguishing a sensor fault from a genuine excursion.
+
+  ambient_temp_c:
+    kind: numeric
+    unit: celsius
+    safety_critical: false
+    conflict_tolerance: 2.0
+    ttl_seconds: 1800
+    plausible_range: [-50.0, 60.0]
+    source_reliability:
+      telemetry: 0.93
+      weather_api: 0.85
+      visual_inspection: 0.60
+    authority_order: [telemetry, weather_api]
+
+  humidity_pct:
+    kind: numeric
+    unit: percent
+    safety_critical: false
+    conflict_tolerance: 5.0
+    ttl_seconds: 1800
+    plausible_range: [0.0, 100.0]
+    source_reliability:
+      telemetry: 0.90
+      weather_api: 0.80
+
+  # ---------------------------------------------------------------------------
+  # Cargo contract - where ERP and the signed Bill of Lading disagree
+  # ---------------------------------------------------------------------------
+  permitted_temp_min_c:
+    kind: numeric
+    unit: celsius
+    safety_critical: true
+    conflict_tolerance: 0.0
+    ttl_seconds: null
+    plausible_range: [-80.0, 30.0]
+    source_reliability:
+      document_extraction: 0.98
+      sql_legacy: 0.85
+      human_input: 0.60
+    authority_order: [document_extraction, sql_legacy, human_input]
+    description: >
+      The signed Bill of Lading is the legally operative document and therefore
+      outranks the ERP. Any disagreement at all is a conflict: a contractual
+      range has no tolerance band.
+
+  permitted_temp_max_c:
+    kind: numeric
+    unit: celsius
+    safety_critical: true
+    conflict_tolerance: 0.0
+    ttl_seconds: null
+    plausible_range: [-80.0, 30.0]
+    source_reliability:
+      document_extraction: 0.98
+      sql_legacy: 0.85
+      human_input: 0.60
+    authority_order: [document_extraction, sql_legacy, human_input]
+
+  cargo_class:
+    kind: categorical
+    unit: null
+    safety_critical: true
+    conflict_tolerance: exact
+    ttl_seconds: null
+    allowed_values:
+      ["pharma_2_8", "vaccine_2_8", "frozen_minus_18", "fresh_0_4", "ambient_dry"]
+    source_reliability:
+      document_extraction: 0.97
+      sql_legacy: 0.90
+    authority_order: [document_extraction, sql_legacy]
+
+  # ---------------------------------------------------------------------------
+  # Refrigeration unit health
+  # ---------------------------------------------------------------------------
+  compressor_rpm:
+    kind: numeric
+    unit: rpm
+    safety_critical: false
+    conflict_tolerance: 50.0
+    ttl_seconds: 300
+    plausible_range: [0.0, 4000.0]
+    source_reliability:
+      telemetry: 0.94
+      visual_inspection: 0.65
+
+  reefer_status:
+    kind: categorical
+    unit: null
+    safety_critical: false
+    conflict_tolerance: exact
+    ttl_seconds: 300
+    # Quoted deliberately: YAML 1.1 parses a bare `off` as the boolean false.
+    allowed_values: ["running", "cycling", "standby", "off", "fault"]
+    source_reliability:
+      telemetry: 0.95
+      visual_inspection: 0.85
+
+  reefer_fuel_pct:
+    kind: numeric
+    unit: percent
+    safety_critical: false
+    conflict_tolerance: 3.0
+    ttl_seconds: 900
+    plausible_range: [0.0, 100.0]
+    source_reliability:
+      telemetry: 0.92
+      visual_inspection: 0.75
+
+  fault_code:
+    kind: set
+    unit: null
+    safety_critical: true
+    conflict_tolerance: exact
+    ttl_seconds: 3600
+    source_reliability:
+      telemetry: 0.97
+      visual_inspection: 0.88
+      document_extraction: 0.80
+    authority_order: [telemetry, visual_inspection]
+    description: >
+      Active refrigeration unit fault codes. Corroboration between the
+      telemetry feed and a photographed control panel raises confidence through
+      independent-source agreement rather than through a larger model.
+
+  # ---------------------------------------------------------------------------
+  # Vehicle and route state
+  # ---------------------------------------------------------------------------
+  door_state:
+    kind: categorical
+    unit: null
+    safety_critical: false
+    conflict_tolerance: exact
+    ttl_seconds: 120
+    allowed_values: ["closed", "open", "ajar", "unknown"]
+    source_reliability:
+      telemetry: 0.96
+      visual_inspection: 0.90
+
+  speed_kph:
+    kind: numeric
+    unit: kph
+    safety_critical: false
+    conflict_tolerance: 5.0
+    ttl_seconds: 120
+    plausible_range: [0.0, 160.0]
+    source_reliability:
+      telemetry: 0.95
+
+  route_delay_min:
+    kind: numeric
+    unit: minutes
+    safety_critical: false
+    conflict_tolerance: 5.0
+    ttl_seconds: 900
+    plausible_range: [0.0, 1440.0]
+    source_reliability:
+      telemetry: 0.85
+      sql_legacy: 0.80
+
+  minutes_to_destination:
+    kind: numeric
+    unit: minutes
+    safety_critical: false
+    conflict_tolerance: 10.0
+    ttl_seconds: 900
+    plausible_range: [0.0, 5760.0]
+    source_reliability:
+      telemetry: 0.82
+      sql_legacy: 0.78
+
+  truck_fuel_pct:
+    kind: numeric
+    unit: percent
+    safety_critical: false
+    conflict_tolerance: 3.0
+    ttl_seconds: 900
+    plausible_range: [0.0, 100.0]
+    source_reliability:
+      telemetry: 0.92
+
+  # ---------------------------------------------------------------------------
+  # Maintenance history
+  # ---------------------------------------------------------------------------
+  days_since_last_service:
+    kind: numeric
+    unit: days
+    safety_critical: false
+    conflict_tolerance: 1.0
+    ttl_seconds: 86400
+    plausible_range: [0.0, 3650.0]
+    source_reliability:
+      sql_legacy: 0.95
+
+  maintenance_warning:
+    kind: set
+    unit: null
+    safety_critical: false
+    conflict_tolerance: exact
+    ttl_seconds: 86400
+    source_reliability:
+      sql_legacy: 0.93
+      document_extraction: 0.85
+
+  # ---------------------------------------------------------------------------
+  # Derived model output
+  #
+  # The risk model's prediction is itself evidence, with the model as its
+  # source. It carries the model version in provenance so a recommendation can
+  # always be traced to the exact artifact that produced the number.
+  # ---------------------------------------------------------------------------
+  excursion_risk_probability:
+    kind: numeric
+    unit: probability
+    safety_critical: true
+    conflict_tolerance: 0.05
+    ttl_seconds: 600
+    plausible_range: [0.0, 1.0]
+    source_reliability:
+      risk_model: 1.00
+    description: >
+      Probability of a temperature excursion within the assessment horizon.
+      Reliability is 1.0 because the value is deterministic given the model
+      version and feature vector; uncertainty lives in calibration, which is
+      reported separately, not in the evidence confidence.
