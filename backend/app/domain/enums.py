@@ -92,6 +92,65 @@ class ConfidenceBasis(StrEnum):
     DERIVED = "derived"
 
 
+class IncidentStatus(StrEnum):
+    """Where an incident is in its lifecycle.
+
+    The vocabulary is fixed here because the database column and the
+    deduplication query both need it. The *transitions* between these states -
+    which ones are legal, and what each one requires - belong to the incident
+    state machine and are deliberately not encoded here.
+
+    ``SUPERSEDED`` is distinct from ``CLOSED``: an incident absorbed into
+    another is not a resolved incident, and counting it as one would flatter
+    every resolution metric.
+    """
+
+    DETECTED = "detected"
+    INVESTIGATING = "investigating"
+    AWAITING_APPROVAL = "awaiting_approval"
+    ACTING = "acting"
+    VERIFYING = "verifying"
+    RESOLVED = "resolved"
+    CLOSED = "closed"
+    SUPERSEDED = "superseded"
+
+
+#: The statuses that mean an incident is still live. A new detection matching
+#: one of these on the same correlation key attaches rather than opening a
+#: duplicate, which is what stops one degrading truck producing forty
+#: incidents.
+ACTIVE_INCIDENT_STATUSES = frozenset(
+    {
+        IncidentStatus.DETECTED,
+        IncidentStatus.INVESTIGATING,
+        IncidentStatus.AWAITING_APPROVAL,
+        IncidentStatus.ACTING,
+        IncidentStatus.VERIFYING,
+    }
+)
+
+
+class IncidentSeverity(StrEnum):
+    SEV1 = "sev1"
+    SEV2 = "sev2"
+    SEV3 = "sev3"
+    SEV4 = "sev4"
+
+
+class DetectedBy(StrEnum):
+    """Which detector raised an incident.
+
+    Stored on every incident because lead time is defined as the gap between
+    ``AXON`` and ``BASELINE`` detecting the same event. Without this field that
+    comparison is not computable after the fact, and the headline claim would
+    rest on a number nobody could reproduce.
+    """
+
+    AXON = "axon"
+    BASELINE = "baseline"
+    HUMAN = "human"
+
+
 class RootCause(StrEnum):
     """Candidate root causes for a cold-chain incident.
 
