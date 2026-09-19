@@ -84,9 +84,14 @@ def test_breaching_scenarios_are_identified(pack):
 
 
 def test_flagship_scenario_stays_in_spec_until_late(pack):
-    """The whole premise: a threshold detector sees nothing for over two hours."""
+    """The whole premise: a threshold detector sees nothing for over two hours.
+
+    The exact minute is derived from the calibrated thermal model rather than
+    chosen; `tests/unit/test_physics.py` asserts the simulation still
+    reproduces it.
+    """
     scenario = pack.scenarios["compressor_degradation_pharma_01"]
-    assert scenario.ground_truth.breach_at_min == 158
+    assert scenario.ground_truth.breach_at_min == 137
     assert scenario.ground_truth.breach_at_min > 120
 
 

@@ -179,6 +179,7 @@ module = [
     "langfuse.*",
     "apscheduler.*",
     "testcontainers.*",
+    "pyarrow.*",
 ]
 ignore_missing_imports = true
 
