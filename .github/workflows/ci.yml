@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # CI never calls a paid API. Agent tests replay recorded cassettes, which is
+  # what makes them deterministic as well as free.
+  AXON_LLM_MODE: cassette
+  AXON_ENV: ci
+
+jobs:
+  quality:
+    name: Lint, types, architecture
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint and format check
+        run: uv run poe lint
+
+      - name: Type check (mypy --strict)
+        run: uv run poe typecheck
+
+      - name: Module boundary contracts
+        run: uv run poe arch
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run unit tests
+        run: uv run pytest tests/unit -v --cov=backend/app --cov-report=xml
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: coverage.xml
+          if-no-files-found: ignore
+
+  security:
+    name: Security tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      # These are hard gates, not advisory. A single prohibited SQL operation
+      # reaching the driver, or a single policy bypass, fails the build.
+      - name: SQL guard and policy bypass tests
+        run: uv run pytest tests/security -v
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  integration:
+    name: Integration tests (real Postgres + SQL Server)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install the Microsoft ODBC driver
+        run: |
+          curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+            | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+          curl -fsSL https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
+            | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      # testcontainers starts real engines. The legacy integration is only
+      # meaningfully tested against actual SQL Server: a Postgres stand-in
+      # would not exercise T-SQL dialect handling or the ODBC driver path.
+      - name: Run integration tests
+        run: uv run pytest tests/integration -v
+
+  agent:
+    name: Agent workflow (cassette replay)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Replay agent workflows
+        run: uv run pytest tests/agent -v
+
+  benchmark-gate:
+    name: AxonBench regression gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [agent]
+    # Enabled once AxonBench v0 lands in Phase 1. The gate is absolute on
+    # safety metrics (forbidden actions, approval bypass must be zero) and
+    # tolerance-based on quality metrics.
+    if: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run AxonBench against the stored baseline
+        run: uv run poe bench -- --mode cached --compare-baseline --fail-on-regression

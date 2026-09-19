@@ -1,0 +1,236 @@
+# Claim register
+
+Every performance claim AxonFDE makes — in the README, the UI, a case study, a
+CV bullet or an interview — is registered here together with the evidence
+required to support it.
+
+**The rule is absolute:**
+
+> No number appears anywhere unless a stored benchmark run produced it, and
+> that run is identified by `(git_sha, prompt_version, model_id, pack_version,
+> config_hash)`.
+
+Claims move through three states:
+
+| State | Meaning |
+|---|---|
+| `PLACEHOLDER` | Registered, not yet measured. May not be stated anywhere. |
+| `MEASURED` | A stored run supports it. Must cite the run ID. |
+| `REFUTED` | Measured and not supported. **Published anyway.** |
+
+A `REFUTED` claim is not a failure of the project. An ablation that shows a
+capability does not help is a real finding, and reporting it is worth more than
+quietly deleting the experiment. Two claims below (C4, C5) are explicitly
+expected to have a meaningful chance of landing there.
+
+---
+
+## Forbidden claims
+
+These can never be truthfully made by this project, whatever the benchmark
+says, because the system has no access to the underlying reality:
+
+- Any statement about **real-world** accuracy, spoilage, or dollars saved.
+- Any reference to real customers, real users, production scale, or uptime.
+- Any claim that the risk model generalises beyond the simulator it was
+  trained on.
+- Any claim that the intervention simulator predicts physical outcomes.
+
+Anything framed in dollars is a **model-based estimate under stated
+assumptions** and must be labelled as such at every point of use.
+
+---
+
+## Register
+
+### C1 — Lead time over threshold detection
+
+| | |
+|---|---|
+| **Claim** | AxonFDE raises an actionable incident before a threshold alarm fires. |
+| **Metric** | Median lead time and IQR, in minutes, **reported jointly with false-alarm rate**. |
+| **Baseline** | `BaselineDetector` (threshold alarm) consuming the identical event stream. |
+| **Dataset** | ≥40 AxonBench scenarios in which a breach actually occurs. |
+| **Method** | `lead_time = t(threshold_alarm) − t(axon_alert)`, computed only over true-breach scenarios. |
+| **Status** | `PLACEHOLDER` |
+
+> **Why the pairing is mandatory.** Lead time alone is trivially gameable: a
+> detector that alerts constantly has infinite lead time and zero value. The
+> metric is meaningless unless quoted with the false-alarm rate at the same
+> operating threshold. Any presentation of C1 that omits it is a misuse.
+
+### C2 — Calibrated excursion probability
+
+| | |
+|---|---|
+| **Claim** | The risk model outputs calibrated probabilities, not just accurate rankings. |
+| **Metric** | AUC-PR, Brier score, Expected Calibration Error, reliability diagram. |
+| **Baseline** | (1) current-temperature margin rule, (2) linear slope extrapolation, (3) logistic regression. |
+| **Dataset** | Held-out scenarios split by **generative regime** — unseen seeds, unseen fault types, unseen ambient ranges. |
+| **Method** | Isotonic calibration fitted on a dedicated split; operating threshold chosen by expected cost, not 0.5. |
+| **Status** | `PLACEHOLDER` |
+
+> **Stated limitation, mandatory at every point of use:** trained and evaluated
+> on synthetic data from a documented lumped-capacitance thermal model.
+> Real-world generalisation is unvalidated.
+>
+> **Stop condition:** if LightGBM does not beat slope extrapolation by ≥5
+> points on lead-time-at-fixed-false-alarm-rate after two feature iterations,
+> the baseline ships as the production model and the ML result is published as
+> a negative finding.
+
+### C3 — Root-cause identification
+
+| | |
+|---|---|
+| **Claim** | The system identifies the correct root cause of an incident. |
+| **Metric** | Top-1 and top-3 accuracy; contributing-cause F1. |
+| **Baseline** | `rules_only` arm (no LLM). |
+| **Dataset** | AxonBench scenarios with IncidentForge ground truth. |
+| **Status** | `PLACEHOLDER` |
+
+### C4 — Multimodal evidence improves outcomes
+
+| | |
+|---|---|
+| **Claim** | Adding visual and document evidence measurably improves decisions. |
+| **Metric** | Δ root-cause accuracy, Δ conflict-detection accuracy, Δ cost, Δ latency. |
+| **Baseline** | The `sql + telemetry + sop` arm. |
+| **Dataset** | Modality arms A–E, with emphasis on the `sensor_drift` family where visual evidence should be decisive. |
+| **Status** | `PLACEHOLDER` — **may be refuted; publish either way** |
+
+### C5 — The LLM adds value over rules alone
+
+| | |
+|---|---|
+| **Claim** | The language model contributes beyond what deterministic rules achieve. |
+| **Metric** | Δ root-cause accuracy, Δ correct-action selection, judge-scored explanation quality. |
+| **Baseline** | `rules_only`: rule-derived hypotheses, rule-derived actions, templated narrative. |
+| **Status** | `PLACEHOLDER` — **may be refuted; publish either way** |
+
+> This is the ablation most likely to be attacked in an interview and the one
+> most worth running early. If the LLM contributes little, that is a finding
+> about where LLMs belong in safety-critical workflows — which is a more
+> interesting result than a marginal accuracy bump.
+
+### C6 — Cross-source contradiction detection
+
+| | |
+|---|---|
+| **Claim** | The system automatically detects when enterprise sources disagree. |
+| **Metric** | Precision and recall against seeded, known conflicts. |
+| **Baseline** | None — this is a new capability, not an improvement on one. |
+| **Dataset** | Scenarios seeded with ERP-vs-BOL mismatches and sensor-vs-panel disagreements. |
+| **Status** | `PLACEHOLDER` |
+
+### C7 — AI cannot execute unauthorised actions
+
+| | |
+|---|---|
+| **Claim** | No model output can cause an unauthorised side effect. |
+| **Metric** | Unauthorised-action rate and approval-bypass rate. **Target: exactly 0.** |
+| **Method** | Full role × action policy matrix, plus the AxonRed escalation attacks. |
+| **Gate** | Non-zero fails CI. This is not a tolerance-based metric. |
+| **Status** | `PLACEHOLDER` |
+
+### C8 — Generated SQL cannot mutate the legacy system
+
+| | |
+|---|---|
+| **Claim** | The AI's database access is provably read-only. |
+| **Metric** | Prohibited-operation rate across ~60 adversarial inputs. **Target: exactly 0.** |
+| **Method** | Three independent layers, each tested separately: SQLGlot AST allowlist, the `axon_ai_ro` grant (SELECT on six views only), and statement timeouts + row caps. |
+| **Gate** | Non-zero fails CI. |
+| **Status** | `PLACEHOLDER` |
+
+### C9 — Resistance to prompt injection across modalities
+
+| | |
+|---|---|
+| **Claim** | Injected instructions in documents, images, SOPs and database values do not alter system behaviour. |
+| **Metric** | Attack success rate, policy-violation rate, leakage rate, **and benign-task degradation**. |
+| **Baseline** | The same scenarios with defences disabled. |
+| **Status** | `PLACEHOLDER` |
+
+> Benign-task degradation is part of the claim, not a footnote. A defence that
+> costs eight points of root-cause accuracy is a bad defence, and reporting
+> attack-success-rate alone would hide that.
+>
+> **Stop condition:** an attack success rate of 0 on the first run means the
+> attack pack is too weak, not that the system is secure. Strengthen the
+> attacks before reporting anything.
+
+### C10 — Recommendations are grounded in retrieved evidence
+
+| | |
+|---|---|
+| **Claim** | The system does not assert anything its evidence does not support. |
+| **Metric** | Unsupported-claim rate. |
+| **Method** | **Deterministic**, not LLM-judged: every cited evidence ID must exist in the context bundle, and every numeric claim in the narrative must match an evidence value within tolerance. |
+| **Status** | `PLACEHOLDER` |
+
+### C11 — Outcome verification
+
+| | |
+|---|---|
+| **Claim** | The system verifies whether an intervention actually worked. |
+| **Metric** | Verification-verdict accuracy against known post-action trajectories. |
+| **Status** | `PLACEHOLDER` |
+
+### C12 — Operating cost and latency
+
+| | |
+|---|---|
+| **Claim** | An incident is investigated end to end for $X at p95 latency Y seconds. |
+| **Metric** | Cost p50/p95 and latency p50/p95, aggregated from `model_invocation` rows and OTel spans. |
+| **Status** | `PLACEHOLDER` |
+
+### C13 — Safe degradation
+
+| | |
+|---|---|
+| **Claim** | The system degrades safely when dependencies fail, and never fabricates a missing observation. |
+| **Metric** | Correct-degradation rate per failure mode; **fabrication rate, target exactly 0**. |
+| **Method** | Failure-injection suite covering every row of the failure matrix. |
+| **Status** | `PLACEHOLDER` |
+
+### C14 — Workflow improvement over the legacy process
+
+| | |
+|---|---|
+| **Claim** | Dispatchers reach a correct decision faster with AxonFDE than with the legacy workflow. |
+| **Metric** | Time to diagnosis, correct-action rate, manual step count, self-reported confidence. |
+| **Baseline** | Legacy Mode UI (static tables + threshold alarms) over identical scenarios. |
+| **Method** | Counterbalanced within-subject study, ≥8 participants. |
+| **Status** | `PLACEHOLDER` (Phase 8) |
+
+> If ≥8 participants are not available, this downgrades to a structured
+> self-comparison with the limitation stated prominently — not dropped, and not
+> presented as a user study.
+
+### C15 — Estimated avoided loss
+
+| | |
+|---|---|
+| **Claim** | Under stated assumptions, the system avoids an estimated $X of cargo loss per N shipments. |
+| **Metric** | Expected avoided loss with a sensitivity band. |
+| **Baseline** | A do-nothing policy over identical scenarios. |
+| **Status** | `PLACEHOLDER` — must always be labelled a model-based estimate |
+
+> Every input (cargo value, spoilage fraction, intervention cost, delay
+> penalty) lives in a versioned assumptions file and is reproduced next to the
+> number wherever it appears.
+
+---
+
+## Review checklist
+
+Before any write-up, demo or CV bullet ships:
+
+- [ ] Every number traces to a stored benchmark run ID.
+- [ ] Every claim with a baseline states the baseline alongside the result.
+- [ ] C1 is never quoted without its false-alarm rate.
+- [ ] C2 is never quoted without the synthetic-data limitation.
+- [ ] C15 is never quoted without "model-based estimate" and its assumptions.
+- [ ] Refuted claims are present and visible, not removed.
+- [ ] No claim from the forbidden list appears in any form.
