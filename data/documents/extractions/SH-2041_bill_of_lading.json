@@ -1,0 +1,38 @@
+{
+  "document_id": "SD-9001",
+  "shipment_id": "SH-2041",
+  "document_type": "bill_of_lading",
+  "storage_uri": "s3://axon-artifacts/bol/SH-2041.pdf",
+  "sha256": "8f14e45fceea167a5a36dedd4bea2543f4b3a1b6c8e9d0a2f5c7b1e3d6a89042",
+  "signed_at": "2026-07-14T09:42:00Z",
+  "extractor": "seeded_fixture",
+  "extractor_version": "1.0.0",
+  "extracted_at": "2026-07-14T09:45:00Z",
+  "note": "The legally operative envelope. The ERP holds 2-10 C for this shipment; this signed document holds 2-8 C. Nothing in the customer's current system reconciles the two.",
+  "fields": [
+    {
+      "observation_type": "permitted_temp_min_c",
+      "value": 2.0,
+      "page": 1,
+      "bbox": [72.0, 418.5, 214.0, 432.0],
+      "extraction_confidence": 0.97,
+      "verbatim": "Min temperature: 2.0 C"
+    },
+    {
+      "observation_type": "permitted_temp_max_c",
+      "value": 8.0,
+      "page": 1,
+      "bbox": [72.0, 434.0, 214.0, 447.5],
+      "extraction_confidence": 0.96,
+      "verbatim": "Max temperature: 8.0 C"
+    },
+    {
+      "observation_type": "cargo_class",
+      "value": "pharma_2_8",
+      "page": 1,
+      "bbox": [72.0, 392.0, 260.0, 405.5],
+      "extraction_confidence": 0.99,
+      "verbatim": "Commodity class: PHARMA 2-8"
+    }
+  ]
+}

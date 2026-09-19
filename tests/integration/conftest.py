@@ -23,6 +23,7 @@ from backend.app.config import get_settings
 from backend.app.db.app.models import AuditEvent, Base
 from backend.app.db.app.session import build_engine
 from backend.app.db.legacy.session import LegacyConnectionError, legacy_connection
+from tests.conftest import missing_dependency
 
 
 def _legacy_available() -> tuple[bool, str]:
@@ -38,13 +39,10 @@ def _legacy_available() -> tuple[bool, str]:
 
 @pytest.fixture(scope="session")
 def legacy_ready() -> None:
-    """Skip the suite unless the seeded legacy database is reachable."""
+    """Skip, or in CI fail, unless the seeded legacy database is reachable."""
     available, reason = _legacy_available()
     if not available:
-        pytest.skip(
-            "Legacy SQL Server unavailable or unseeded "
-            f"(run `poe up && poe seed`). Detail: {reason}"
-        )
+        missing_dependency("The seeded legacy SQL Server (`poe up && poe seed`)", reason)
 
 
 @pytest.fixture
@@ -84,7 +82,7 @@ async def _probe_app_db() -> tuple[bool, str]:
 
 @pytest.fixture(scope="session")
 def app_db_ready() -> None:
-    """Skip unless the migrated application database is reachable.
+    """Skip, or in CI fail, unless the migrated application database is there.
 
     Checks the restricted runtime role specifically. A database that is up but
     unmigrated fails this too, which is the intent: every test below depends
@@ -92,10 +90,7 @@ def app_db_ready() -> None:
     """
     available, reason = asyncio.run(_probe_app_db())
     if not available:
-        pytest.skip(
-            f"Application database unavailable or unmigrated "
-            f"(run `poe up && poe migrate`). Detail: {reason}"
-        )
+        missing_dependency("The migrated application database (`poe up && poe migrate`)", reason)
 
 
 async def _truncate_all(engine: AsyncEngine) -> None:
