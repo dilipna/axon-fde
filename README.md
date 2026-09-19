@@ -12,6 +12,8 @@ whether the intervention actually worked.
 > vertical slice) is next. No performance claim appears in this README until it is produced by a
 > stored benchmark run. Anything not yet measured is explicitly marked `PLACEHOLDER`.
 
+**Resuming work?** Read [CONTINUE.md](CONTINUE.md) first.
+
 **Start here:** [customer brief](docs/customer-brief.md) ·
 [architecture](docs/architecture/overview.md) ·
 [evidence model](docs/architecture/evidence-model.md) ·
