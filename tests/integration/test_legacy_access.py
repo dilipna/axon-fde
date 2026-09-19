@@ -105,7 +105,7 @@ def test_restricted_login_cannot_execute_procedures(ro_cursor, statement: str):
         ro_cursor.execute(statement)
 
 
-def test_restricted_login_cannot_escalate_its_own_privileges():
+def test_restricted_login_cannot_escalate_its_own_privileges(legacy_ready):
     """Asserts the *outcome* of an escalation attempt, not that it errors.
 
     This test originally expected `pyodbc.Error`, and it failed: the legacy
@@ -248,7 +248,7 @@ def test_historical_incidents_cover_the_expected_root_causes(ro_cursor):
 # ---------------------------------------------------------------------------
 
 
-def test_connection_carries_a_statement_timeout(settings):
+def test_connection_carries_a_statement_timeout(legacy_ready, settings):
     """The third layer alongside the grant and the AST guard: a pathological
     query cannot degrade the ERP for the humans who depend on it."""
     with legacy_connection(readonly=True) as connection:
