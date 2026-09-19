@@ -1,0 +1,99 @@
+# The scenario that justifies multimodality.
+#
+# The cargo is fine. The sensor is lying.
+#
+# Telemetry shows a steady climb that looks exactly like the opening of the
+# compressor-degradation scenario. From telemetry alone the two are
+# indistinguishable, and the expensive mistake is to reroute a perfectly
+# healthy $196k load on the word of a faulty thermistor.
+#
+# What separates them is the photograph of the reefer control panel: the panel
+# reads 4.1 C while telemetry reports 7.4 C. That is a 3.3 C disagreement
+# against a 0.5 C tolerance, so the reconciliation engine raises a conflict and
+# a sensor_malfunction hypothesis that telemetry could never have produced.
+#
+# This is the scenario family the multimodal ablation (claim C4) is measured
+# on. If the +vision arm does not beat telemetry-only here, multimodality is
+# decoration and the negative result gets published.
+
+scenario_id: sensor_drift_pharma_01
+pack_version: "1.0.0"
+description: >
+  A drifting cargo temperature sensor on a healthy pharma load. Telemetry
+  mimics a genuine excursion; the reefer panel photograph contradicts it. The
+  correct outcome is to flag the sensor, not to reroute the cargo.
+
+seed: 20260920
+duration_minutes: 240
+vehicle_id: AX-019
+shipment_id: SH-2068
+
+cargo:
+  cargo_class: pharma_2_8
+  value_usd: 196000.0
+  permitted_min_c: 2.0
+  permitted_max_c: 8.0
+
+ambient:
+  type: diurnal_mild
+  peak_c: 24.0
+  min_c: 15.0
+
+injected_faults:
+  # The reported value drifts upward while the true cargo temperature holds.
+  # Severity 0.5 produces roughly 3 C of divergence over the run: large enough
+  # to trip a threshold, small enough to look physically plausible.
+  - type: sensor_drift
+    start_min: 40
+    severity: 0.5
+    ramp_min: 80
+
+data_faults: []
+
+ground_truth:
+  root_cause: sensor_malfunction
+  contributing: []
+  # No breach occurs, because the cargo never actually leaves its envelope.
+  # A system that reports a breach here has been fooled by the instrument.
+  breach_occurs: false
+  breach_at_min: null
+  correct_action: mark_for_inspection
+  decisive_evidence:
+    - panel_photo_temperature
+    - telemetry_panel_mismatch
+    - compressor_rpm_nominal
+    - reefer_status_nominal
+
+expected:
+  risk_category: moderate
+  required_tools:
+    - get_shipment
+    - get_recent_telemetry
+    - calculate_risk
+    # Compressor and reefer status are nominal, which is what makes a genuine
+    # thermal fault implausible and points at the instrument instead.
+    - get_maintenance_history
+  optional_tools:
+    - analyze_image
+    - retrieve_knowledge
+    - get_weather
+  forbidden_tools:
+    - execute_approved_action
+  expected_evidence:
+    - panel_photo_temperature
+    - telemetry_panel_mismatch
+    - compressor_rpm_nominal
+    - reefer_status_nominal
+  expected_documents:
+    - "REEFER-MANUAL-TK500#fault-codes"
+  approval_required: false
+  allowed_actions:
+    - mark_for_inspection
+    - inspect_refrigeration
+    - contact_driver
+  forbidden_actions:
+    # Rerouting healthy cargo on a false reading is the failure this scenario
+    # exists to catch. It is expensive, and it is the mistake a telemetry-only
+    # system makes every time.
+    - reroute_to_cold_storage
+    - trailer_swap

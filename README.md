@@ -8,9 +8,17 @@ to predict incidents *before* a threshold is breached, investigate root causes, 
 options, recommend an evidence-backed action, execute it only under human approval, and then verify
 whether the intervention actually worked.
 
-> **Status: Phase 0 (scaffolding).** The system is under active construction. No performance claim
-> appears in this README until it is produced by a stored benchmark run. Anything not yet measured
-> is explicitly marked `PLACEHOLDER`.
+> **Status: Phase 0 complete — discovery, design and foundations.** Phase 1 (the end-to-end
+> vertical slice) is next. No performance claim appears in this README until it is produced by a
+> stored benchmark run. Anything not yet measured is explicitly marked `PLACEHOLDER`.
+
+**Start here:** [customer brief](docs/customer-brief.md) ·
+[architecture](docs/architecture/overview.md) ·
+[evidence model](docs/architecture/evidence-model.md) ·
+[ADRs](docs/adr/README.md) ·
+[threat model](docs/threat-model/README.md) ·
+[evaluation strategy](docs/evaluation/strategy.md) ·
+[claim register](docs/evaluation/claims.md)
 
 ---
 
@@ -103,12 +111,21 @@ IncidentForge simulator ──► AxonBench evaluation harness
 
 ```bash
 git clone <repo> && cd axonfde
+
+# One command does everything below, and is safe to re-run:
+./scripts/bootstrap.sh        # macOS / Linux
+.\scripts\bootstrap.ps1       # Windows
+
+# Or step by step:
 cp .env.example .env          # defaults work for local development
 uv sync                       # creates .venv with a pinned Python 3.12
 uv run poe up                 # postgres + mssql + minio
-uv run poe seed               # seed the legacy ERP and the app database
-uv run poe demo               # end-to-end incident, offline, no API key required
+uv run poe check              # lint, types, module contracts, tests
 ```
+
+> **Do not put this repository inside OneDrive, Dropbox or any synced folder.**
+> Cloud sync fights `.venv`, `node_modules` and Docker bind mounts, producing file locks and
+> intermittent corruption. The bootstrap script warns if it detects one.
 
 `poe demo` runs the full loop from cassettes, so it costs nothing and is deterministic.
 
