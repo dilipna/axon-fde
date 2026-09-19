@@ -1,0 +1,27 @@
+# Normalise to LF in the repository. Without this, Windows checkouts commit
+# CRLF into files that Linux containers execute (seed scripts, entrypoints),
+# which fails in ways that are tedious to diagnose.
+* text=auto eol=lf
+
+# Files that must keep LF even on a Windows working copy, because they are
+# executed inside Linux containers or by CI.
+*.sh      text eol=lf
+*.sql     text eol=lf
+Dockerfile text eol=lf
+
+# Windows-only scripts keep CRLF.
+*.ps1     text eol=crlf
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+
+# Binary assets: never touch.
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.pdf     binary
+*.parquet binary
+*.onnx    binary
+
+# Generated: collapse diffs in review.
+uv.lock          linguist-generated=true -diff
+package-lock.json linguist-generated=true -diff
