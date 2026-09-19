@@ -1,0 +1,30 @@
+{
+  "document_id": "SD-9002",
+  "shipment_id": "SH-2052",
+  "document_type": "bill_of_lading",
+  "storage_uri": "s3://axon-artifacts/bol/SH-2052.pdf",
+  "sha256": "c2a8f0d4b6e19357ad02cf48b7e6519a3d84c0f27b5e9136a4d8c0e2f7b31a56",
+  "signed_at": "2026-07-14T09:31:00Z",
+  "extractor": "seeded_fixture",
+  "extractor_version": "1.0.0",
+  "extracted_at": "2026-07-14T09:34:00Z",
+  "note": "The control case: this document agrees with the ERP. Without one of these, a test asserting that a conflict is found could pass on an adapter that reports a conflict for every shipment.",
+  "fields": [
+    {
+      "observation_type": "permitted_temp_min_c",
+      "value": 2.0,
+      "page": 1,
+      "bbox": [72.0, 418.5, 214.0, 432.0],
+      "extraction_confidence": 0.98,
+      "verbatim": "Min temperature: 2.0 C"
+    },
+    {
+      "observation_type": "permitted_temp_max_c",
+      "value": 8.0,
+      "page": 1,
+      "bbox": [72.0, 434.0, 214.0, 447.5],
+      "extraction_confidence": 0.97,
+      "verbatim": "Max temperature: 8.0 C"
+    }
+  ]
+}

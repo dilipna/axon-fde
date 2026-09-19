@@ -15,6 +15,12 @@ env:
   # what makes them deterministic as well as free.
   AXON_LLM_MODE: cassette
   AXON_ENV: ci
+  # A test that skips is a test that did not run. Locally a missing database
+  # or an ungenerated scenario recording skips, which keeps `poe test` useful
+  # on a fresh clone. Here it fails: a job that starts no database, skips
+  # every test that needed one and reports success is a green tick that means
+  # nothing. See tests/conftest.py.
+  AXON_REQUIRE_INTEGRATION: "1"
 
 jobs:
   quality:
@@ -58,6 +64,15 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      # `data/generated/` is gitignored, so the recordings have to be rebuilt.
+      # They are deterministic from a seed, which is what makes that safe: the
+      # scenario CI measures is byte-identical to the one on a laptop.
+      - name: Generate scenario recordings
+        run: uv run poe forge run-all
+
+      - name: Verify scenario determinism
+        run: uv run poe forge verify
+
       - name: Run unit tests
         run: uv run pytest tests/unit -v --cov=backend/app --cov-report=xml
 
@@ -98,6 +113,41 @@ jobs:
     name: Integration tests (real Postgres + SQL Server)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
+    # Real engines, because the claims these tests make are about real
+    # engines: append-only enforcement is a PostgreSQL grant and trigger, and
+    # the legacy permission boundary is a SQL Server one. A stand-in would
+    # test neither.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: axon
+          POSTGRES_PASSWORD: axon_local_dev
+          POSTGRES_DB: axon
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U axon -d axon"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: Axon_Local_Dev_1
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Axon_Local_Dev_1 -C -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 45s
+
     steps:
       - uses: actions/checkout@v4
 
@@ -119,9 +169,20 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      # testcontainers starts real engines. The legacy integration is only
-      # meaningfully tested against actual SQL Server: a Postgres stand-in
-      # would not exercise T-SQL dialect handling or the ODBC driver path.
+      # Creates the schema, the append-only trigger and the restricted
+      # `axon_app` runtime role. Without this the integration fixtures have
+      # nothing to connect as.
+      - name: Migrate the application database
+        run: uv run poe migrate
+
+      # Creates the ERP schema, the six vw_ai_* views and the read-only login,
+      # then verifies least privilege actually holds.
+      - name: Seed the legacy database
+        run: uv run poe seed
+
+      - name: Generate scenario recordings
+        run: uv run poe forge run-all
+
       - name: Run integration tests
         run: uv run pytest tests/integration -v
 
