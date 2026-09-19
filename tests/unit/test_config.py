@@ -70,34 +70,38 @@ def test_full_settings_repr_contains_no_secret_values():
 # ---------------------------------------------------------------------------
 
 
+def _deployed(**overrides: object) -> dict[str, object]:
+    """A configuration a deployed environment would accept.
+
+    The single place that spells out what "properly configured" means. Every
+    test needing a deployed environment builds on it, so adding a new startup
+    requirement is one edit here rather than a scattering of unrelated test
+    failures - which is exactly what happened when the audit key was added.
+    """
+    base: dict[str, object] = {
+        "axon_env": "production",
+        "axon_jwt_secret": "x" * 40,
+        "postgres_password": "a-real-password",
+        "postgres_app_password": "a-real-app-password",
+        "mssql_sa_password": "A-Real-Password-1",
+        "axon_audit_hmac_key": "k" * 64,
+    }
+    base.update(overrides)
+    return base
+
+
 def test_dev_tokens_allowed_only_in_local():
     """A dev token issuer reachable from a deployed environment is a full
     authentication bypass, so this gate is on the environment, not a flag."""
     assert make_settings(axon_env="local").allow_dev_tokens is True
     for env in ("ci", "demo", "production"):
-        settings = make_settings(
-            axon_env=env,
-            axon_jwt_secret="x" * 40,
-            postgres_password="a-real-password",
-            mssql_sa_password="A-Real-Password-1",
-        )
+        settings = make_settings(**_deployed(axon_env=env))
         assert settings.allow_dev_tokens is False, env
 
 
 # ---------------------------------------------------------------------------
 # Deployed environments reject development defaults
 # ---------------------------------------------------------------------------
-
-
-def _deployed(**overrides: object) -> dict[str, object]:
-    base: dict[str, object] = {
-        "axon_env": "production",
-        "axon_jwt_secret": "x" * 40,
-        "postgres_password": "a-real-password",
-        "mssql_sa_password": "A-Real-Password-1",
-    }
-    base.update(overrides)
-    return base
 
 
 def test_production_accepts_a_properly_configured_environment():
@@ -112,6 +116,12 @@ def test_production_accepts_a_properly_configured_environment():
         ({"axon_jwt_secret": "too-short"}, "32 characters"),
         ({"postgres_password": "axon_local_dev"}, "POSTGRES_PASSWORD"),
         ({"mssql_sa_password": "Axon_Local_Dev_1"}, "MSSQL_SA_PASSWORD"),
+        ({"postgres_app_password": "axon_app_local_dev"}, "POSTGRES_APP_PASSWORD"),
+        # An unkeyed chain still detects partial tampering, so this is easy to
+        # leave unset and believe it is fine. It is not: an attacker with
+        # database write access can rewrite the whole thing and it verifies.
+        ({"axon_audit_hmac_key": None}, "AXON_AUDIT_HMAC_KEY"),
+        ({"axon_audit_hmac_key": "too-short"}, "32 characters"),
     ],
 )
 def test_production_rejects_development_defaults(override, expected):
@@ -122,6 +132,37 @@ def test_production_rejects_development_defaults(override, expected):
 def test_production_rejects_paid_llm_mode_without_a_key():
     with pytest.raises(ValidationError, match="ANTHROPIC_API_KEY"):
         make_settings(**_deployed(axon_llm_mode="live", anthropic_api_key=None))
+
+
+def test_the_audit_key_is_bytes_and_absent_when_unset():
+    """The chain takes a key as bytes, and `None` must mean unkeyed.
+
+    An empty-bytes key would be a *different* key rather than no key, and a
+    chain written that way would silently fail to verify against a genuinely
+    unkeyed reader.
+    """
+    assert make_settings(axon_env="local").audit_hmac_key() is None
+    assert make_settings(**_deployed()).audit_hmac_key() == b"k" * 64
+
+
+def test_the_runtime_role_is_not_the_schema_owner():
+    """Sharing one role would make the append-only grants inert.
+
+    PostgreSQL skips privilege checks for superusers, and the owner is one, so
+    an application connecting as the owner is protected only by the trigger
+    while appearing to be protected by three layers.
+    """
+    settings = make_settings()
+    assert settings.postgres_app_user != settings.postgres_user
+    assert settings.postgres_app_dsn != settings.postgres_dsn
+    assert settings.postgres_app_user in settings.postgres_app_dsn
+
+
+def test_the_database_passwords_stay_out_of_the_settings_repr():
+    """Both DSNs carry a password, which is why neither is a computed_field."""
+    rendered = repr(make_settings())
+    for leaked in ("axon_local_dev", "axon_app_local_dev", "postgresql+asyncpg"):
+        assert leaked not in rendered
 
 
 def test_local_does_not_enforce_deployment_hardening():

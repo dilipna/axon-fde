@@ -237,6 +237,22 @@ source_modules = [
 forbidden_modules = ["pyodbc"]
 
 [[tool.importlinter.contracts]]
+# The two databases are different engines with different concurrency models:
+# asyncpg on the event loop, pyodbc in a worker thread. Letting either side
+# import the other is how a blocking ODBC call ends up on the event loop, and
+# how the read-only guarantee on the legacy system gets quietly routed around.
+name = "The application database never reaches for the legacy driver"
+type = "forbidden"
+source_modules = ["backend.app.db.app"]
+forbidden_modules = ["pyodbc", "backend.app.db.legacy"]
+
+[[tool.importlinter.contracts]]
+name = "The legacy path stays synchronous and self-contained"
+type = "forbidden"
+source_modules = ["backend.app.db.legacy"]
+forbidden_modules = ["asyncpg", "backend.app.db.app"]
+
+[[tool.importlinter.contracts]]
 name = "The policy engine is pure: no I/O"
 type = "forbidden"
 source_modules = ["backend.app.policies"]

@@ -55,11 +55,30 @@ class Settings(BaseSettings):
     axon_api_port: int = Field(default=8000, ge=1, le=65535)
 
     # -- application database ---------------------------------------------
+    # Two roles, for the same reason the legacy system has two logins.
+    #
+    # `postgres_user` owns the schema and runs migrations. It is a superuser
+    # locally, which matters: PostgreSQL does not apply table privileges to a
+    # superuser at all, so the append-only grants on `audit_event` would be
+    # silently inert if the application shared this role.
+    #
+    # `postgres_app_user` is the restricted runtime role the application
+    # actually connects as. It holds INSERT and SELECT on `audit_event` and
+    # nothing more. Migration 0002 creates it.
     postgres_host: str = "localhost"
     postgres_port: int = Field(default=5432, ge=1, le=65535)
     postgres_user: str = "axon"
     postgres_password: SecretStr = SecretStr("axon_local_dev")
     postgres_db: str = "axon"
+    postgres_app_user: str = "axon_app"
+    postgres_app_password: SecretStr = SecretStr("axon_app_local_dev")
+
+    #: Pool sizing. Small on purpose: the async engine multiplexes, and an
+    #: oversized pool on a 1 GB container is a way to exhaust the server's
+    #: connection slots rather than a way to go faster.
+    postgres_pool_size: int = Field(default=5, ge=1, le=50)
+    postgres_max_overflow: int = Field(default=5, ge=0, le=50)
+    postgres_command_timeout_seconds: int = Field(default=10, ge=1, le=120)
 
     # -- legacy enterprise system -----------------------------------------
     mssql_host: str = "localhost"
@@ -100,6 +119,16 @@ class Settings(BaseSettings):
     axon_max_wall_clock_seconds: int = Field(default=180, ge=1)
     axon_max_tokens_per_incident: int = Field(default=120_000, ge=1000)
 
+    # -- audit -------------------------------------------------------------
+    #: Keys the audit chain with HMAC-SHA256 instead of bare SHA-256. This is
+    #: the control that defeats a full chain rewrite: the key lives with the
+    #: application, never with the database role, so an attacker holding
+    #: database write access cannot compute a valid hash for a forged row.
+    #: Unset means an unkeyed chain, which detects partial tampering only -
+    #: see `backend/app/audit/chain.py` for exactly what that does and does
+    #: not cover.
+    axon_audit_hmac_key: SecretStr | None = None
+
     # -- authentication ----------------------------------------------------
     axon_jwt_secret: SecretStr = SecretStr("dev-only-not-a-real-secret-change-me")
     axon_jwt_issuer: str = "axonfde-local"
@@ -130,12 +159,38 @@ class Settings(BaseSettings):
     # The same reasoning applies to mssql_odbc_dsn() being a method.
     @property
     def postgres_dsn(self) -> str:
-        """Async SQLAlchemy DSN for the application database."""
-        pwd = self.postgres_password.get_secret_value()
+        """Async SQLAlchemy DSN for the schema owner.
+
+        Migrations only. The owner is a superuser, so anything running on this
+        DSN bypasses the append-only grants on `audit_event`.
+        """
+        return self._postgres_dsn(self.postgres_user, self.postgres_password)
+
+    @property
+    def postgres_app_dsn(self) -> str:
+        """Async SQLAlchemy DSN for the restricted runtime role.
+
+        Everything the application does at runtime goes through this. It is
+        separate from `postgres_dsn` so that the database-level protection on
+        the audit table is real rather than decorative.
+        """
+        return self._postgres_dsn(self.postgres_app_user, self.postgres_app_password)
+
+    def _postgres_dsn(self, user: str, password: SecretStr) -> str:
         return (
-            f"postgresql+asyncpg://{self.postgres_user}:{pwd}"
+            f"postgresql+asyncpg://{user}:{password.get_secret_value()}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
+
+    def audit_hmac_key(self) -> bytes | None:
+        """The audit chain key as bytes, or None for an unkeyed chain.
+
+        A method rather than a property so it is excluded from `repr()` and
+        `model_dump()`, for the same reason `postgres_dsn` is.
+        """
+        if self.axon_audit_hmac_key is None:
+            return None
+        return self.axon_audit_hmac_key.get_secret_value().encode("utf-8")
 
     def mssql_odbc_dsn(self, *, readonly: bool = True) -> str:
         """ODBC connection string for the legacy system.
@@ -200,6 +255,19 @@ class Settings(BaseSettings):
             problems.append("AXON_JWT_SECRET is shorter than 32 characters")
         if "local_dev" in self.postgres_password.get_secret_value():
             problems.append("POSTGRES_PASSWORD is still the development default")
+        if "local_dev" in self.postgres_app_password.get_secret_value():
+            problems.append("POSTGRES_APP_PASSWORD is still the development default")
+        # An unkeyed audit chain does not survive an attacker who rewrites it
+        # end to end. That is an acceptable trade locally and not acceptable
+        # in a deployed environment whose whole product is the audit record.
+        if self.axon_audit_hmac_key is None:
+            problems.append(
+                "AXON_AUDIT_HMAC_KEY is unset; the audit chain would be unkeyed "
+                "and a full rewrite by anyone with database write access would "
+                "verify cleanly"
+            )
+        elif len(self.axon_audit_hmac_key.get_secret_value()) < 32:
+            problems.append("AXON_AUDIT_HMAC_KEY is shorter than 32 characters")
         if "Local_Dev" in self.mssql_sa_password.get_secret_value():
             problems.append("MSSQL_SA_PASSWORD is still the development default")
         if self.llm_calls_cost_money and self.anthropic_api_key is None:
