@@ -1,0 +1,75 @@
+# The control.
+#
+# A healthy pharma load on a warm but unremarkable day. Nothing is wrong.
+#
+# This scenario exists to measure false alarms, and it matters as much as the
+# fault scenarios. Axon's dispatchers already mute alert categories (customer
+# brief section 6.6), so a system that raises an incident here has made the
+# operation worse regardless of how well it performs elsewhere. Lead time
+# without a false-alarm rate is a meaningless number, and this is where that
+# rate comes from.
+
+scenario_id: normal_pharma_run_01
+pack_version: "1.0.0"
+description: >
+  A healthy pharma shipment with a functioning reefer and moderate ambient
+  temperature. No fault, no breach, no incident. Used to measure the
+  false-alarm rate that every lead-time claim must be quoted against.
+
+seed: 20260919
+duration_minutes: 240
+vehicle_id: AX-007
+shipment_id: SH-2052
+
+cargo:
+  cargo_class: pharma_2_8
+  value_usd: 142000.0
+  permitted_min_c: 2.0
+  permitted_max_c: 8.0
+
+ambient:
+  # Warm enough that a naive slope-watcher may be tempted; the reefer handles
+  # it comfortably, which is the point.
+  type: diurnal_mild
+  peak_c: 26.0
+  min_c: 14.0
+
+injected_faults: []
+data_faults: []
+
+ground_truth:
+  root_cause: no_fault
+  contributing: []
+  breach_occurs: false
+  breach_at_min: null
+  correct_action: continue_route
+  decisive_evidence: []
+
+expected:
+  risk_category: low
+  required_tools:
+    # Even a no-incident assessment must look at the actual data before
+    # concluding nothing is wrong.
+    - get_shipment
+    - get_recent_telemetry
+    - calculate_risk
+  optional_tools:
+    - get_cargo_requirements
+    - get_weather
+  forbidden_tools:
+    - execute_approved_action
+  expected_evidence:
+    - cargo_temp_stable
+    - reefer_status_nominal
+  expected_documents: []
+  approval_required: false
+  allowed_actions:
+    - continue_route
+    - do_nothing
+  forbidden_actions:
+    # Any of these on a healthy load is a costly false positive: real money,
+    # a disrupted schedule, and a dispatcher one step closer to muting us.
+    - reroute_to_cold_storage
+    - trailer_swap
+    - escalate_maintenance
+    - draft_customer_notification

@@ -13,12 +13,12 @@ time is preserved rather than rewritten.
 | ADR | Title | State | Phase |
 |---|---|---|---|
 | [001](001-proactive-incident-response.md) | Solve proactive incident response, not conversational retrieval | Accepted | 0 |
-| 002 | Modular monolith before services | Planned | 1 |
-| 003 | One typed workflow, not a multi-agent swarm | Planned | 1 |
+| [002](002-modular-monolith.md) | Modular monolith before services | Accepted | 0 |
+| [003](003-one-typed-workflow.md) | One typed workflow, not a multi-agent swarm | Accepted | 0 |
 | [004](004-risk-outside-the-llm.md) | Operational risk is computed outside the LLM | Accepted | 0 |
-| 005 | AI access to the legacy system is read-only, through views | Planned | 1 |
-| 006 | Generated SQL is parsed and allowlisted before execution | Planned | 1 |
-| 007 | All evidence normalises to one typed, provenance-carrying model | Planned | 1 |
+| [005](005-read-only-legacy-access.md) | AI access to the legacy system is read-only, through views | Accepted | 0 |
+| [006](006-sql-parsed-before-execution.md) | Generated SQL is parsed and allowlisted before execution | Accepted | 0 |
+| [007](007-typed-normalized-evidence.md) | All evidence normalises to one typed, provenance-carrying model | Accepted | 0 |
 | 008 | Approvals are bound to the evidence they were granted against | Planned | 1 |
 | 009 | Streaming is justified by replay, not by throughput | Planned | 2 |
 | 010 | PostgreSQL + pgvector is sufficient; no second vector store | Planned | 1 |

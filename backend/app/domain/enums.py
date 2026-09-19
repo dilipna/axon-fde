@@ -90,3 +90,64 @@ class ConfidenceBasis(StrEnum):
     EXTRACTION_MODEL = "extraction_model"
     SOURCE_RELIABILITY = "source_reliability"
     DERIVED = "derived"
+
+
+class RootCause(StrEnum):
+    """Candidate root causes for a cold-chain incident.
+
+    A closed set shared by three consumers: the hypothesis scorer's rule
+    library, IncidentForge's ground truth, and AxonBench's diagnosis graders.
+    They must agree on vocabulary or root-cause accuracy cannot be computed.
+
+    The model may propose a hypothesis only from this set; an invented cause
+    fails schema validation rather than entering the incident.
+    """
+
+    COMPRESSOR_DEGRADATION = "compressor_degradation"
+    DOOR_LEFT_OPEN = "door_left_open"
+    SENSOR_MALFUNCTION = "sensor_malfunction"
+    ENVIRONMENTAL_HEAT = "environmental_heat"
+    ROUTE_DELAY = "route_delay"
+    REEFER_FUEL_EXHAUSTION = "reefer_fuel_exhaustion"
+    INCORRECT_CARGO_CONFIGURATION = "incorrect_cargo_configuration"
+    DATA_INCONSISTENCY = "data_inconsistency"
+    NO_FAULT = "no_fault"
+
+
+class ActionType(StrEnum):
+    """The closed catalogue of interventions the system may propose.
+
+    Closed by design: the model proposes an ``ActionCandidate`` naming one of
+    these, and anything else fails to parse. That is what prevents an injected
+    instruction from inventing an action.
+
+    ``DO_NOTHING`` is always scored alongside the others. A system that always
+    recommends action is a system with a broken prior, and the expected-value
+    comparison is meaningless without the null option in it.
+    """
+
+    DO_NOTHING = "do_nothing"
+    CONTINUE_ROUTE = "continue_route"
+    CONTACT_DRIVER = "contact_driver"
+    INSPECT_REFRIGERATION = "inspect_refrigeration"
+    REROUTE_TO_COLD_STORAGE = "reroute_to_cold_storage"
+    SWITCH_FACILITY = "switch_facility"
+    TRAILER_SWAP = "trailer_swap"
+    ESCALATE_MAINTENANCE = "escalate_maintenance"
+    MARK_FOR_INSPECTION = "mark_for_inspection"
+    DRAFT_CUSTOMER_NOTIFICATION = "draft_customer_notification"
+
+
+class RiskCategory(StrEnum):
+    """Coarse risk bands for grading and display.
+
+    Bands are a presentation and grading convenience. The probability itself
+    remains the decision input, because the expected-value layer consumes it as
+    a probability; collapsing to a band before deciding would discard exactly
+    the information calibration exists to provide.
+    """
+
+    LOW = "low"
+    MODERATE = "moderate"
+    HIGH = "high"
+    CRITICAL = "critical"

@@ -1,0 +1,13 @@
+# AxonFDE scenario pack v1.
+#
+# A scenario's meaning must never change within a major version. Benchmark
+# runs record `pack_version`, and historical results stop being comparable the
+# moment a scenario is silently altered. Changing a scenario's physics or its
+# ground truth is a major-version change; adding a new scenario is a minor one.
+
+pack_version: "1.0.0"
+description: >
+  Phase 0 seed pack. Covers the flagship compressor-degradation incident, a
+  no-fault control, and the sensor-drift case where telemetry alone is
+  insufficient and visual evidence is decisive. Expanded to the full fault
+  catalogue in Phase 2.
