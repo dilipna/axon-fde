@@ -108,6 +108,12 @@ locally. Five unrelated causes, all pre-existing:
    the pinned binary is invoked directly, so the CI command is exactly the
    command you can run locally.
 
+**A new test suite may need a new service.** `poe check` green locally says
+nothing about whether CI's *job for that suite* can run it. The security job
+had no Postgres, so the twelve new execution-gate tests failed there while
+passing everywhere else. `AXON_REQUIRE_INTEGRATION=1` is what made that a red
+build instead of a silently shrinking test count.
+
 **Check the badge after pushing.** `poe check` being green means nothing about
 CI, which is the lesson all five of those share. The API works without auth:
 
@@ -128,7 +134,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**19 commits · 651 tests · mypy --strict clean · 9 module contracts · **CI green on all five jobs** · pushed to
+**21 commits · 651 tests · mypy --strict clean · 9 module contracts · **CI green on all five jobs** · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -400,4 +406,5 @@ Everything it needs now exists — B6 was the last missing piece.
 | 2026-09-19 | **B3 + B4 + B5** | 540 tests. Predictive arm fires at minute 102, 35 min of lead time. Policy matrix complete with zero bypasses. Decision engine agrees with the flagship's declared correct action. Three parameter errors caught by tests, two of them cost models that flattered an action. |
 | 2026-09-19 | **CI green** | First passing run in the project's history, run 12. The last cause was gitleaks-action ignoring its own config; replaced with the pinned binary. |
 | 2026-09-20 | **B6** | 651 tests. I5 enforced. Two findings: (1) a verification window set from operational intuition (20 min for a phone call) **could not answer its own question** — below an hour the healthy control's slopes overlap the degrading truck's outright, so the floor is now 90 minutes and enforced at construction; (2) a fabricated incident id made the *audit append* fail rather than the execution, so a refused action left **no record** and poisoned the transaction — the executor now resolves the incident first. The security test that found (2) was also wrong: the realistic replay targets a real second incident. |
+| 2026-09-20 | **CI repair** | Run 14 red: the security job had no database, and the new I5 gate tests need one. `AXON_REQUIRE_INTEGRATION=1` turned the missing service into a failure rather than a skip — which is the third time that flag has caught a job that would otherwise have gone green while testing less than it claimed. Green on run 15. |
 | | **B7 next** | Rules-only closed loop and `poe demo` — the first end-to-end milestone, and the `rules_only` ablation arm for C5. |
