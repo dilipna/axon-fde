@@ -22,6 +22,7 @@ of this scenario that makes it worth running.
 
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -32,18 +33,15 @@ from backend.app.audit.service import AuditService
 from backend.app.db.app.repositories.evidence import EvidenceRepository
 from backend.app.db.app.repositories.incident import IncidentRepository
 from backend.app.db.legacy.repository import LegacyRepository
+from backend.app.domain.envelope import TemperatureEnvelope
 from backend.app.domain.evidence import Evidence
 from backend.app.domain.taxonomy import Taxonomy, load_taxonomy
 from backend.app.evidence.documents import extraction_to_evidence, load_extractions
 from backend.app.evidence.reconciliation import Conflict, reconcile, resolve_value
 from backend.app.evidence.telemetry import read_telemetry, reading_to_evidence
-from backend.app.incidents.detection import (
-    BaselineDetector,
-    Detection,
-    Detector,
-    TemperatureEnvelope,
-)
+from backend.app.incidents.detection import BaselineDetector, Detection, Detector
 from backend.app.incidents.lifecycle import IncidentService
+from backend.app.risk.features import DEFAULT_WINDOW_MINUTES
 
 __all__ = ["ReplayResult", "ScenarioReplay", "resolve_envelope"]
 
@@ -230,6 +228,18 @@ class ScenarioReplay:
         batch: list[Evidence] = []
         pending_readings = 0
 
+        # A rolling window of recent evidence, handed to the detector on every
+        # reading. Both arms receive the identical window: `BaselineDetector`
+        # ignores everything but the latest reading by design, so giving it
+        # history costs nothing and removes any question about whether one arm
+        # was fed better data than the other. One extra reading of slack, so a
+        # least-squares fit over N minutes has N+1 samples to work with.
+        # Asked for, not assumed: a predictive detector needs its fit window
+        # *plus* the debounce lookback, and handing it only the fit window
+        # makes it silently never fire.
+        required = getattr(self._detector, "required_history_minutes", DEFAULT_WINDOW_MINUTES)
+        window: deque[list[Evidence]] = deque(maxlen=int(required) + 1)
+
         async def flush() -> None:
             nonlocal batch, pending_readings
             if batch:
@@ -245,12 +255,10 @@ class ScenarioReplay:
                 scenario_run_id=scenario_run_id,
             )
             result.readings_replayed += 1
+            window.append(produced)
 
-            # The detector sees only this reading's evidence plus the
-            # envelope, which is all a threshold alarm has. Handing it the
-            # whole history would quietly turn the baseline into something
-            # smarter than the system it is meant to represent.
-            detection = self._detector.evaluate(produced, envelope=envelope, now=reading.timestamp)
+            visible = [item for step in window for item in step]
+            detection = self._detector.evaluate(visible, envelope=envelope, now=reading.timestamp)
 
             if detection is None or result.detection is not None:
                 batch.extend(produced)
