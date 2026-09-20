@@ -309,6 +309,29 @@ source_modules = ["backend.app.decision"]
 forbidden_modules = ["backend.app.db", "httpx", "anthropic", "backend.app.llm"]
 
 [[tool.importlinter.contracts]]
+# One module may import `anthropic`, and it is the one named after it.
+# Everything else talks to the `LLMProvider` protocol, which is what lets a
+# cassette stand in for the model without any caller noticing - and what keeps
+# I1 structural: `LLMResponse` has nowhere to put an observation, and nothing
+# outside this module can construct a different response type.
+name = "Only the Anthropic provider imports the Anthropic SDK"
+type = "forbidden"
+source_modules = [
+    "backend.app.llm.provider",
+    "backend.app.llm.cassettes",
+    "backend.app.llm.spend",
+    "backend.app.llm.pricing",
+    "backend.app.approvals",
+    "backend.app.actions",
+    "backend.app.verification",
+    "backend.app.incidents",
+    "backend.app.risk",
+    "backend.app.audit",
+    "backend.app.evidence",
+]
+forbidden_modules = ["anthropic"]
+
+[[tool.importlinter.contracts]]
 name = "The simulator does not depend on the application"
 type = "forbidden"
 source_modules = ["simulator"]
