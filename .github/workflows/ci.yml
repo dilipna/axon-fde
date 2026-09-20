@@ -249,8 +249,12 @@ jobs:
       - name: Generate scenario recordings
         run: uv run poe forge run-all
 
-      - name: Run integration tests
-        run: uv run pytest tests/integration -v
+      # `tests/e2e` runs here rather than in a job of its own: the demo needs
+      # both engines *and* the generated recordings, which is exactly what
+      # this job already has. A separate job would duplicate the whole setup
+      # to run nine assertions.
+      - name: Run integration and end-to-end tests
+        run: uv run pytest tests/integration tests/e2e -v
 
   agent:
     name: Agent workflow (cassette replay)
