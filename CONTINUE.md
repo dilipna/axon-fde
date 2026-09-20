@@ -93,11 +93,33 @@ say plainly when a number was revised after seeing the disagreement.
 
 **A gate nobody looks at is not a gate.** CI had failed on **all eight runs
 since the first commit**, and it went unnoticed because `poe check` is green
-locally. Four unrelated causes, all pre-existing. The one worth remembering:
-`Settings(_env_file=None)` stops pydantic reading a `.env` file but **not**
-`os.environ`, so a test asserting "the default environment is local" passed on
-every laptop and failed on every CI run, where `AXON_ENV=ci` is exported.
-Check the badge after pushing.
+locally. Five unrelated causes, all pre-existing:
+
+1. `Settings(_env_file=None)` stops pydantic reading a `.env` file but **not**
+   `os.environ`, so a test asserting "the default environment is local" passed
+   on every laptop and failed on every CI run, where `AXON_ENV=ci` is exported.
+2. gitleaks had no config and flagged the deliberately published dev
+   credentials.
+3. The ODBC install was pinned to Ubuntu 22.04 on a 24.04 runner.
+4. `tests/agent/` is empty and pytest exits 5 when it collects nothing.
+5. `gitleaks-action@v2` runs the scanner in a container and resolves
+   `GITLEAKS_CONFIG` against a path that is not where the workspace is
+   mounted, so the allowlist added to fix (2) was **silently ignored**. Now
+   the pinned binary is invoked directly, so the CI command is exactly the
+   command you can run locally.
+
+**Check the badge after pushing.** `poe check` being green means nothing about
+CI, which is the lesson all five of those share. The API works without auth:
+
+```bash
+curl -s "https://api.github.com/repos/dilipna/axon-fde/actions/runs?per_page=1" \
+  | python -c "import json,sys; r=json.load(sys.stdin)['workflow_runs'][0]; \
+    print(r['run_number'], r['status'], r['conclusion'])"
+```
+
+**A third-party action that swallows its own configuration is worse than no
+action.** It failed in the direction of "your allowlist does nothing", which
+looks identical to "your allowlist is wrong". Prefer invoking the tool.
 
 Write tests that would fail if the claim were false. Prefer asserting outcomes
 over mechanisms.
@@ -106,7 +128,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**15 commits · 540 tests · mypy --strict clean · 7 module contracts · CI green · pushed to
+**18 commits · 540 tests · mypy --strict clean · 7 module contracts · **CI green on all five jobs** · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -222,6 +244,7 @@ skipped there is a test that is not running in CI either.
 | `uv run poe migrate` | Builds the app schema and the restricted runtime role |
 | `AXON_REQUIRE_INTEGRATION=1 uv run poe test` | What CI runs: skips become failures |
 | `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` | **The real CI gate.** Run this before pushing, not plain `poe check` |
+| `gitleaks detect --source . --config .gitleaks.toml` | The secret scan, identical to CI's |
 
 ---
 
@@ -392,4 +415,5 @@ something happening in the world.
 | 2026-09-19 | **B1 + B2** | 9 commits, 406 tests. Four findings: (1) the app connected as a **superuser**, so the append-only grants were inert — split into `axon`/`axon_app`; (2) concurrent appends **lose events** rather than forking, which is worse for an audit log; (3) the ODBC driver returns DATETIME2 as `str` on this machine and `datetime` in CI; (4) the integration suite was **passing in CI by doing nothing** — no databases were started and every test skipped. |
 | 2026-09-19 | **CI repair** | CI had never passed — 8 red runs from commit 1. Four unrelated causes: a config test that could only pass locally, unconfigured gitleaks, an ODBC install pinned to Ubuntu 22.04 on a 24.04 runner, and an empty agent suite making pytest exit 5. |
 | 2026-09-19 | **B3 + B4 + B5** | 540 tests. Predictive arm fires at minute 102, 35 min of lead time. Policy matrix complete with zero bypasses. Decision engine agrees with the flagship's declared correct action. Three parameter errors caught by tests, two of them cost models that flattered an action. |
+| 2026-09-19 | **CI green** | First passing run in the project's history, run 12. The last cause was gitleaks-action ignoring its own config; replaced with the pinned binary. |
 | | **B6 next** | Approvals, execution, verification — the governance core. |
