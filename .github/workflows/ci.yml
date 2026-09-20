@@ -87,6 +87,30 @@ jobs:
     name: Security tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    # Postgres, because invariant I5 is a claim about what ends up *persisted*
+    # after an attack: the execution gate tests end by asking the database how
+    # many side effects an attacker managed to cause, and the only acceptable
+    # answer is zero. A test that asserted only "an exception was raised" would
+    # be checking the plumbing rather than the outcome.
+    #
+    # No SQL Server here. The SQL guard tests parse statements rather than run
+    # them, so the legacy engine buys this job nothing but five minutes.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: axon
+          POSTGRES_PASSWORD: axon_local_dev
+          POSTGRES_DB: axon
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U axon -d axon"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -106,7 +130,15 @@ jobs:
 
       # These are hard gates, not advisory. A single prohibited SQL operation
       # reaching the driver, or a single policy bypass, fails the build.
-      - name: SQL guard and policy bypass tests
+      # Builds the schema, the append-only trigger and the restricted
+      # `axon_app` runtime role. Without it the execution-gate fixtures have
+      # nothing to connect as, and AXON_REQUIRE_INTEGRATION turns that into a
+      # failure rather than a skip - which is exactly how the missing service
+      # was found, rather than by noticing a quietly shrinking test count.
+      - name: Migrate the application database
+        run: uv run poe migrate
+
+      - name: SQL guard, policy bypass and execution gate tests
         run: uv run pytest tests/security -v
 
       # Run directly rather than through gitleaks-action, which executes the
