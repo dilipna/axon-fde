@@ -6,6 +6,8 @@ credential leak, so the failures below are all deliberately fatal at startup.
 
 from __future__ import annotations
 
+import os
+
 import pytest
 from pydantic import ValidationError
 
@@ -13,9 +15,45 @@ from backend.app.config import Environment, LLMMode, Settings
 
 pytestmark = pytest.mark.unit
 
+#: Every prefix Settings reads from. Cleared before each test below.
+_SETTINGS_PREFIXES = (
+    "AXON_",
+    "POSTGRES_",
+    "MSSQL_",
+    "S3_",
+    "ANTHROPIC_",
+    "LANGFUSE_",
+    "OTEL_",
+    "REDPANDA_",
+)
+
+
+@pytest.fixture(autouse=True)
+def _no_ambient_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Isolate these tests from whatever the surrounding environment sets.
+
+    `Settings(_env_file=None)` stops pydantic reading a developer's `.env`
+    file. It does **not** stop it reading `os.environ`, which is the whole
+    point of a settings library and is easy to forget when writing a test
+    about defaults.
+
+    CI exports `AXON_ENV=ci`, so without this fixture
+    `test_defaults_are_local_and_cost_nothing` asserted that the default
+    environment is `local` while the environment was telling it `ci`. It
+    passed on every laptop and failed on every CI run - which is exactly how
+    that failure went unnoticed through eight red builds.
+    """
+    for key in list(os.environ):
+        if key.startswith(_SETTINGS_PREFIXES):
+            monkeypatch.delenv(key, raising=False)
+
 
 def make_settings(**overrides: object) -> Settings:
-    """Build settings without reading a developer's local .env file."""
+    """Build settings from defaults plus explicit overrides only.
+
+    Isolated from both the `.env` file and the ambient environment - see
+    `_no_ambient_configuration`, which does the second half.
+    """
     return Settings(_env_file=None, **overrides)  # type: ignore[arg-type]
 
 
