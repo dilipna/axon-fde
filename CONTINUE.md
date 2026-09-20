@@ -32,7 +32,7 @@ constraint, and each has an ADR.
 | I2 | **Confidence is computed, never supplied.** Single implementation in `Taxonomy.confidence()`. No constructor accepts a caller-provided confidence. | `Evidence.create()` is the only construction path |
 | I3 | **Risk probability is computed outside the LLM**, and always stored beside its non-ML baseline. | `RiskAssessment.baseline_probability` is `NOT NULL`; import-linter forbids `decision` importing `anthropic` |
 | I4 | **The AI cannot write to the legacy ERP.** Read-only login, six views, AST allowlist, timeouts. | `tests/integration/test_legacy_access.py`, `tests/security/test_sql_guard.py` |
-| I5 | **No consequential action executes without a valid, unexpired, hash-matching approval.** | To be enforced in Block B6 |
+| I5 | **No consequential action executes without a valid, unexpired, hash-matching approval.** | `ActionExecutor.execute` asks `may_execute_immediately`, never `allowed`; `tests/security/test_execution_gate.py` enumerates every gated action and asserts the `action_execution` table stays empty |
 | I6 | **Never fabricate a missing observation.** Absence is represented as absence and lowers confidence. | `resolve_envelope()` returns `None` rather than a default, proven by `test_an_unknown_shipment_yields_no_envelope_rather_than_a_default`; empty fault code lists are stored, not dropped; degradation ladder in `docs/architecture/overview.md` §7 |
 | I7 | **No number ships without a stored benchmark run behind it.** | `docs/evaluation/claims.md` |
 | I8 | **Ground truth never reaches the application.** `TelemetryEvent` carries only what a sensor could report; `GroundTruthFrame` is benchmark-only. | `test_telemetry_events_carry_no_ground_truth`, `test_written_telemetry_contains_no_ground_truth` |
@@ -128,7 +128,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**18 commits · 540 tests · mypy --strict clean · 7 module contracts · **CI green on all five jobs** · pushed to
+**19 commits · 651 tests · mypy --strict clean · 9 module contracts · **CI green on all five jobs** · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -158,6 +158,11 @@ Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
 | Predictive detection | `backend/app/incidents/detection.py` | Fires at **minute 102**, 35 min before the threshold alarm |
 | Policy engine | `backend/app/policies/engine.py` | Full 5x10 matrix, deny absolute, zero bypasses |
 | Decision engine | `backend/app/decision/` | Costed candidates, EV ranking, feasibility, flip point |
+| Auth | `backend/app/auth/tokens.py` | JWT to `Principal`; explicit algorithm allowlist, required `aud`/`iss`, unknown role refused not demoted |
+| Approval binding | `backend/app/approvals/binding.py` | Pure; covers evidence hashes, the risk probability **and its baseline**, `degraded`, action, target, incident, binding version |
+| Approval service | `backend/app/approvals/service.py` | Request / grant / deny / check; expiry and staleness are distinct codes and *all* refusals are reported |
+| Action execution | `backend/app/actions/` | Ten deterministic simulators, expected-effect declarations, advisory-locked idempotency keyed on the approval |
+| Outcome verification | `backend/app/verification/` | Deterministic grader; failed reopens the incident, inconclusive moves nothing |
 | Config / health / logging | `backend/app/config.py`, `api/v1/health.py`, `observability/logging.py` | Startup safety validation, TCP dependency probes, redaction |
 
 ### Scenario pack (`data/scenarios/pack_v1`)
@@ -185,9 +190,9 @@ superuser, because an assertion about grants is worthless without it.
 
 ### Not built
 
-Risk service, policy engine, decision engine, approvals, action executor,
-verification, LangGraph workflow, LLM provider + cassettes, tools layer,
-AxonBench, the demo script, OTel/Langfuse wiring, any UI.
+LangGraph workflow, LLM provider + cassettes, tools layer, AxonBench, the
+demo script, OTel/Langfuse wiring, any UI. The API layer exposes none of B6
+yet - the services exist and are tested, but nothing is routed.
 
 ---
 
@@ -295,19 +300,14 @@ including `do_nothing`, flip point solved analytically. Recommends
 `reroute_to_cold_storage` on the flagship, matching the scenario's declared
 correct action, reached independently.
 
-### B6 — Approval + execution + verification ← **NEXT** [Phase 1] — *the governance core*
-Hash-bound approvals with expiry; idempotent simulated executors; scheduled
-verification; audit events for every transition.
-**Done when:** approving against mutated evidence yields `APPROVAL_STALE`,
-re-executing the same approval is a no-op, and a failed verification reopens
-the incident.
-`RiskService` interface; rule baseline + slope-extrapolation baseline; feature
-builder shared by training and serving; `RiskAssessment` persisted with its
-baseline.
-**Done when:** the flagship scenario yields a rising risk score that crosses
-threshold **before** minute 137, with lead time computed against the baseline.
+### B6 — Approval + execution + verification ✅ **DONE** (2026-09-20) [Phase 1]
+The governance core. All six acceptance items met; 651 tests, 0 skipped under
+the CI gate. The binding covers the risk probability **and its baseline** —
+removing those fields turns nine tests red, which is how that was confirmed
+rather than assumed. Expiry and staleness are distinct codes and a check
+reports *every* refusal, not just the first.
 
-### B7 — Rules-only closed loop + demo [Phase 1] — **first milestone**
+### B7 — Rules-only closed loop + demo ← **NEXT** [Phase 1] — **first milestone**
 Wire B1–B6 into a runnable loop with **no LLM**. `poe demo`, 13 steps,
 including the `APPROVAL_STALE` branch.
 **Done when:** `poe demo` runs the whole loop offline and the audit chain
@@ -354,56 +354,39 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — B6
+## 7. Next block in detail — B7
 
-The governance core, and the block the whole compliance story rests on. B1-B5
-produced a recommendation; B6 is what stands between a recommendation and
-something happening in the world.
+The first milestone: the whole thing running end to end, offline, with no LLM.
+Everything it needs now exists — B6 was the last missing piece.
 
 ### What is already in place
-- `policies.engine.evaluate` returns `requires_approval` and `approver_role`
-  per action. `may_execute_immediately` is the only question an executor
-  should ask.
-- `decision.engine.rank_options` carries those verdicts onto each candidate.
-- `Approval` and `ActionExecution` tables exist with `bound_context_hash`,
-  `expires_at` and a unique `idempotency_key`.
-- `AuditService.append` is advisory-locked and commits with its caller.
+- `ScenarioReplay` runs telemetry → evidence → reconciliation → detection and
+  owns its transaction.
+- `SlopeRiskService.assess` returns a `RiskEstimate` carrying its baseline.
+- `rank_options` costs every candidate and carries the policy verdicts.
+- `ApprovalService` / `ActionExecutor` / `VerificationService` close the loop,
+  and every transition writes an audit event.
 
 ### Deliverables
-1. `backend/app/auth/` — `Principal` from a verified JWT. Role comes from the
-   token, never a request body (threat T5).
-2. `backend/app/approvals/service.py` — request, grant, deny. The bound hash
-   covers the evidence content hashes, the risk assessment and the selected
-   action.
-3. Staleness check: an approval granted against a world state that has since
-   moved is `APPROVAL_STALE` and must be re-sought.
-4. `backend/app/actions/simulators/` — idempotent executors keyed on
-   `idempotency_key`; re-execution returns the first result.
-5. `backend/app/verification/` — scheduled outcome check; a failed
-   verification reopens the incident via `IncidentStatus.VERIFYING ->
-   INVESTIGATING`, which the transition table already permits.
-6. An audit event for every transition.
+1. `scripts/demo.py` — 13 steps, `poe demo`, no network and no model.
+2. The `APPROVAL_STALE` branch on screen: grant an approval, inject a reading,
+   watch the execution refuse and a fresh approval be sought.
+3. A closing audit-chain verification printed as the last step.
 
 ### Watch out for
-- **The bound hash must cover what an approver actually saw.** Evidence
-  content hashes, the risk probability *and its baseline*, and the chosen
-  action. Omitting the risk number would let a 40% decision be executed
-  against an 85% world.
-- **Expiry and staleness are different failures.** An approval can be
-  unexpired and stale, or expired and still describing an unchanged world.
-  Two reasons, two tests.
-- **Idempotency is on the execution, not the approval.** A retried execution
-  returns the first result; a *second* approval for the same action is a
-  separate decision and must be recorded as one.
-- `Evidence.content_hash` already exists and sorts set values before hashing,
-  so the binding is stable against reordering.
+- **The demo is the `rules_only` ablation arm for claim C5.** It is obtained
+  for free by building rules-first, but only if it records its results in the
+  same shape AxonBench will read. Decide that shape now, not in B10.
+- `ExecutionOutcome.expected_effect` is deliberately `None` on a replay, so a
+  demo that schedules verification from a retried execution has nothing to
+  schedule. That is the intended shape; the loop must not paper over it.
+- The verification window for a reroute is 90 minutes of *scenario* time. The
+  demo must drive a clock rather than sleep.
 
 ### Acceptance
-- [ ] Approving against mutated evidence yields `APPROVAL_STALE`
-- [ ] An expired approval is refused with a distinct reason
-- [ ] Re-executing the same approval is a no-op returning the first result
-- [ ] A failed verification reopens the incident
-- [ ] Every transition appears in the audit chain and the chain still verifies
+- [ ] `poe demo` runs the whole loop offline and prints 13 steps
+- [ ] The `APPROVAL_STALE` branch is exercised, not described
+- [ ] The audit chain verifies at the end
 - [ ] `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` green; pushed;
       **CI badge checked**
 
@@ -416,4 +399,5 @@ something happening in the world.
 | 2026-09-19 | **CI repair** | CI had never passed — 8 red runs from commit 1. Four unrelated causes: a config test that could only pass locally, unconfigured gitleaks, an ODBC install pinned to Ubuntu 22.04 on a 24.04 runner, and an empty agent suite making pytest exit 5. |
 | 2026-09-19 | **B3 + B4 + B5** | 540 tests. Predictive arm fires at minute 102, 35 min of lead time. Policy matrix complete with zero bypasses. Decision engine agrees with the flagship's declared correct action. Three parameter errors caught by tests, two of them cost models that flattered an action. |
 | 2026-09-19 | **CI green** | First passing run in the project's history, run 12. The last cause was gitleaks-action ignoring its own config; replaced with the pinned binary. |
-| | **B6 next** | Approvals, execution, verification — the governance core. |
+| 2026-09-20 | **B6** | 651 tests. I5 enforced. Two findings: (1) a verification window set from operational intuition (20 min for a phone call) **could not answer its own question** — below an hour the healthy control's slopes overlap the degrading truck's outright, so the floor is now 90 minutes and enforced at construction; (2) a fabricated incident id made the *audit append* fail rather than the execution, so a refused action left **no record** and poisoned the transaction — the executor now resolves the incident first. The security test that found (2) was also wrong: the realistic replay targets a real second incident. |
+| | **B7 next** | Rules-only closed loop and `poe demo` — the first end-to-end milestone, and the `rules_only` ablation arm for C5. |
