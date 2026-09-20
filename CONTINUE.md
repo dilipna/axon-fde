@@ -134,7 +134,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**21 commits · 651 tests · mypy --strict clean · 9 module contracts · **CI green on all five jobs** · pushed to
+**22 commits · 660 tests · mypy --strict clean · 9 module contracts · **CI green on all five jobs** · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -169,6 +169,7 @@ Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
 | Approval service | `backend/app/approvals/service.py` | Request / grant / deny / check; expiry and staleness are distinct codes and *all* refusals are reported |
 | Action execution | `backend/app/actions/` | Ten deterministic simulators, expected-effect declarations, advisory-locked idempotency keyed on the approval |
 | Outcome verification | `backend/app/verification/` | Deterministic grader; failed reopens the incident, inconclusive moves nothing |
+| Closed loop demo | `scripts/demo.py`, `tests/e2e/test_demo.py` | `poe demo`, 13 steps, no model. Rolls back by default so it is repeatable; `--keep` commits. **The `rules_only` ablation arm for C5.** |
 | Config / health / logging | `backend/app/config.py`, `api/v1/health.py`, `observability/logging.py` | Startup safety validation, TCP dependency probes, redaction |
 
 ### Scenario pack (`data/scenarios/pack_v1`)
@@ -196,9 +197,9 @@ superuser, because an assertion about grants is worthless without it.
 
 ### Not built
 
-LangGraph workflow, LLM provider + cassettes, tools layer, AxonBench, the
-demo script, OTel/Langfuse wiring, any UI. The API layer exposes none of B6
-yet - the services exist and are tested, but nothing is routed.
+LangGraph workflow, LLM provider + cassettes, tools layer, AxonBench,
+OTel/Langfuse wiring, any UI. The API layer exposes none of B6 or B7 yet -
+the services exist and are tested, but nothing is routed.
 
 ---
 
@@ -313,14 +314,14 @@ removing those fields turns nine tests red, which is how that was confirmed
 rather than assumed. Expiry and staleness are distinct codes and a check
 reports *every* refusal, not just the first.
 
-### B7 — Rules-only closed loop + demo ← **NEXT** [Phase 1] — **first milestone**
-Wire B1–B6 into a runnable loop with **no LLM**. `poe demo`, 13 steps,
-including the `APPROVAL_STALE` branch.
-**Done when:** `poe demo` runs the whole loop offline and the audit chain
-verifies at the end. *This is the `rules_only` ablation arm (claim C5) —
-obtained for free by building rules-first.*
+### B7 — Rules-only closed loop + demo ✅ **DONE** (2026-09-20) [Phase 1] — **first milestone**
+`poe demo`, 13 steps, offline. Detects at minute 102, refuses a live approval
+as `APPROVAL_STALE` against 48 readings that really arrived, executes once
+under retry, reopens the incident on a failed verification, and verifies the
+chain. Rolls back by default — a committing demo works exactly once. Run as
+`tests/e2e/test_demo.py` so the ablation arm cannot rot unnoticed.
 
-### B8 — LLM provider + cassettes [Phase 1]
+### B8 — LLM provider + cassettes ← **NEXT** [Phase 1]
 `LLMProvider` protocol, Anthropic implementation with structured outputs and
 prompt caching, record/replay cassettes, spend ceiling, `ModelInvocation`.
 **Done when:** tests replay cassettes offline and a cassette mismatch **fails
@@ -360,39 +361,45 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — B7
+## 7. Next block in detail — B8
 
-The first milestone: the whole thing running end to end, offline, with no LLM.
-Everything it needs now exists — B6 was the last missing piece.
+The first block where a model enters the system at all. Everything before it
+is deterministic, and B7 is the measurement that says what that alone is
+worth — so B8's job is to add the model *without* moving the baseline.
 
 ### What is already in place
-- `ScenarioReplay` runs telemetry → evidence → reconciliation → detection and
-  owns its transaction.
-- `SlopeRiskService.assess` returns a `RiskEstimate` carrying its baseline.
-- `rank_options` costs every candidate and carries the policy verdicts.
-- `ApprovalService` / `ActionExecutor` / `VerificationService` close the loop,
-  and every transition writes an audit event.
+- `Settings` carries `axon_llm_mode` (defaulting to `CASSETTE`, so an
+  accidental run never spends money), the three model ids, and
+  `axon_daily_spend_limit_usd`.
+- `ModelInvocation` exists with input / output / **cache read** token columns.
+- `poe demo` is the `rules_only` arm and runs in CI.
 
 ### Deliverables
-1. `scripts/demo.py` — 13 steps, `poe demo`, no network and no model.
-2. The `APPROVAL_STALE` branch on screen: grant an approval, inject a reading,
-   watch the execution refuse and a fresh approval be sought.
-3. A closing audit-chain verification printed as the last step.
+1. `backend/app/llm/provider.py` — an `LLMProvider` protocol and an Anthropic
+   implementation with structured outputs and prompt caching.
+2. Record/replay cassettes, and a spend ceiling that refuses rather than warns.
+3. `ModelInvocation` written per call.
 
 ### Watch out for
-- **The demo is the `rules_only` ablation arm for claim C5.** It is obtained
-  for free by building rules-first, but only if it records its results in the
-  same shape AxonBench will read. Decide that shape now, not in B10.
-- `ExecutionOutcome.expected_effect` is deliberately `None` on a replay, so a
-  demo that schedules verification from a retried execution has nothing to
-  schedule. That is the intended shape; the loop must not paper over it.
-- The verification window for a reroute is 90 minutes of *scenario* time. The
-  demo must drive a clock rather than sleep.
+- **A cassette mismatch must fail loudly, never re-record silently.** A suite
+  that quietly re-records is a suite that asserts whatever the model said
+  today. This is the block's headline acceptance item for a reason.
+- `cache_read_tokens` sitting at zero across repeated incidents means a
+  cache-invalidating value crept into the prompt prefix. That is where the
+  cost budget actually leaks, and it is invisible unless something asserts on
+  it — so assert on it.
+- **The model may never author an observation (I1).** It links, interprets and
+  narrates. There is no `EvidenceSource` member for it and a DB CHECK enforces
+  that; keep it that way when the temptation arrives in B9.
+- Anthropic is **1.7.0** and LangGraph is **1.x**, not the 0.2.x most
+  tutorials show. Check the current API before writing.
 
 ### Acceptance
-- [ ] `poe demo` runs the whole loop offline and prints 13 steps
-- [ ] The `APPROVAL_STALE` branch is exercised, not described
-- [ ] The audit chain verifies at the end
+- [ ] Tests replay cassettes offline with no network
+- [ ] A cassette mismatch fails loudly rather than re-recording
+- [ ] The spend ceiling refuses a call that would exceed it
+- [ ] `ModelInvocation` records cache reads, and a test asserts they are non-zero
+      on a repeated prefix
 - [ ] `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` green; pushed;
       **CI badge checked**
 
@@ -407,4 +414,5 @@ Everything it needs now exists — B6 was the last missing piece.
 | 2026-09-19 | **CI green** | First passing run in the project's history, run 12. The last cause was gitleaks-action ignoring its own config; replaced with the pinned binary. |
 | 2026-09-20 | **B6** | 651 tests. I5 enforced. Two findings: (1) a verification window set from operational intuition (20 min for a phone call) **could not answer its own question** — below an hour the healthy control's slopes overlap the degrading truck's outright, so the floor is now 90 minutes and enforced at construction; (2) a fabricated incident id made the *audit append* fail rather than the execution, so a refused action left **no record** and poisoned the transaction — the executor now resolves the incident first. The security test that found (2) was also wrong: the realistic replay targets a real second incident. |
 | 2026-09-20 | **CI repair** | Run 14 red: the security job had no database, and the new I5 gate tests need one. `AXON_REQUIRE_INTEGRATION=1` turned the missing service into a failure rather than a skip — which is the third time that flag has caught a job that would otherwise have gone green while testing less than it claimed. Green on run 15. |
-| | **B7 next** | Rules-only closed loop and `poe demo` — the first end-to-end milestone, and the `rules_only` ablation arm for C5. |
+| 2026-09-20 | **B7** | 660 tests. `poe demo` runs the whole loop offline. Four things wrong first: the demo **committed, so it worked exactly once** (second run deduplicated into its own incident and died on a repeated transition) — it now rolls back by default; it also committed **on failure**, leaving half an incident behind; the staleness branch was staged with a **fabricated evidence hash** until the full recording was replayed, which supplies 48 real readings and moves p(breach) 0.621 → 0.687; and `-48 new readings arrived` came from differencing two sliding windows instead of counting arrivals. Verification reports **failed** and reopens the incident, which is honest — the recording is the trajectory of a truck that was not rerouted. |
+| | **B8 next** | LLM provider, cassettes, spend ceiling. The first model in the system; B7 is the baseline it must not move. |
