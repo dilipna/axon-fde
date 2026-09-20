@@ -99,6 +99,26 @@ assumptions** and must be labelled as such at every point of use.
 | **Dataset** | Modality arms A–E, with emphasis on the `sensor_drift` family where visual evidence should be decisive. |
 | **Status** | `PLACEHOLDER` — **may be refuted; publish either way** |
 
+> **The ablation must control for compressor response.** Measured on
+> `sensor_drift_pharma_01` at minute 100 over a 30-minute window: the reported
+> temperature climbs at +0.039 °C/min while compressor RPM is still *rising*
+> (+2.0 rpm/min) and no fault code is present. On
+> `compressor_degradation_pharma_01` the temperature climbs at +0.016 °C/min
+> while RPM is *falling* (−9.2 rpm/min) with `AL17` active.
+>
+> A compressor winding down while cargo warms is a unit losing the fight; one
+> winding up while the reported temperature climbs fast is physically
+> incoherent, and the sensor is the thing that is wrong. Either that
+> inconsistency or the plain absence of a fault code separates these cases
+> **from telemetry alone, with no second modality involved**.
+>
+> So an arm comparison that adds a photograph on top of a feature set lacking
+> compressor response would attribute to the image a discrimination that
+> single-modality telemetry already achieves. The `sql + telemetry + sop`
+> baseline arm must include the compressor-response feature, or C4 is
+> inflated. Recorded 2026-09-19, before the ablation was built, so that the
+> baseline cannot be quietly chosen to flatter the result.
+
 ### C5 — The LLM adds value over rules alone
 
 | | |
@@ -232,5 +252,7 @@ Before any write-up, demo or CV bullet ships:
 - [ ] C1 is never quoted without its false-alarm rate.
 - [ ] C2 is never quoted without the synthetic-data limitation.
 - [ ] C15 is never quoted without "model-based estimate" and its assumptions.
+- [ ] C4's baseline arm includes the compressor-response feature, so the
+      multimodal delta is not credited with a single-modality result.
 - [ ] Refuted claims are present and visible, not removed.
 - [ ] No claim from the forbidden list appears in any form.

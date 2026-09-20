@@ -72,6 +72,14 @@ that hid the real collision — so the diagnosis itself needed fixing.
 turns a missing dependency from a skip into a failure. CI sets it; developers
 do not. See `tests/conftest.py`.
 
+**A gate nobody looks at is not a gate.** CI had failed on **all eight runs
+since the first commit**, and it went unnoticed because `poe check` is green
+locally. Four unrelated causes, all pre-existing. The one worth remembering:
+`Settings(_env_file=None)` stops pydantic reading a `.env` file but **not**
+`os.environ`, so a test asserting "the default environment is local" passed on
+every laptop and failed on every CI run, where `AXON_ENV=ci` is exported.
+Check the badge after pushing.
+
 Write tests that would fail if the claim were false. Prefer asserting outcomes
 over mechanisms.
 
@@ -190,6 +198,7 @@ skipped there is a test that is not running in CI either.
 | `uv run poe seed` | Reseeds the ERP and self-verifies least privilege |
 | `uv run poe migrate` | Builds the app schema and the restricted runtime role |
 | `AXON_REQUIRE_INTEGRATION=1 uv run poe test` | What CI runs: skips become failures |
+| `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` | **The real CI gate.** Run this before pushing, not plain `poe check` |
 
 ---
 
@@ -297,65 +306,108 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ## 7. Next block in detail — B3
 
-### Where B2 left off
+### Already measured — do not re-derive this
 
-The baseline fires at **minute 137**, when the cargo temperature has already
-crossed 8 C. It reports `predicted_breach_at=None`, because a threshold alarm
-has nothing to say about the future. B3 closes that gap, and the whole
-lead-time claim is the difference between the two numbers.
+A slope-extrapolation prototype was written, run against all three recordings,
+and then **deleted rather than committed half-finished**. The measurements are
+the valuable part and they are below. The rule is: fit `cargo_temp_c` over a
+trailing window by least squares, project to the envelope, and fire when the
+projected breach falls inside a 60-minute horizon.
 
-The ground truth to beat: the unit **saturates at minute 86** — running flat
-out and still losing ground. That is the earliest moment the outcome is
-physically determined, so 51 minutes is the ceiling on honest lead time, not a
-target to engineer past. A detector firing before 86 is reading noise.
+| Window | Flagship first fires | Verdict |
+|---|---|---|
+| 15 min | **minute 15** | Fits sensor scatter. 71 minutes before the unit is in any trouble. |
+| **30 min** | **minute 100** | 14 min after saturation (86), **37 min before breach** (137). |
+| 45 min | minute 103 | Same answer, three minutes of lead time thrown away. |
+
+`normal_pharma_run_01` never fires at any window — the false-alarm control
+holds. Slopes there stay under 0.005 °C/min against 0.024 for the flagship.
+
+**30 minutes is the shortest window that does not fit noise.** Use it, and
+keep the table above in the docstring so the number is justified rather than
+chosen.
+
+### Two findings that change what B3 should claim
+
+**1. Slope extrapolation false-alarms on `sensor_drift`, and does it early.**
+With a 30-minute window it fires at **minute 56** — earlier and more
+confidently than the threshold baseline, which fires around minute 95 when the
+reported temperature crosses 8 C. The true temperature never leaves spec.
+Predicting harder on a lying sensor means being confidently wrong sooner. That
+is the honest B3 result for this scenario and it should be recorded, not
+tuned away.
+
+**2. `sensor_drift` is separable from telemetry alone — this threatens C4.**
+Measured at minute 100, 30-minute window:
+
+| Scenario | temp slope | rpm slope | fault codes |
+|---|---|---|---|
+| compressor_degradation | +0.016 | **−9.2** | `AL17` |
+| sensor_drift | +0.039 | **+2.0** | none |
+| normal | +0.002 | +2.4 | none |
+
+A compressor winding **down** while cargo warms is a unit losing the fight. A
+compressor winding **up** while the reported temperature climbs fast is
+physically incoherent — the sensor is lying. Either that inconsistency or the
+plain absence of a fault code separates the three cases **without any second
+modality**.
+
+C4 in `docs/evaluation/claims.md` names `sensor_drift` as the family "where
+visual evidence should be decisive". If the Phase 4 ablation does not control
+for the compressor-response feature, it will credit the photograph with a
+discrimination that single-modality telemetry already achieves. **Add the
+caveat to C4 before running that ablation.** Do not fix it by removing the
+feature — the feature is real and useful; fix it by controlling for it.
 
 ### Deliverables
-1. `backend/app/risk/service.py` — `RiskService` protocol. Returns a
-   probability **and** the baseline probability beside it, always.
-2. `backend/app/risk/baselines.py` — two baselines:
-   - `RuleBaseline`: static prior from current state.
-   - `SlopeExtrapolation`: fit recent `cargo_temp_c`, extrapolate to the
-     envelope, convert time-to-breach into a probability. This is the one B12
-     has to beat by ≥5 points or the trained model does not ship.
-3. `backend/app/risk/features.py` — **one** feature builder, shared by
-   training and serving. Two would drift, and the drift would look like a
-   model regression.
+1. `backend/app/risk/features.py` — **one** feature builder, shared by
+   training and serving. Two would drift, and the drift would present as a
+   model regression. Include `compressor_rpm_slope`; B12 needs it and finding
+   2 above is why.
+2. `backend/app/risk/baselines.py` — `RuleBaseline` (static prior from
+   headroom + fault codes) and `SlopeExtrapolation` (the table above). The
+   second is what B12 must beat by ≥5 points or the trained model does not
+   ship, so write it to be genuinely good.
+3. `backend/app/risk/service.py` — `RiskService` protocol returning a
+   probability **and** its baseline, always, in one object.
 4. `PredictiveDetector` in `incidents/detection.py`, implementing the existing
-   `Detector` protocol so both arms see identical inputs.
+   `Detector` protocol. Pass both detectors the same window: `BaselineDetector`
+   already ignores everything but the latest reading, so identical inputs is
+   the fair arrangement and needs no special case.
 5. `RiskAssessment` persisted with `baseline_probability`, `model_version`,
-   `feature_vector_hash` and `degraded`.
-6. Lead time computed against the baseline incident and stored on the
-   incident.
+   `feature_vector_hash`, `degraded`; a repository alongside the other three.
+6. Lead time measured between the two arms and recorded.
 
 ### Watch out for
-- **`baseline_probability` is NOT NULL** (invariant I3). There is no code path
-  that stores a prediction without its baseline; do not add one.
-- **Ground truth must not reach the feature builder** (invariant I8).
-  `ground_truth.parquet` is a separate file and must stay unread by anything
-  under `backend/`. Worth an import-linter contract or an explicit test.
-- **The detector needs history, the baseline does not.** `BaselineDetector`
-  deliberately sees only the current reading. `PredictiveDetector` needs a
-  window, so `ScenarioReplay` will have to hand it one — without also handing
-  it to the baseline, which would quietly make the comparison unfair.
-- **A slope fit on a saturating curve is not a straight line.** Check what the
-  extrapolation does between minute 86 and 137 before trusting the number.
-- Both detectors write incidents with the same `correlation_key`, so the
-  predictive one will **deduplicate into the baseline's incident** if the
-  baseline ran first. Either replay them separately or make `detected_by` part
-  of the key. This is a real design decision, not an oversight to patch.
+- **These are not calibrated probabilities.** A logistic on time-to-breach is
+  a monotone score, not a frequency. Say so in the docstring, and keep C2 at
+  `PLACEHOLDER` until B12's isotonic regression and reliability diagram exist.
+  Nothing may multiply one of these by a cargo value to get an expected loss.
+- **`baseline_probability` is NOT NULL** (invariant I3). Do not add a code
+  path that stores a prediction without its baseline.
+- **Ground truth must not reach the feature builder** (invariant I8). Add an
+  import-linter contract forbidding `backend` from importing `simulator`,
+  where `GroundTruthFrame` lives. Cheap, and it makes I8 structural.
+- **Both detectors share a `correlation_key`**, so whichever runs second
+  deduplicates into the other's incident. Run the arms as **separate replays**
+  rather than putting `detected_by` in the key — in production only one
+  detector runs, and a key that splits by detector would produce two incidents
+  for one truck, which is the exact failure deduplication exists to prevent.
+- **A slope fit on a saturating curve is not a straight line.** The projection
+  is conservative here, which is the safe direction, but it is wrong either
+  way — worth a comment rather than a silent assumption.
 
 ### Acceptance
-- [ ] The flagship scenario yields a rising risk score crossing threshold
-      **before** minute 137, and **not before minute 86**
-- [ ] Lead time is computed and stored against the baseline detection
-- [ ] `normal_pharma_run_01` does **not** cross the threshold (false-alarm
-      control)
-- [ ] `sensor_drift_pharma_01` behaviour is recorded, whatever it is — this is
-      the case where the instrument reports a breach that never happened
+- [ ] Flagship risk crosses threshold **before minute 137 and after minute 86**
+      (expect 100 with a 30-minute window)
+- [ ] Lead time measured against the baseline arm and recorded
+- [ ] `normal_pharma_run_01` never crosses the threshold
+- [ ] `sensor_drift_pharma_01`'s false alarm is asserted by a test, with a
+      docstring saying it is the expected Phase 1 result
 - [ ] Every `RiskAssessment` has a non-null `baseline_probability`
-- [ ] `poe check` green with `AXON_REQUIRE_INTEGRATION=1`; committed and pushed
-
----
+- [ ] C4 in `claims.md` carries the single-modality caveat
+- [ ] `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` green; pushed;
+      **CI badge checked**
 
 ## 8. Session log
 
@@ -363,4 +415,5 @@ target to engineer past. A detector firing before 86 is reading noise.
 |---|---|---|
 | 2026-09-18/19 | Phase 0, IncidentForge, legacy integration, evidence core, audit chain | 7 commits, 312 tests. Three bugs found by tests, two of which were wrong tests revealing real limitations. |
 | 2026-09-19 | **B1 + B2** | 9 commits, 406 tests. Four findings: (1) the app connected as a **superuser**, so the append-only grants were inert — split into `axon`/`axon_app`; (2) concurrent appends **lose events** rather than forking, which is worse for an audit log; (3) the ODBC driver returns DATETIME2 as `str` on this machine and `datetime` in CI; (4) the integration suite was **passing in CI by doing nothing** — no databases were started and every test skipped. |
-| | **B3 next** | Risk service. Beat minute 137, do not beat minute 86. |
+| 2026-09-19 | **CI repair** | CI had never passed — 8 red runs from commit 1. Four unrelated causes: a config test that could only pass locally, unconfigured gitleaks, an ODBC install pinned to Ubuntu 22.04 on a 24.04 runner, and an empty agent suite making pytest exit 5. |
+| | **B3 next** | Risk service. §7 carries measurements already taken: 30-minute window fires at minute 100. Two findings there change what B3 may claim. |
