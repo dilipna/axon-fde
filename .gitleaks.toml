@@ -1,0 +1,51 @@
+# Secret scanning configuration.
+#
+# The scan is a hard gate and stays one. What is allowlisted below is a short,
+# explicit list of credentials that are *deliberately published*: the local
+# development defaults that appear in `.env.example`, `docker-compose.yml` and
+# the seed scripts, so that a fresh clone starts without anyone having to
+# invent values.
+#
+# Two things make that safe rather than sloppy:
+#
+# 1. They only ever reach containers bound to localhost.
+# 2. `Settings._reject_unsafe_deployed_configuration` refuses to start any
+#    deployed environment that still holds one of them. Shipping these to
+#    production is not a risk this file creates; it is a startup failure.
+#
+# The allowlist matches the specific literals, not the files or the rules, so
+# a genuinely new secret committed next to one of them still fails the scan.
+# Adding to this list is a deliberate act that belongs in a commit message.
+
+title = "AxonFDE"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "axon-real-anthropic-key"
+description = "A live Anthropic API key must never be committed"
+regex = '''sk-ant-[A-Za-z0-9_\-]{20,}'''
+keywords = ["sk-ant"]
+
+[allowlist]
+description = "Local development defaults, published on purpose"
+
+regexes = [
+  # PostgreSQL: the schema owner and the restricted runtime role.
+  '''axon_local_dev''',
+  '''axon_app_local_dev''',
+  # SQL Server: the seed login and the read-only application login.
+  '''Axon_Local_Dev_1''',
+  '''Axon_ReadOnly_Dev_1''',
+  # The JWT secret whose literal text is what the production guard looks for.
+  '''dev-only-not-a-real-secret-change-me''',
+  # The seed script's placeholder, substituted at run time from settings.
+  '''\{\{RO_PASSWORD\}\}''',
+]
+
+paths = [
+  # Fixture hashes and bounding boxes look like high-entropy secrets and are
+  # neither. The contents of these files are asserted by tests.
+  '''data/documents/extractions/.*\.json''',
+]

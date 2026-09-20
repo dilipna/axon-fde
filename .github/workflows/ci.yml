@@ -104,10 +104,14 @@ jobs:
       - name: SQL guard and policy bypass tests
         run: uv run pytest tests/security -v
 
+      # Configured by .gitleaks.toml, which allowlists the local development
+      # credentials that are published on purpose and nothing else. Those are
+      # the reason this step failed on every run before now.
       - name: Secret scan
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: ${{ github.workspace }}/.gitleaks.toml
 
   integration:
     name: Integration tests (real Postgres + SQL Server)
@@ -157,15 +161,23 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
+      # The Ubuntu release is read from the runner rather than hard-coded.
+      # `ubuntu-latest` moved from 22.04 to 24.04, and Microsoft publishes a
+      # separate package list per release, so a pinned 22.04 list made this
+      # step fail on every run - which is what kept the integration job red.
       - name: Install the Microsoft ODBC driver
         run: |
-          curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
-            | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
-          curl -fsSL https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
-            | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          set -euo pipefail
+          . /etc/os-release
+          echo "Runner: $NAME $VERSION_ID"
+          curl -fsSL -o /tmp/ms-prod.deb \
+            "https://packages.microsoft.com/config/ubuntu/${VERSION_ID}/packages-microsoft-prod.deb"
+          sudo dpkg -i /tmp/ms-prod.deb
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
-
+          # Printed so that a future driver-name change shows up in the
+          # log rather than as an opaque "data source not found".
+          odbcinst -q -d
       - name: Install dependencies
         run: uv sync --frozen
 
@@ -202,8 +214,18 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      # pytest exits 5 when it collects nothing, which is indistinguishable
+      # from a real failure at the job level. The agent suite arrives in B9;
+      # until then an empty directory is the expected state, and saying so
+      # here is better than a permanently red job everyone learns to ignore.
       - name: Replay agent workflows
-        run: uv run pytest tests/agent -v
+        run: |
+          set -euo pipefail
+          if find tests/agent -name 'test_*.py' | grep -q .; then
+            uv run pytest tests/agent -v
+          else
+            echo "No agent tests yet - they arrive with the LangGraph workflow (B9)."
+          fi
 
   benchmark-gate:
     name: AxonBench regression gate
