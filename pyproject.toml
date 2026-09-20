@@ -253,10 +253,54 @@ source_modules = ["backend.app.db.legacy"]
 forbidden_modules = ["asyncpg", "backend.app.db.app"]
 
 [[tool.importlinter.contracts]]
-name = "The policy engine is pure: no I/O"
+# `jwt` and `backend.app.auth` are forbidden here, not merely absent. The
+# policy engine takes a `Principal` and trusts it; if it could verify a token
+# itself the trust boundary would move inside the pure function, and the
+# matrix would stop being exhaustively testable without minting credentials.
+# The dependency runs the other way: auth imports policies.
+name = "The policy engine is pure: no I/O, and it does not authenticate"
 type = "forbidden"
 source_modules = ["backend.app.policies"]
-forbidden_modules = ["backend.app.db", "httpx", "anthropic", "boto3"]
+forbidden_modules = [
+    "backend.app.db",
+    "backend.app.auth",
+    "httpx",
+    "anthropic",
+    "boto3",
+    "jwt",
+]
+
+[[tool.importlinter.contracts]]
+# The approval binding decides whether a human's signature still applies. It
+# has to be computable identically in the service, in a test and in a
+# benchmark grader, which means it cannot reach a database or a clock - a
+# binding that depended on either would hash differently depending on where
+# it ran, and every approval would be stale somewhere.
+name = "The approval binding is pure: it hashes what it is given"
+type = "forbidden"
+source_modules = ["backend.app.approvals.binding"]
+forbidden_modules = [
+    "backend.app.db",
+    "sqlalchemy",
+    "httpx",
+    "anthropic",
+    "backend.app.llm",
+]
+
+[[tool.importlinter.contracts]]
+# A grader that can be talked into a verdict is not a grader. No language
+# model may reach the code that decides whether an intervention worked, and
+# no database, so the same readings always produce the same verdict.
+name = "Outcome grading is pure and never consults a model"
+type = "forbidden"
+source_modules = ["backend.app.verification.outcome", "backend.app.actions.effects"]
+forbidden_modules = [
+    "backend.app.db",
+    "sqlalchemy",
+    "anthropic",
+    "httpx",
+    "backend.app.llm",
+]
 
 [[tool.importlinter.contracts]]
 name = "The decision engine is pure: no I/O and no LLM"
