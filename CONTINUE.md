@@ -72,6 +72,25 @@ that hid the real collision — so the diagnosis itself needed fixing.
 turns a missing dependency from a skip into a failure. CI sets it; developers
 do not. See `tests/conftest.py`.
 
+**A minimum count is not a window.** `MIN_READINGS_FOR_SLOPE = 5` looked like
+an adequate guard and silently turned a "30-minute trend" into "any five
+readings", fitting four minutes of pull-down transient. Two constants that
+looked independent were coupled. Whenever a parameter names a duration, check
+that something enforces the duration.
+
+**Measure the thing you will ship, not a sketch of it.** The B3 prototype
+evaluated only from `i = window` onward, so it never looked at the minutes
+just before a full window existed — and missed that the real implementation
+fires at minute 29. The corrected answer needed a three-reading hold.
+
+**A cost parameter that flatters an action is a bug.** Two were caught by
+tests: an inspection modelled as removing 15% of risk for 90 dollars made
+"inspect everything" optimal at 2% risk, and a trailer swap modelled as more
+effective than a reroute beat the scenario's declared correct action. Both
+times the arithmetic was right and the input was wrong. When a decision
+disagrees with ground truth, suspect the parameters before the engine — and
+say plainly when a number was revised after seeing the disagreement.
+
 **A gate nobody looks at is not a gate.** CI had failed on **all eight runs
 since the first commit**, and it went unnoticed because `poe check` is green
 locally. Four unrelated causes, all pre-existing. The one worth remembering:
@@ -87,7 +106,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**11 commits · 406 tests · mypy --strict clean · 7 module contracts · pushed to
+**15 commits · 540 tests · mypy --strict clean · 7 module contracts · CI green · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -113,6 +132,10 @@ Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
 | Detection | `backend/app/incidents/detection.py` | Honest threshold baseline; `Detector` protocol both arms share |
 | Incident lifecycle | `backend/app/incidents/lifecycle.py` | Transition table, dedup, 6-hour suppression window |
 | Scenario replay | `backend/app/incidents/replay.py` | The pipeline end to end, `poe`-free and transaction-owned |
+| Risk service | `backend/app/risk/` | Slope extrapolation + rule prior, one feature builder, lead time |
+| Predictive detection | `backend/app/incidents/detection.py` | Fires at **minute 102**, 35 min before the threshold alarm |
+| Policy engine | `backend/app/policies/engine.py` | Full 5x10 matrix, deny absolute, zero bypasses |
+| Decision engine | `backend/app/decision/` | Costed candidates, EV ranking, feasibility, flip point |
 | Config / health / logging | `backend/app/config.py`, `api/v1/health.py`, `observability/logging.py` | Startup safety validation, TCP dependency probes, redaction |
 
 ### Scenario pack (`data/scenarios/pack_v1`)
@@ -232,30 +255,34 @@ live seeded view, and the baseline fires at **minute 137** against the
 document's 8 C envelope. Judged against the ERP's 10 C it never fires at all,
 which is what makes reconciliation load-bearing rather than tidy.
 
-### B3 — Risk service ← **NEXT** [Phase 1, feeds Phase 3]
-`RiskService` interface; rule baseline + slope-extrapolation baseline; feature
-builder shared by training and serving; `RiskAssessment` persisted with its
-baseline.
-**Done when:** the flagship scenario yields a rising risk score that crosses
-threshold **before** minute 137, with lead time computed against the baseline.
+### B3 — Risk service ✅ **DONE** (2026-09-19) [Phase 1, feeds Phase 3]
+Slope extrapolation primary, rule prior as stored baseline, one feature
+builder. Fires at **minute 102** on the flagship — 16 after saturation, 35
+before breach — and never on the control. `RiskEstimate` cannot be built
+without its baseline, which is I3 enforced by the type.
 
-### B4 — Policy engine [Phase 1]
-Pure function, full role × action matrix from `docs/architecture/overview.md`.
-Deny is absolute, including for Admin.
-**Done when:** every matrix cell is tested and the bypass rate is zero.
+### B4 — Policy engine ✅ **DONE** (2026-09-19) [Phase 1]
+All 50 Role x ActionType cells enumerated by test. Deny is absolute including
+for Admin; the kill switch is checked before role permission. Bypass rate
+zero.
 
-### B5 — Decision engine [Phase 1, deepened in Phase 3]
-Rule-driven action catalogue with feasibility from facility data; expected
-value including `do_nothing`; decision-flip sensitivity.
-**Done when:** the flagship scenario produces ≥3 costed candidates plus
-`do_nothing`, ranked by EV, with the flip point reported.
+### B5 — Decision engine ✅ **DONE** (2026-09-19) [Phase 1]
+Costed candidates with feasibility from real facility data, EV ranking
+including `do_nothing`, flip point solved analytically. Recommends
+`reroute_to_cold_storage` on the flagship, matching the scenario's declared
+correct action, reached independently.
 
-### B6 — Approval + execution + verification [Phase 1] — *the governance core*
+### B6 — Approval + execution + verification ← **NEXT** [Phase 1] — *the governance core*
 Hash-bound approvals with expiry; idempotent simulated executors; scheduled
 verification; audit events for every transition.
 **Done when:** approving against mutated evidence yields `APPROVAL_STALE`,
 re-executing the same approval is a no-op, and a failed verification reopens
 the incident.
+`RiskService` interface; rule baseline + slope-extrapolation baseline; feature
+builder shared by training and serving; `RiskAssessment` persisted with its
+baseline.
+**Done when:** the flagship scenario yields a rising risk score that crosses
+threshold **before** minute 137, with lead time computed against the baseline.
 
 ### B7 — Rules-only closed loop + demo [Phase 1] — **first milestone**
 Wire B1–B6 into a runnable loop with **no LLM**. `poe demo`, 13 steps,
@@ -304,108 +331,56 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — B3
+## 7. Next block in detail — B6
 
-### Already measured — do not re-derive this
+The governance core, and the block the whole compliance story rests on. B1-B5
+produced a recommendation; B6 is what stands between a recommendation and
+something happening in the world.
 
-A slope-extrapolation prototype was written, run against all three recordings,
-and then **deleted rather than committed half-finished**. The measurements are
-the valuable part and they are below. The rule is: fit `cargo_temp_c` over a
-trailing window by least squares, project to the envelope, and fire when the
-projected breach falls inside a 60-minute horizon.
-
-| Window | Flagship first fires | Verdict |
-|---|---|---|
-| 15 min | **minute 15** | Fits sensor scatter. 71 minutes before the unit is in any trouble. |
-| **30 min** | **minute 100** | 14 min after saturation (86), **37 min before breach** (137). |
-| 45 min | minute 103 | Same answer, three minutes of lead time thrown away. |
-
-`normal_pharma_run_01` never fires at any window — the false-alarm control
-holds. Slopes there stay under 0.005 °C/min against 0.024 for the flagship.
-
-**30 minutes is the shortest window that does not fit noise.** Use it, and
-keep the table above in the docstring so the number is justified rather than
-chosen.
-
-### Two findings that change what B3 should claim
-
-**1. Slope extrapolation false-alarms on `sensor_drift`, and does it early.**
-With a 30-minute window it fires at **minute 56** — earlier and more
-confidently than the threshold baseline, which fires around minute 95 when the
-reported temperature crosses 8 C. The true temperature never leaves spec.
-Predicting harder on a lying sensor means being confidently wrong sooner. That
-is the honest B3 result for this scenario and it should be recorded, not
-tuned away.
-
-**2. `sensor_drift` is separable from telemetry alone — this threatens C4.**
-Measured at minute 100, 30-minute window:
-
-| Scenario | temp slope | rpm slope | fault codes |
-|---|---|---|---|
-| compressor_degradation | +0.016 | **−9.2** | `AL17` |
-| sensor_drift | +0.039 | **+2.0** | none |
-| normal | +0.002 | +2.4 | none |
-
-A compressor winding **down** while cargo warms is a unit losing the fight. A
-compressor winding **up** while the reported temperature climbs fast is
-physically incoherent — the sensor is lying. Either that inconsistency or the
-plain absence of a fault code separates the three cases **without any second
-modality**.
-
-C4 in `docs/evaluation/claims.md` names `sensor_drift` as the family "where
-visual evidence should be decisive". If the Phase 4 ablation does not control
-for the compressor-response feature, it will credit the photograph with a
-discrimination that single-modality telemetry already achieves. **Add the
-caveat to C4 before running that ablation.** Do not fix it by removing the
-feature — the feature is real and useful; fix it by controlling for it.
+### What is already in place
+- `policies.engine.evaluate` returns `requires_approval` and `approver_role`
+  per action. `may_execute_immediately` is the only question an executor
+  should ask.
+- `decision.engine.rank_options` carries those verdicts onto each candidate.
+- `Approval` and `ActionExecution` tables exist with `bound_context_hash`,
+  `expires_at` and a unique `idempotency_key`.
+- `AuditService.append` is advisory-locked and commits with its caller.
 
 ### Deliverables
-1. `backend/app/risk/features.py` — **one** feature builder, shared by
-   training and serving. Two would drift, and the drift would present as a
-   model regression. Include `compressor_rpm_slope`; B12 needs it and finding
-   2 above is why.
-2. `backend/app/risk/baselines.py` — `RuleBaseline` (static prior from
-   headroom + fault codes) and `SlopeExtrapolation` (the table above). The
-   second is what B12 must beat by ≥5 points or the trained model does not
-   ship, so write it to be genuinely good.
-3. `backend/app/risk/service.py` — `RiskService` protocol returning a
-   probability **and** its baseline, always, in one object.
-4. `PredictiveDetector` in `incidents/detection.py`, implementing the existing
-   `Detector` protocol. Pass both detectors the same window: `BaselineDetector`
-   already ignores everything but the latest reading, so identical inputs is
-   the fair arrangement and needs no special case.
-5. `RiskAssessment` persisted with `baseline_probability`, `model_version`,
-   `feature_vector_hash`, `degraded`; a repository alongside the other three.
-6. Lead time measured between the two arms and recorded.
+1. `backend/app/auth/` — `Principal` from a verified JWT. Role comes from the
+   token, never a request body (threat T5).
+2. `backend/app/approvals/service.py` — request, grant, deny. The bound hash
+   covers the evidence content hashes, the risk assessment and the selected
+   action.
+3. Staleness check: an approval granted against a world state that has since
+   moved is `APPROVAL_STALE` and must be re-sought.
+4. `backend/app/actions/simulators/` — idempotent executors keyed on
+   `idempotency_key`; re-execution returns the first result.
+5. `backend/app/verification/` — scheduled outcome check; a failed
+   verification reopens the incident via `IncidentStatus.VERIFYING ->
+   INVESTIGATING`, which the transition table already permits.
+6. An audit event for every transition.
 
 ### Watch out for
-- **These are not calibrated probabilities.** A logistic on time-to-breach is
-  a monotone score, not a frequency. Say so in the docstring, and keep C2 at
-  `PLACEHOLDER` until B12's isotonic regression and reliability diagram exist.
-  Nothing may multiply one of these by a cargo value to get an expected loss.
-- **`baseline_probability` is NOT NULL** (invariant I3). Do not add a code
-  path that stores a prediction without its baseline.
-- **Ground truth must not reach the feature builder** (invariant I8). Add an
-  import-linter contract forbidding `backend` from importing `simulator`,
-  where `GroundTruthFrame` lives. Cheap, and it makes I8 structural.
-- **Both detectors share a `correlation_key`**, so whichever runs second
-  deduplicates into the other's incident. Run the arms as **separate replays**
-  rather than putting `detected_by` in the key — in production only one
-  detector runs, and a key that splits by detector would produce two incidents
-  for one truck, which is the exact failure deduplication exists to prevent.
-- **A slope fit on a saturating curve is not a straight line.** The projection
-  is conservative here, which is the safe direction, but it is wrong either
-  way — worth a comment rather than a silent assumption.
+- **The bound hash must cover what an approver actually saw.** Evidence
+  content hashes, the risk probability *and its baseline*, and the chosen
+  action. Omitting the risk number would let a 40% decision be executed
+  against an 85% world.
+- **Expiry and staleness are different failures.** An approval can be
+  unexpired and stale, or expired and still describing an unchanged world.
+  Two reasons, two tests.
+- **Idempotency is on the execution, not the approval.** A retried execution
+  returns the first result; a *second* approval for the same action is a
+  separate decision and must be recorded as one.
+- `Evidence.content_hash` already exists and sorts set values before hashing,
+  so the binding is stable against reordering.
 
 ### Acceptance
-- [ ] Flagship risk crosses threshold **before minute 137 and after minute 86**
-      (expect 100 with a 30-minute window)
-- [ ] Lead time measured against the baseline arm and recorded
-- [ ] `normal_pharma_run_01` never crosses the threshold
-- [ ] `sensor_drift_pharma_01`'s false alarm is asserted by a test, with a
-      docstring saying it is the expected Phase 1 result
-- [ ] Every `RiskAssessment` has a non-null `baseline_probability`
-- [ ] C4 in `claims.md` carries the single-modality caveat
+- [ ] Approving against mutated evidence yields `APPROVAL_STALE`
+- [ ] An expired approval is refused with a distinct reason
+- [ ] Re-executing the same approval is a no-op returning the first result
+- [ ] A failed verification reopens the incident
+- [ ] Every transition appears in the audit chain and the chain still verifies
 - [ ] `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` green; pushed;
       **CI badge checked**
 
@@ -416,4 +391,5 @@ feature — the feature is real and useful; fix it by controlling for it.
 | 2026-09-18/19 | Phase 0, IncidentForge, legacy integration, evidence core, audit chain | 7 commits, 312 tests. Three bugs found by tests, two of which were wrong tests revealing real limitations. |
 | 2026-09-19 | **B1 + B2** | 9 commits, 406 tests. Four findings: (1) the app connected as a **superuser**, so the append-only grants were inert — split into `axon`/`axon_app`; (2) concurrent appends **lose events** rather than forking, which is worse for an audit log; (3) the ODBC driver returns DATETIME2 as `str` on this machine and `datetime` in CI; (4) the integration suite was **passing in CI by doing nothing** — no databases were started and every test skipped. |
 | 2026-09-19 | **CI repair** | CI had never passed — 8 red runs from commit 1. Four unrelated causes: a config test that could only pass locally, unconfigured gitleaks, an ODBC install pinned to Ubuntu 22.04 on a 24.04 runner, and an empty agent suite making pytest exit 5. |
-| | **B3 next** | Risk service. §7 carries measurements already taken: 30-minute window fires at minute 100. Two findings there change what B3 may claim. |
+| 2026-09-19 | **B3 + B4 + B5** | 540 tests. Predictive arm fires at minute 102, 35 min of lead time. Policy matrix complete with zero bypasses. Decision engine agrees with the flagship's declared correct action. Three parameter errors caught by tests, two of them cost models that flattered an action. |
+| | **B6 next** | Approvals, execution, verification — the governance core. |
