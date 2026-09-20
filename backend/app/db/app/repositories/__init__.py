@@ -10,5 +10,11 @@ or not at all.
 from backend.app.db.app.repositories.audit import AuditRepository
 from backend.app.db.app.repositories.evidence import EvidenceRepository
 from backend.app.db.app.repositories.incident import IncidentRepository
+from backend.app.db.app.repositories.risk import RiskRepository
 
-__all__ = ["AuditRepository", "EvidenceRepository", "IncidentRepository"]
+__all__ = [
+    "AuditRepository",
+    "EvidenceRepository",
+    "IncidentRepository",
+    "RiskRepository",
+]

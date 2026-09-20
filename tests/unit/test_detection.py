@@ -20,12 +20,9 @@ from backend.app.domain.enums import (
     IncidentStatus,
     Modality,
 )
+from backend.app.domain.envelope import TemperatureEnvelope
 from backend.app.domain.evidence import EntityRef, Evidence, Provenance
-from backend.app.incidents.detection import (
-    BaselineDetector,
-    TemperatureEnvelope,
-    correlation_key,
-)
+from backend.app.incidents.detection import BaselineDetector, correlation_key
 from backend.app.incidents.lifecycle import (
     TRANSITIONS,
     IllegalTransitionError,
