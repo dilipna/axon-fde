@@ -272,17 +272,21 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      # pytest exits 5 when it collects nothing, which is indistinguishable
-      # from a real failure at the job level. The agent suite arrives in B9;
-      # until then an empty directory is the expected state, and saying so
-      # here is better than a permanently red job everyone learns to ignore.
+      # The guard stays. pytest exits 5 when it collects nothing, which is
+      # indistinguishable from a real failure at the job level, and the suite
+      # was empty until B9 landed. Keeping it means deleting the last test
+      # here reports honestly instead of going red for the wrong reason.
+      #
+      # No database and no API key: the graph tests run the workflow with
+      # scripted model nodes, and the deterministic guards they protect do not
+      # touch either.
       - name: Replay agent workflows
         run: |
           set -euo pipefail
           if find tests/agent -name 'test_*.py' | grep -q .; then
             uv run pytest tests/agent -v
           else
-            echo "No agent tests yet - they arrive with the LangGraph workflow (B9)."
+            echo "No agent tests found - the suite is expected to be populated."
           fi
 
   benchmark-gate:
