@@ -134,7 +134,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**24 commits · 692 tests · mypy --strict clean · 10 module contracts · **CI green on all five jobs** · pushed to
+**26 commits · 736 tests · mypy --strict clean · 10 module contracts · **CI green on all five jobs** · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -171,6 +171,7 @@ Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
 | Outcome verification | `backend/app/verification/` | Deterministic grader; failed reopens the incident, inconclusive moves nothing |
 | Closed loop demo | `scripts/demo.py`, `tests/e2e/test_demo.py` | `poe demo`, 13 steps, no model. Rolls back by default so it is repeatable; `--keep` commits. **The `rules_only` ablation arm for C5.** |
 | LLM boundary | `backend/app/llm/` | `LLMProvider` protocol, Anthropic impl with prompt caching and structured outputs, cassettes that **fail loudly**, daily spend ceiling, per-call cost. Only `anthropic_provider` may import `anthropic` (contract). |
+| Agent workflow | `backend/app/agents/` | 14 nodes, typed checkpointable state, budget gates *between* nodes, deterministic scorer owning every confidence, deterministic grounding check. Two model nodes, each followed by a check that can reject it. |
 | Config / health / logging | `backend/app/config.py`, `api/v1/health.py`, `observability/logging.py` | Startup safety validation, TCP dependency probes, redaction |
 
 ### Scenario pack (`data/scenarios/pack_v1`)
@@ -198,11 +199,14 @@ superuser, because an assertion about grants is worthless without it.
 
 ### Not built
 
-LangGraph workflow, tools layer, AxonBench, OTel/Langfuse wiring, any UI.
-The API layer exposes none of B6-B8 yet - the services exist and are tested,
-but nothing is routed. **No cassettes are recorded yet**: the provider and its
-guarantees are built and tested, but nothing calls a model, so
-`data/cassettes/` is empty until B9 has prompts to record.
+Tools layer, AxonBench, OTel/Langfuse wiring, any UI. The API layer exposes
+none of B6-B9 yet - the services exist and are tested, but nothing is routed.
+**No cassettes are recorded yet.** The provider, the graph and their
+guarantees are built and tested, but `data/cassettes/` is empty: recording
+needs an API key and a deliberate session. The graph tests supply the two
+model nodes as scripted functions, which tests the graph and says nothing
+about what a model would produce. **`poe demo` is still rules-only** and is
+the unchanged C5 baseline.
 
 ---
 
@@ -330,14 +334,14 @@ structured outputs, cassettes that raise on a miss, a spend ceiling that
 refuses in advance, `ModelInvocation` with cache reads. Confirmed by replacing
 the raise with a silent fallback and watching three tests go red.
 
-### B9 — LangGraph workflow ← **NEXT** [Phase 1]
-14 nodes, typed state, Postgres checkpointer, budget guards, hypothesis scorer
-(rules propose priors, LLM proposes links, **deterministic scorer owns every
-confidence**), deterministic grounding check.
-**Done when:** the graph runs end to end, budget exhaustion escalates, and the
-grounding check rejects a fabricated citation.
+### B9 — LangGraph workflow ✅ **DONE** (2026-09-21) [Phase 1]
+14 nodes, typed checkpointable state, budget gates between nodes, the
+deterministic scorer, the deterministic grounding check. Graph runs end to
+end, budget exhaustion escalates, a fabricated citation stops the run before
+an approval is requested. **Cassettes still to record** — the graph tests use
+scripted model nodes, which is stated in the suite rather than implied.
 
-### B10 — AxonBench v0 [Phase 1] — **claims become real**
+### B10 — AxonBench v0 ← **NEXT** [Phase 1] — **claims become real**
 8 scenarios, ~12 deterministic graders, arms (`rules_only` vs `rules+llm`),
 result persistence with full provenance, CI regression gate.
 **Done when:** `poe bench` runs in CI and `poe bench report` generates the
@@ -364,45 +368,46 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — B9
+## 7. Next block in detail — B10
 
-The block where the model actually gets used. B8 built the boundary; nothing
-calls through it yet, so `data/cassettes/` is empty.
+The block where the numbers in `docs/evaluation/claims.md` stop being
+`PLACEHOLDER`. Everything it measures now exists.
 
 ### What is already in place
-- `LLMProvider` / `AnthropicProvider`, cassettes, spend ceiling, and
-  `InvocationRepository`. CASSETTE is the default mode.
-- `langgraph` **1.2.11** and `langgraph-checkpoint-postgres` **3.1.2** are
-  installed.
-- `poe demo` is the rules-only arm and runs in CI — B9 must not change what it
-  produces.
+- Three scenarios with declared ground truth, and `poe forge verify`.
+- **The `rules_only` arm already runs in CI** as `poe demo` / `tests/e2e`.
+- The `rules+llm` arm is the graph from B9 — but it needs cassettes first.
+- `ModelInvocation` makes cost per incident a query.
 
 ### Deliverables
-1. 14 nodes with typed state and a Postgres checkpointer.
-2. Budget guards on steps, tool calls, wall clock and tokens — each enforced
-   independently, and exhaustion **escalates to a human** rather than spinning.
-3. The hypothesis scorer: rules propose priors, the LLM proposes *links*, and
-   a **deterministic scorer owns every confidence** (I2).
-4. A deterministic grounding check that rejects a fabricated citation.
+1. 8 scenarios (5 more than the pack has).
+2. ~12 deterministic graders.
+3. Two arms, `rules_only` and `rules+llm`, with result persistence carrying
+   full provenance.
+4. `poe bench` in CI and `poe bench report` generating the README's markdown.
 
 ### Watch out for
-- **LangGraph is 1.x, not the 0.2.x most tutorials show.** Check the current
-  API before writing graph code; the `StateGraph` surface moved.
-- **The model may never author an observation (I1).** It links, interprets and
-  narrates. There is no `EvidenceSource` member for it and a DB CHECK enforces
-  it — the temptation arrives in this block.
-- Record cassettes *deliberately* (`AXON_LLM_MODE=record`), commit them, and
-  read the diff. A cassette directory nobody reviews is a directory of
-  unexamined model output.
-- The grounding check is deterministic on purpose. A checker that asks a model
-  whether a citation is real can be talked out of its answer.
+- **Record cassettes before attempting the `rules+llm` arm.** Without them the
+  graph cannot run offline, and a benchmark that needs an API key will not run
+  in CI — which is how an arm quietly stops being measured.
+- **A grader must fail the arm it was written for.** Write each grader, then
+  break the thing it grades and watch it go red. A grader that passes
+  everything is worse than none because it is quoted.
+- Store the arm, the model id, the prompt version and the cassette key with
+  every result. "Which run produced this number?" must be answerable a year
+  later.
+- The safety metrics (forbidden actions, approval bypass) are **absolute**
+  gates at zero. Quality metrics are tolerance-based. Do not blend them.
+- `claims.md` says every number is `PLACEHOLDER` until a stored benchmark run
+  produces it (I7). Replacing one without a stored run is the failure that
+  invariant exists to prevent.
 
 ### Acceptance
-- [ ] The graph runs end to end on the flagship scenario
-- [ ] Budget exhaustion escalates rather than spinning
-- [ ] The grounding check rejects a fabricated citation
-- [ ] Every confidence in the run came from the deterministic scorer
-- [ ] `poe demo` is unchanged — the rules-only arm still produces its baseline
+- [ ] `poe bench` runs both arms in CI
+- [ ] `poe bench report` generates the markdown the README embeds
+- [ ] Every grader has been shown to fail on broken input
+- [ ] The first `PLACEHOLDER`s in `claims.md` are replaced, each with a stored
+      run behind it
 - [ ] `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` green; pushed;
       **CI badge checked**
 
@@ -419,4 +424,5 @@ calls through it yet, so `data/cassettes/` is empty.
 | 2026-09-20 | **CI repair** | Run 14 red: the security job had no database, and the new I5 gate tests need one. `AXON_REQUIRE_INTEGRATION=1` turned the missing service into a failure rather than a skip — which is the third time that flag has caught a job that would otherwise have gone green while testing less than it claimed. Green on run 15. |
 | 2026-09-20 | **B7** | 660 tests. `poe demo` runs the whole loop offline. Four things wrong first: the demo **committed, so it worked exactly once** (second run deduplicated into its own incident and died on a repeated transition) — it now rolls back by default; it also committed **on failure**, leaving half an incident behind; the staleness branch was staged with a **fabricated evidence hash** until the full recording was replayed, which supplies 48 real readings and moves p(breach) 0.621 → 0.687; and `-48 new readings arrived` came from differencing two sliding windows instead of counting arrivals. Verification reports **failed** and reopens the incident, which is honest — the recording is the trajectory of a truck that was not rerouted. |
 | 2026-09-20 | **B8** | 692 tests. Cassette misses **raise rather than re-record** — verified by replacing the raise with a silent fallback and watching three tests go red. Spend ceiling refuses *before* sending: output cost is bounded exactly by `max_tokens`, input cost is not knowable locally, so the honest limit is stated — overshoot is at most one call's input cost, never a runaway loop. `cache_read_tokens` stored on every invocation because caching failing is silent. Tenth contract: only `anthropic_provider` imports `anthropic`. |
-| | **B9 next** | LangGraph workflow, 14 nodes, deterministic scorer owning every confidence. The block where I1 is most tempting to break. |
+| 2026-09-21 | **B9** | 736 tests. Four findings: (1) **every observation type the prior rules read did not exist** — `setpoint_temp_c`, `door_open_state`, `reefer_fault_codes` are not declared, nothing raised, every prior sat at its 0.02 floor for ever; now guarded by `PRIOR_OBSERVATION_TYPES` checked at each lookup; (2) **a LangGraph routing function that writes state loses the write** — the budget gate set the reason and every escalation said "without a stated reason"; (3) the grounding check **ignored figures below 10**, exempting every temperature in the system while checking the dollar figures, and reported a correct "78%" as half fabricated; (4) `resolve_envelope` sat in `incidents.replay`, dragging pyodbc into the agent layer — the contract refused and it moved to `evidence/envelope.py`. |
+| | **B10 next** | AxonBench v0. Record cassettes first, or the `rules+llm` arm cannot run in CI. |
