@@ -20,6 +20,55 @@ is realistic. Each block leaves the repository green and releasable.
 
 ---
 
+## 0.1 The fastest path from here
+
+Read this before choosing what to do. It is the difference between finishing
+Phase 1 and half-finishing three blocks.
+
+**One decision gates everything, and only you can make it.**
+
+> **Do you have an `ANTHROPIC_API_KEY` you are willing to spend ~$2–5 on?**
+>
+> - **Yes** → record cassettes early in the session (B10b below). One recording
+>   session unblocks the `rules+llm` arm permanently, because every later run
+>   replays offline and free.
+> - **No** → say so at the start. **Most of Phase 1 finishes without it**, and
+>   the blocks below are ordered so the model-dependent work is last rather
+>   than first. Do not let a missing key stall a session.
+
+**Most of the claims register does not need a model.** This is the thing most
+likely to be missed. Of the 15 claims in `docs/evaluation/claims.md`:
+
+| Needs nothing new | Needs cassettes | Needs a later block |
+|---|---|---|
+| C1 lead time · C6 contradictions · C7 unauthorised actions · C8 SQL guard · C10 grounding · C11 verification · C13 degradation | C5 LLM vs rules · C9 injection · C12 cost/latency · C3 root cause | C2 calibration (B12) · C4 multimodal (B13) · C14, C15 (case study) |
+
+Seven claims are measurable **today** against code that already exists and is
+already tested. That is why B10 is split below: `B10a` needs no key and turns
+seven `PLACEHOLDER`s into numbers; `B10b` needs one recording session.
+
+**The critical path to the portfolio checkpoint (end of B13):**
+
+```
+B10a (no key)  ->  B10b (one recording)  ->  B13 multimodal
+                                                                           ->  B12 trained model [has a stop condition]
+B11 streaming  [has a stop condition - cut it if the criteria are not met]
+```
+
+B11 and B12 both carry explicit **stop conditions** (§6). Honour them. Cutting
+a block that fails its criteria and writing the ADR is *finishing* it, not
+skipping it, and it is worth more than a half-built Redpanda integration.
+
+**What actually makes a session slow**, measured across the last four:
+
+1. Docker is down, or drops mid-session. Start it first and re-check after any
+   long gap - it died twice in one session.
+2. Guessing at a name instead of reading it. Three separate bugs came from
+   invented observation types, an invented `ShipmentRecord` field and an
+   invented `ChainVerification` field. Grep before writing.
+3. Running plain `poe check` and discovering CI disagrees. Always run the real
+   gate (§4) before pushing.
+
 ## 1. Invariants — never violate these
 
 These are the architecture. Breaking one silently is worse than not shipping
@@ -341,11 +390,19 @@ end, budget exhaustion escalates, a fabricated citation stops the run before
 an approval is requested. **Cassettes still to record** — the graph tests use
 scripted model nodes, which is stated in the suite rather than implied.
 
-### B10 — AxonBench v0 ← **NEXT** [Phase 1] — **claims become real**
-8 scenarios, ~12 deterministic graders, arms (`rules_only` vs `rules+llm`),
-result persistence with full provenance, CI regression gate.
-**Done when:** `poe bench` runs in CI and `poe bench report` generates the
-markdown the README embeds. Replace the first `PLACEHOLDER`s in `claims.md`.
+### B10a — AxonBench v0, deterministic claims ← **NEXT** [Phase 1] — **no API key needed**
+Runner, result persistence with full provenance, ~8 deterministic graders, the
+`rules_only` arm, `poe bench` in CI, `poe bench report`.
+**Done when:** `poe bench` runs in CI and the **seven claims that need no
+model** (C1, C6, C7, C8, C10, C11, C13) have real numbers with a stored run
+behind each (I7).
+
+### B10b — AxonBench, the LLM arm [Phase 1] — **needs one recording session**
+Record cassettes for the two model nodes, add the `rules+llm` arm, and measure
+C5, C9, C12 and C3 against the `rules_only` baseline that has been running in
+CI since B7.
+**Done when:** both arms run offline in CI from cassettes, and C5 is a
+measured difference rather than an assertion.
 
 ### B11 — Streaming [Phase 2]
 Redpanda, consumer, event-driven detection, duplicate/out-of-order handling,
@@ -368,46 +425,59 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — B10
+## 7. Next block in detail — B10a
 
-The block where the numbers in `docs/evaluation/claims.md` stop being
-`PLACEHOLDER`. Everything it measures now exists.
+Where the numbers stop being `PLACEHOLDER`. **No API key required** - that is
+the point of splitting it out.
+
+### Decide this first, in one line
+Ask whether an `ANTHROPIC_API_KEY` is available and whether ~$2–5 of spend is
+acceptable. If yes, B10b can follow in the same session. If no, B10a is a
+complete block on its own and nothing is blocked.
 
 ### What is already in place
+- `benchmarks/axonbench/` and `benchmarks/axonbench/graders/` exist and are
+  empty. `poe bench` and `poe bench-report` are already wired in `pyproject`
+  to `benchmarks.axonbench.runner` and `.report`.
+- `benchmarks/results/` exists and is gitkept.
 - Three scenarios with declared ground truth, and `poe forge verify`.
 - **The `rules_only` arm already runs in CI** as `poe demo` / `tests/e2e`.
-- The `rules+llm` arm is the graph from B9 — but it needs cassettes first.
-- `ModelInvocation` makes cost per incident a query.
+  Reuse it; do not write a second one.
+- `docs/evaluation/claims.md` has 15 claims and **16 `PLACEHOLDER`s**.
 
 ### Deliverables
-1. 8 scenarios (5 more than the pack has).
-2. ~12 deterministic graders.
-3. Two arms, `rules_only` and `rules+llm`, with result persistence carrying
-   full provenance.
-4. `poe bench` in CI and `poe bench report` generating the README's markdown.
+1. `benchmarks/axonbench/runner.py` — runs an arm over the scenario pack and
+   persists a result per scenario with full provenance.
+2. `benchmarks/axonbench/graders/` — roughly eight deterministic graders, one
+   per claim in the "needs nothing new" column of §0.1.
+3. `benchmarks/axonbench/report.py` — `poe bench report` emits the markdown
+   the README embeds.
+4. Five more scenarios, if time allows. **Three is enough to ship B10a**; do
+   not let scenario authoring eat the block.
+5. Replace the seven reachable `PLACEHOLDER`s, each with a stored run behind
+   it.
 
 ### Watch out for
-- **Record cassettes before attempting the `rules+llm` arm.** Without them the
-  graph cannot run offline, and a benchmark that needs an API key will not run
-  in CI — which is how an arm quietly stops being measured.
-- **A grader must fail the arm it was written for.** Write each grader, then
-  break the thing it grades and watch it go red. A grader that passes
-  everything is worse than none because it is quoted.
-- Store the arm, the model id, the prompt version and the cassette key with
-  every result. "Which run produced this number?" must be answerable a year
-  later.
-- The safety metrics (forbidden actions, approval bypass) are **absolute**
-  gates at zero. Quality metrics are tolerance-based. Do not blend them.
-- `claims.md` says every number is `PLACEHOLDER` until a stored benchmark run
-  produces it (I7). Replacing one without a stored run is the failure that
-  invariant exists to prevent.
+- **A grader must be shown to fail.** Write it, break the thing it grades,
+  watch it go red. A grader that passes everything is worse than none,
+  because it gets quoted. This is the single highest-value habit in the block.
+- **Store the arm, the model id, the prompt version and the scenario digest
+  with every result.** "Which run produced this number?" must be answerable a
+  year later. That is I7.
+- **Safety metrics are absolute gates at zero** (forbidden actions, approval
+  bypass). Quality metrics are tolerance-based. Do not blend them into one
+  score - the blended number hides the only one that must never move.
+- Do not replace a `PLACEHOLDER` without a stored run. That is precisely the
+  failure I7 exists to prevent, and it is easy to do by accident when the
+  number is right in front of you.
+- The golden digests in `tests/unit/test_emitters.py` lock scenario
+  reproducibility. If you add scenarios, they get digests too.
 
 ### Acceptance
-- [ ] `poe bench` runs both arms in CI
+- [ ] `poe bench` runs the `rules_only` arm over the pack in CI
 - [ ] `poe bench report` generates the markdown the README embeds
-- [ ] Every grader has been shown to fail on broken input
-- [ ] The first `PLACEHOLDER`s in `claims.md` are replaced, each with a stored
-      run behind it
+- [ ] Every grader has been shown to fail on deliberately broken input
+- [ ] C1, C6, C7, C8, C10, C11, C13 have real numbers, each with a stored run
 - [ ] `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` green; pushed;
       **CI badge checked**
 
@@ -425,4 +495,4 @@ The block where the numbers in `docs/evaluation/claims.md` stop being
 | 2026-09-20 | **B7** | 660 tests. `poe demo` runs the whole loop offline. Four things wrong first: the demo **committed, so it worked exactly once** (second run deduplicated into its own incident and died on a repeated transition) — it now rolls back by default; it also committed **on failure**, leaving half an incident behind; the staleness branch was staged with a **fabricated evidence hash** until the full recording was replayed, which supplies 48 real readings and moves p(breach) 0.621 → 0.687; and `-48 new readings arrived` came from differencing two sliding windows instead of counting arrivals. Verification reports **failed** and reopens the incident, which is honest — the recording is the trajectory of a truck that was not rerouted. |
 | 2026-09-20 | **B8** | 692 tests. Cassette misses **raise rather than re-record** — verified by replacing the raise with a silent fallback and watching three tests go red. Spend ceiling refuses *before* sending: output cost is bounded exactly by `max_tokens`, input cost is not knowable locally, so the honest limit is stated — overshoot is at most one call's input cost, never a runaway loop. `cache_read_tokens` stored on every invocation because caching failing is silent. Tenth contract: only `anthropic_provider` imports `anthropic`. |
 | 2026-09-21 | **B9** | 736 tests. Four findings: (1) **every observation type the prior rules read did not exist** — `setpoint_temp_c`, `door_open_state`, `reefer_fault_codes` are not declared, nothing raised, every prior sat at its 0.02 floor for ever; now guarded by `PRIOR_OBSERVATION_TYPES` checked at each lookup; (2) **a LangGraph routing function that writes state loses the write** — the budget gate set the reason and every escalation said "without a stated reason"; (3) the grounding check **ignored figures below 10**, exempting every temperature in the system while checking the dollar figures, and reported a correct "78%" as half fabricated; (4) `resolve_envelope` sat in `incidents.replay`, dragging pyodbc into the agent layer — the contract refused and it moved to `evidence/envelope.py`. |
-| | **B10 next** | AxonBench v0. Record cassettes first, or the `rules+llm` arm cannot run in CI. |
+| | **B10a next** | AxonBench, deterministic claims. **No API key needed** — seven of the fifteen claims are measurable against code that already exists. B10b (the LLM arm) needs one cassette-recording session; see §0.1. |
