@@ -23,7 +23,6 @@ of this scenario that makes it worth running.
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -37,7 +36,8 @@ from backend.app.domain.envelope import TemperatureEnvelope
 from backend.app.domain.evidence import Evidence
 from backend.app.domain.taxonomy import Taxonomy, load_taxonomy
 from backend.app.evidence.documents import extraction_to_evidence, load_extractions
-from backend.app.evidence.reconciliation import Conflict, reconcile, resolve_value
+from backend.app.evidence.envelope import resolve_envelope
+from backend.app.evidence.reconciliation import Conflict, reconcile
 from backend.app.evidence.telemetry import read_telemetry, reading_to_evidence
 from backend.app.incidents.detection import BaselineDetector, Detection, Detector
 from backend.app.incidents.lifecycle import IncidentService
@@ -49,32 +49,6 @@ __all__ = ["ReplayResult", "ScenarioReplay", "resolve_envelope"]
 #: is a handful of flushes rather than 240, small enough that a fleet-scale
 #: replay does not build an unbounded list in memory first.
 _BATCH_READINGS = 30
-
-
-def resolve_envelope(
-    evidence: Sequence[Evidence],
-    *,
-    taxonomy: Taxonomy | None = None,
-) -> TemperatureEnvelope | None:
-    """Decide which temperature envelope applies, from the evidence itself.
-
-    Returns ``None`` when no envelope is known. That is not an error and must
-    not be defaulted: judging cargo against a guessed envelope would be
-    fabricating the one number the whole judgement rests on. The caller is
-    expected to degrade - say it cannot assess this shipment - rather than
-    proceed on an invented limit.
-    """
-    tax = taxonomy or load_taxonomy()
-    pool = list(evidence)
-    minimum = resolve_value(pool, "permitted_temp_min_c", taxonomy=tax)
-    maximum = resolve_value(pool, "permitted_temp_max_c", taxonomy=tax)
-    if minimum is None or maximum is None:
-        return None
-    return TemperatureEnvelope(
-        minimum_c=float(minimum.value),  # type: ignore[arg-type]
-        maximum_c=float(maximum.value),  # type: ignore[arg-type]
-        source_evidence_ids=(str(minimum.id), str(maximum.id)),
-    )
 
 
 @dataclass(slots=True)
