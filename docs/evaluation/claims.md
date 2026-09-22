@@ -17,6 +17,15 @@ Claims move through three states:
 | `PLACEHOLDER` | Registered, not yet measured. May not be stated anywhere. |
 | `MEASURED` | A stored run supports it. Must cite the run ID. |
 | `REFUTED` | Measured and not supported. **Published anyway.** |
+| `INSUFFICIENT_DATA` | A grader ran and produced a number, but over fewer cases than the claim's own method requires. **The number may not be stated as the claim.** |
+
+`INSUFFICIENT_DATA` was added when AxonBench first ran. It is the honest
+answer to a real situation: a lead time computed from one scenario is a real
+measurement and is not evidence for a claim whose method says forty. Calling
+it `MEASURED` is precisely the failure invariant I7 exists to prevent, and
+leaving it `PLACEHOLDER` discards both the run and the record of what is
+missing. `docs/evaluation/results.md` lists every such claim with its
+shortfall.
 
 A `REFUTED` claim is not a failure of the project. An ablation that shows a
 capability does not help is a real finding, and reporting it is worth more than
@@ -38,6 +47,10 @@ says, because the system has no access to the underlying reality:
 
 Anything framed in dollars is a **model-based estimate under stated
 assumptions** and must be labelled as such at every point of use.
+
+Measured numbers are regenerated into `docs/evaluation/results.md` by
+`poe bench report`, and the runs behind published figures are committed under
+`benchmarks/results/published/` so that anybody can check them.
 
 ---
 
@@ -151,7 +164,16 @@ assumptions** and must be labelled as such at every point of use.
 | **Metric** | Unauthorised-action rate and approval-bypass rate. **Target: exactly 0.** |
 | **Method** | Full role × action policy matrix, plus the AxonRed escalation attacks. |
 | **Gate** | Non-zero fails CI. This is not a tolerance-based metric. |
-| **Status** | `PLACEHOLDER` |
+| **Status** | `MEASURED` — **0** unauthorised actions, **0** approval bypasses, **0** kill-switch leaks across all 50 role × action cells. |
+| **Run** | `run-53b8015e9c0b` · `git_sha=1777425` · `model_id=none` · `prompt_version=none` · `pack_version=1.0.0` · `config_hash=60b1fb3864a5cca8` |
+
+> **What this covers and what it does not.** The 50 cells are the whole
+> matrix, and the kill switch is probed on every one of them, so the
+> *policy-engine* half of the claim is complete. The AxonRed escalation
+> attacks named in the method arrive with B14 and are not in this number; the
+> execution gate against a live database is covered separately by
+> `tests/security/test_execution_gate.py`. A larger adversarial set makes this
+> claim stronger — it does not make the present zero less true.
 
 ### C8 — Generated SQL cannot mutate the legacy system
 
@@ -161,7 +183,18 @@ assumptions** and must be labelled as such at every point of use.
 | **Metric** | Prohibited-operation rate across ~60 adversarial inputs. **Target: exactly 0.** |
 | **Method** | Three independent layers, each tested separately: SQLGlot AST allowlist, the `axon_ai_ro` grant (SELECT on six views only), and statement timeouts + row caps. |
 | **Gate** | Non-zero fails CI. |
-| **Status** | `PLACEHOLDER` |
+| **Status** | `MEASURED` — **0** of 57 adversarial inputs reached the driver. |
+| **Run** | `run-53b8015e9c0b` · `git_sha=1777425` · `model_id=none` · `prompt_version=none` · `pack_version=1.0.0` · `config_hash=60b1fb3864a5cca8` |
+
+> **One of the three layers.** This number is the SQLGlot AST allowlist. The
+> `axon_ai_ro` grant is exercised against a real SQL Server in
+> `tests/integration/test_legacy_access.py`, because a claim about a grant
+> cannot be tested without one; the timeouts and row caps are configuration
+> asserted there too. The 57 inputs are grouped by *mechanism* — direct
+> mutation, stacked statements, privilege manipulation, procedural execution,
+> reaching outside the six views, session and server state, malformed input,
+> injection shapes — rather than padded with variations of one idea, because
+> the claim's strength comes from covering distinct routes to a write.
 
 ### C9 — Resistance to prompt injection across modalities
 
