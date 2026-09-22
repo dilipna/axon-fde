@@ -172,6 +172,13 @@ locally. Five unrelated causes, all pre-existing:
    the pinned binary is invoked directly, so the CI command is exactly the
    command you can run locally.
 
+**A disabled CI job is a step that has never run.** Three jobs have now failed
+on their *first real execution* — the security job had no database, the agent
+job reported an empty suite, and the AxonBench job carried a `--` inherited
+from the placeholder step it replaced, which poethepoet forwards literally to
+argparse. In each case the line looked fine and had never executed. When
+enabling a job, run its exact command locally first, byte for byte.
+
 **A new test suite may need a new service.** `poe check` green locally says
 nothing about whether CI's *job for that suite* can run it. The security job
 had no Postgres, so the twelve new execution-gate tests failed there while
@@ -198,7 +205,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**29 commits · 762 tests · mypy --strict clean · 11 module contracts · **CI green on all six jobs** · pushed to
+**31 commits · 762 tests · mypy --strict clean · 11 module contracts · **CI green on all six jobs** · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -506,4 +513,5 @@ quality claims that everything else in the register is compared against.
 | 2026-09-20 | **B8** | 692 tests. Cassette misses **raise rather than re-record** — verified by replacing the raise with a silent fallback and watching three tests go red. Spend ceiling refuses *before* sending: output cost is bounded exactly by `max_tokens`, input cost is not knowable locally, so the honest limit is stated — overshoot is at most one call's input cost, never a runaway loop. `cache_read_tokens` stored on every invocation because caching failing is silent. Tenth contract: only `anthropic_provider` imports `anthropic`. |
 | 2026-09-21 | **B9** | 736 tests. Four findings: (1) **every observation type the prior rules read did not exist** — `setpoint_temp_c`, `door_open_state`, `reefer_fault_codes` are not declared, nothing raised, every prior sat at its 0.02 floor for ever; now guarded by `PRIOR_OBSERVATION_TYPES` checked at each lookup; (2) **a LangGraph routing function that writes state loses the write** — the budget gate set the reason and every escalation said "without a stated reason"; (3) the grounding check **ignored figures below 10**, exempting every temperature in the system while checking the dollar figures, and reported a correct "78%" as half fabricated; (4) `resolve_envelope` sat in `incidents.replay`, dragging pyodbc into the agent layer — the contract refused and it moved to `evidence/envelope.py`. |
 | 2026-09-22 | **B10a** | 762 tests. **C7 and C8 measured at 0**, run committed. Three findings: (1) my own previous estimate of "seven claims reachable" was **wrong — two are**; a claim's *metric* looks reachable long before its *method* is, and the method rows carry dataset requirements (C1 needs 40 scenarios, the pack has 1); (2) the three statuses in `claims.md` had no room for "a grader ran but the dataset is too small", so **`INSUFFICIENT_DATA`** was added — `MEASURED` would be the exact failure I7 prevents and `PLACEHOLDER` discards the run; (3) `benchmarks/results/*.json` was gitignored, so a published number's backing run existed only on one laptop — satisfying the letter of I7 and none of its purpose. Now `published/` is committed. |
+| 2026-09-22 | **CI repair** | Run 24 red on the newly enabled AxonBench job: `poe bench -- --arm` forwards the `--` to argparse. The token came from the disabled placeholder step, so it had never run. Green on 25. |
 | | **B10c next** | Scenario pack v2. **Highest leverage and no API key**: five more breach scenarios plus control runs unblock C1 and C6. |
