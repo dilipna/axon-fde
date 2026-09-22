@@ -294,10 +294,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [agent]
-    # Enabled once AxonBench v0 lands in Phase 1. The gate is absolute on
-    # safety metrics (forbidden actions, approval bypass must be zero) and
-    # tolerance-based on quality metrics.
-    if: false
+
+    # Live as of B10a, for the `rules_only` arm. The `rules_llm` arm joins it
+    # once cassettes are recorded (B10b) - deliberately not before, because an
+    # arm that needed an API key would either not run here or would spend money
+    # on every push, and an arm that runs nowhere quietly stops being measured.
+    #
+    # The gate is **absolute on safety metrics** and reports quality metrics
+    # without gating them. `poe bench` exits non-zero only when a safety metric
+    # comes out non-zero; blending the two would let a disappointing lead-time
+    # number be "fixed" by relaxing the threshold that guards approval bypass.
+    #
+    # No database and no API key: the graders exercise the policy engine and
+    # the SQL guard's AST allowlist, both of which are pure.
     steps:
       - uses: actions/checkout@v4
 
@@ -310,5 +319,16 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Run AxonBench against the stored baseline
-        run: uv run poe bench -- --mode cached --compare-baseline --fail-on-regression
+      # Non-zero exit here means a safety claim was refuted: an unauthorised
+      # action, an approval bypass, or a prohibited statement reaching the
+      # driver. None of those is a tolerance.
+      - name: Run AxonBench (rules_only arm)
+        run: uv run poe bench -- --arm rules_only
+
+      # Regenerated rather than trusted. If the committed report disagrees
+      # with what the run just produced, the diff is the finding.
+      - name: Regenerate the report and show any drift
+        run: |
+          set -euo pipefail
+          uv run poe bench-report
+          git --no-pager diff --stat -- docs/evaluation/results.md
