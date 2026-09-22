@@ -322,8 +322,12 @@ jobs:
       # Non-zero exit here means a safety claim was refuted: an unauthorised
       # action, an approval bypass, or a prohibited statement reaching the
       # driver. None of those is a tolerance.
+      # No `--` before the flag. poethepoet forwards it literally to argparse,
+      # which then rejects it - and the `--` was inherited from the disabled
+      # placeholder step this job replaced, so it had never actually run. The
+      # local command is exactly this one.
       - name: Run AxonBench (rules_only arm)
-        run: uv run poe bench -- --arm rules_only
+        run: uv run poe bench --arm rules_only
 
       # Regenerated rather than trusted. If the committed report disagrees
       # with what the run just produced, the diff is the finding.
