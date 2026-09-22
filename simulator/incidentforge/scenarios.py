@@ -23,7 +23,7 @@ from typing import Self
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from backend.app.domain.enums import ActionType, RiskCategory, RootCause
+from backend.app.domain.enums import ActionType, EvidenceSource, RiskCategory, RootCause
 
 __all__ = [
     "AmbientProfile",
@@ -61,6 +61,12 @@ class DataFaultType(StrEnum):
     """
 
     ERP_BOL_MISMATCH = "erp_bol_mismatch"
+    #: The telemetry feed and a photographed control panel disagree about the
+    #: same observation. Distinct from the physical `sensor_drift` fault: that
+    #: one changes what the instrument reports, this one is a statement that
+    #: two *sources* disagree, which is the thing a second modality can settle
+    #: and the thing claim C6 is measured against.
+    SENSOR_PANEL_DISAGREEMENT = "sensor_panel_disagreement"
     STALE_TELEMETRY = "stale_telemetry"
     DUPLICATE_EVENTS = "duplicate_events"
     OUT_OF_ORDER_EVENTS = "out_of_order_events"
@@ -89,6 +95,11 @@ FAULT_TO_ROOT_CAUSE: dict[FaultType, RootCause] = {
 
 DATA_FAULT_TO_ROOT_CAUSE: dict[DataFaultType, RootCause] = {
     DataFaultType.ERP_BOL_MISMATCH: RootCause.INCORRECT_CARGO_CONFIGURATION,
+    # Deliberately DATA_INCONSISTENCY rather than SENSOR_MALFUNCTION. Two
+    # sources disagreeing says one of them is wrong, not which; concluding the
+    # sensor is the broken one is the diagnosis, and a scenario that declared
+    # it as ground truth would be handing the answer to the grader.
+    DataFaultType.SENSOR_PANEL_DISAGREEMENT: RootCause.DATA_INCONSISTENCY,
     DataFaultType.STALE_TELEMETRY: RootCause.DATA_INCONSISTENCY,
     DataFaultType.DUPLICATE_EVENTS: RootCause.DATA_INCONSISTENCY,
     DataFaultType.OUT_OF_ORDER_EVENTS: RootCause.DATA_INCONSISTENCY,
@@ -142,6 +153,24 @@ class InjectedFault(_Strict):
     params: dict[str, float] = Field(default_factory=dict)
 
 
+#: Which two sources each two-sided data fault puts in disagreement, and which
+#: declared field carries each side's value.
+#:
+#: Held as a table rather than as branches in the grader, because the grader
+#: has to build the two evidence records the reconciler will see, and a grader
+#: that guessed which source said what would be measuring its own guess.
+_CONFLICT_SIDES: dict[DataFaultType, tuple[tuple[str, str], tuple[str, str]]] = {
+    DataFaultType.ERP_BOL_MISMATCH: (
+        (EvidenceSource.SQL_LEGACY.value, "erp_value"),
+        (EvidenceSource.DOCUMENT_EXTRACTION.value, "document_value"),
+    ),
+    DataFaultType.SENSOR_PANEL_DISAGREEMENT: (
+        (EvidenceSource.TELEMETRY.value, "telemetry_value"),
+        (EvidenceSource.VISUAL_INSPECTION.value, "panel_value"),
+    ),
+}
+
+
 class DataFault(_Strict):
     """A disagreement between systems, injected deliberately."""
 
@@ -149,27 +178,73 @@ class DataFault(_Strict):
     field: str | None = None
     erp_value: float | str | None = None
     document_value: float | str | None = None
+    #: The two sides of a sensor-vs-panel disagreement. Named for their sources
+    #: rather than reusing `erp_value`/`document_value`: a field called
+    #: `erp_value` holding what a photograph showed would be a lie in the one
+    #: place a reader most needs to trust the name.
+    telemetry_value: float | str | None = None
+    panel_value: float | str | None = None
     params: dict[str, float] = Field(default_factory=dict)
+
+    @property
+    def sides(self) -> tuple[tuple[str, float | str], tuple[str, float | str]] | None:
+        """The two disagreeing (source, value) pairs, or ``None`` if not two-sided.
+
+        Not every data fault has two sides: a stale reading or a missing
+        maintenance record is an absence, not a disagreement, and asking one of
+        those for its sides gets ``None`` rather than an invented second value.
+        """
+        spec = _CONFLICT_SIDES.get(self.type)
+        if spec is None:
+            return None
+        (left_source, left_field), (right_source, right_field) = spec
+        left, right = getattr(self, left_field), getattr(self, right_field)
+        if left is None or right is None:
+            return None
+        return (left_source, left), (right_source, right)
 
     @model_validator(mode="after")
     def _mismatch_needs_both_sides(self) -> Self:
-        if self.type is DataFaultType.ERP_BOL_MISMATCH:
-            missing = [
-                name
-                for name, val in (
-                    ("field", self.field),
-                    ("erp_value", self.erp_value),
-                    ("document_value", self.document_value),
-                )
-                if val is None
-            ]
-            if missing:
-                raise ValueError(f"{self.type} requires {missing} so the conflict has two sides")
-            if self.erp_value == self.document_value:
-                raise ValueError(
-                    f"{self.type} declares identical values "
-                    f"({self.erp_value!r}); that is not a mismatch"
-                )
+        spec = _CONFLICT_SIDES.get(self.type)
+        if spec is None:
+            return self
+
+        value_fields = [field_name for _, field_name in spec]
+        missing = [name for name in ("field", *value_fields) if getattr(self, name) is None]
+        if missing:
+            raise ValueError(f"{self.type} requires {missing} so the conflict has two sides")
+
+        left, right = (getattr(self, name) for name in value_fields)
+        if left == right:
+            raise ValueError(
+                f"{self.type} declares identical values ({left!r}); that is not a disagreement"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _sides_belong_to_this_fault(self) -> Self:
+        """A value declared on the wrong side is refused rather than ignored.
+
+        `erp_value` on a sensor-vs-panel disagreement would be silently
+        dropped, and the scenario would read as seeding a conflict it does not
+        seed — which inflates C6's recall denominator with a case that was
+        never actually built.
+        """
+        spec = _CONFLICT_SIDES.get(self.type)
+        if spec is None:
+            return self
+        own = {field_name for _, field_name in spec}
+        foreign = {
+            name
+            for names in _CONFLICT_SIDES.values()
+            for _, name in names
+            if name not in own and getattr(self, name) is not None
+        }
+        if foreign:
+            raise ValueError(
+                f"{self.type} carries {sorted(foreign)}, which belong to a different "
+                "data fault; the value would be silently dropped"
+            )
         return self
 
 

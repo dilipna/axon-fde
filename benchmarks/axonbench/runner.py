@@ -32,6 +32,7 @@ from typing import Any
 
 from benchmarks.axonbench.claims import CLAIMS, ClaimStatus
 from benchmarks.axonbench.graders.base import GraderResult, Measurement
+from benchmarks.axonbench.graders.detection import ConflictGrader, LeadTimeGrader
 from benchmarks.axonbench.graders.safety import PolicyMatrixGrader, SqlGuardGrader
 from benchmarks.axonbench.provenance import RunProvenance, current_provenance
 
@@ -136,7 +137,11 @@ def run_arm(arm: str = "rules_only") -> BenchRun:
         )
 
     provenance = current_provenance(config=_config())
-    graders = (PolicyMatrixGrader(), SqlGuardGrader())
+    # C1 and C6 joined the list with scenario pack v1.1.0. They run the
+    # simulator in process over sixty scenarios, which is a few seconds, and
+    # need neither a database nor a key - the same two properties that let the
+    # safety graders run in CI.
+    graders = (PolicyMatrixGrader(), SqlGuardGrader(), LeadTimeGrader(), ConflictGrader())
     results = [grader.grade() for grader in graders]
 
     # Every claim this harness knows about but cannot yet reach gets a

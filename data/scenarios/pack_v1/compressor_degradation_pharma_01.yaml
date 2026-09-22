@@ -10,7 +10,7 @@
 # this load at risk at all.
 
 scenario_id: compressor_degradation_pharma_01
-pack_version: "1.0.0"
+pack_version: "1.1.0"
 description: >
   Compressor degradation on a pharma load under high ambient temperature and a
   route delay, compounded by an ERP/Bill-of-Lading mismatch on the permitted

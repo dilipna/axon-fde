@@ -22,7 +22,6 @@ of this scenario that makes it worth running.
 
 from __future__ import annotations
 
-from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -38,10 +37,10 @@ from backend.app.domain.taxonomy import Taxonomy, load_taxonomy
 from backend.app.evidence.documents import extraction_to_evidence, load_extractions
 from backend.app.evidence.envelope import resolve_envelope
 from backend.app.evidence.reconciliation import Conflict, reconcile
-from backend.app.evidence.telemetry import read_telemetry, reading_to_evidence
+from backend.app.evidence.telemetry import read_telemetry
 from backend.app.incidents.detection import BaselineDetector, Detection, Detector
 from backend.app.incidents.lifecycle import IncidentService
-from backend.app.risk.features import DEFAULT_WINDOW_MINUTES
+from backend.app.incidents.sweep import sweep
 
 __all__ = ["ReplayResult", "ScenarioReplay", "resolve_envelope"]
 
@@ -202,18 +201,6 @@ class ScenarioReplay:
         batch: list[Evidence] = []
         pending_readings = 0
 
-        # A rolling window of recent evidence, handed to the detector on every
-        # reading. Both arms receive the identical window: `BaselineDetector`
-        # ignores everything but the latest reading by design, so giving it
-        # history costs nothing and removes any question about whether one arm
-        # was fed better data than the other. One extra reading of slack, so a
-        # least-squares fit over N minutes has N+1 samples to work with.
-        # Asked for, not assumed: a predictive detector needs its fit window
-        # *plus* the debounce lookback, and handing it only the fit window
-        # makes it silently never fire.
-        required = getattr(self._detector, "required_history_minutes", DEFAULT_WINDOW_MINUTES)
-        window: deque[list[Evidence]] = deque(maxlen=int(required) + 1)
-
         async def flush() -> None:
             nonlocal batch, pending_readings
             if batch:
@@ -222,17 +209,21 @@ class ScenarioReplay:
                 batch = []
             pending_readings = 0
 
-        for reading in readings:
-            produced = reading_to_evidence(
-                reading,
-                taxonomy=self._taxonomy,
-                scenario_run_id=scenario_run_id,
-            )
+        # The rolling window and the detector call live in `sweep`, which the
+        # AxonBench lead-time grader also runs. Keeping a second copy here
+        # would let the benchmark quietly measure a different detector from
+        # the one that ships, and the difference would be invisible.
+        steps = sweep(
+            readings,
+            detector=self._detector,
+            envelope=envelope,
+            taxonomy=self._taxonomy,
+            scenario_run_id=scenario_run_id,
+        )
+        for step in steps:
+            produced = step.evidence
+            detection = step.detection
             result.readings_replayed += 1
-            window.append(produced)
-
-            visible = [item for step in window for item in step]
-            detection = self._detector.evaluate(visible, envelope=envelope, now=reading.timestamp)
 
             if detection is None or result.detection is not None:
                 batch.extend(produced)
