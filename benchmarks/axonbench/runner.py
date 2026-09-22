@@ -32,9 +32,14 @@ from typing import Any
 
 from benchmarks.axonbench.claims import CLAIMS, ClaimStatus
 from benchmarks.axonbench.graders.base import GraderResult, Measurement
-from benchmarks.axonbench.graders.detection import ConflictGrader, LeadTimeGrader
+from benchmarks.axonbench.graders.detection import (
+    DEFAULT_PACK_DIR,
+    ConflictGrader,
+    LeadTimeGrader,
+)
 from benchmarks.axonbench.graders.safety import PolicyMatrixGrader, SqlGuardGrader
 from benchmarks.axonbench.provenance import RunProvenance, current_provenance
+from simulator.incidentforge.scenarios import load_pack
 
 __all__ = ["ARMS", "RESULTS_DIR", "BenchRun", "main", "run_arm"]
 
@@ -69,6 +74,18 @@ def _config() -> dict[str, Any]:
         "verification_slope_threshold": STOPPED_RISING_SLOPE_C_PER_MIN,
         "verification_recovery_hold": RECOVERY_HOLD_READINGS,
     }
+
+
+def _pack_version() -> str:
+    """The version of the pack the graders will actually read.
+
+    Read from the pack rather than passed in or defaulted. The scenarios are
+    half of what a number means, and a provenance tuple naming a pack that was
+    not used is worse than one naming none: it puts a false dataset beside the
+    result and, because the run id is a digest of the tuple, makes runs over
+    two different packs share an identifier.
+    """
+    return load_pack(DEFAULT_PACK_DIR).pack_version
 
 
 @dataclass(frozen=True, slots=True)
@@ -136,7 +153,7 @@ def run_arm(arm: str = "rules_only") -> BenchRun:
             "them would either call the API from CI or silently measure nothing."
         )
 
-    provenance = current_provenance(config=_config())
+    provenance = current_provenance(config=_config(), pack_version=_pack_version())
     # C1 and C6 joined the list with scenario pack v1.1.0. They run the
     # simulator in process over sixty scenarios, which is a few seconds, and
     # need neither a database nor a key - the same two properties that let the

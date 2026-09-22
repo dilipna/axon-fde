@@ -133,7 +133,7 @@ class RunProvenance:
 def current_provenance(
     *,
     config: dict[str, Any],
-    pack_version: str = "1.0.0",
+    pack_version: str = "unknown",
     prompt_version: str = "none",
     model_id: str = "none",
 ) -> RunProvenance:
@@ -143,6 +143,14 @@ def current_provenance(
     model name, because the `rules_only` arm consults no model and recording a
     model id it never called would make the two arms indistinguishable in
     stored results - which is the one comparison the whole ablation rests on.
+
+    ``pack_version`` defaults to ``"unknown"``, **not** to a version number.
+    It was previously defaulted to ``"1.0.0"`` while the runner passed nothing,
+    so every run recorded 1.0.0 whatever pack it had actually read. That was
+    invisible while only one pack existed and a silent falsehood the moment a
+    second one did - and it is worse than a missing value twice over, because
+    the run id is a digest of this tuple, so two runs over *different* packs
+    would collide on one id. A caller that forgets now says so.
     """
     return RunProvenance(
         git_sha=git_sha(),
