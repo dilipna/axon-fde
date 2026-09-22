@@ -38,6 +38,9 @@ from benchmarks.axonbench.graders.safety import (
 from benchmarks.axonbench.provenance import config_hash, current_provenance
 from benchmarks.axonbench.report import latest_runs, render_markdown
 from benchmarks.axonbench.runner import ARMS, run_arm
+from simulator.incidentforge.scenarios import load_pack
+
+PACK_DIR = Path(__file__).resolve().parents[2] / "data" / "scenarios" / "pack_v1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -451,6 +454,26 @@ class TestTheRun:
 
     def test_the_config_hash_does_not_depend_on_dict_order(self) -> None:
         assert config_hash({"a": 1, "b": 2}) == config_hash({"b": 2, "a": 1})
+
+    def test_the_recorded_pack_version_is_the_pack_that_was_read(self, rules_only_run) -> None:
+        """Provenance must name the dataset that produced the numbers.
+
+        `current_provenance` used to default `pack_version` to the literal
+        "1.0.0" while the runner passed nothing, so every run recorded 1.0.0
+        whatever pack it read. Invisible while only one pack existed; a silent
+        falsehood the moment the pack went to 1.1.0, and worse than a blank
+        because the run id is a digest of this tuple - two runs over different
+        packs would have shared one id.
+        """
+        shipped = load_pack(PACK_DIR).pack_version
+
+        assert rules_only_run.provenance.pack_version == shipped
+        assert rules_only_run.provenance.pack_version != "unknown"
+
+    def test_provenance_that_is_not_told_the_pack_says_so(self) -> None:
+        """The default is a confession, not a version number."""
+        provenance = current_provenance(config={"x": 1})
+        assert provenance.pack_version == "unknown"
 
     def test_a_dirty_tree_is_recorded_as_not_reproducible(self) -> None:
         """A number measured against uncommitted code is not reproducible.
