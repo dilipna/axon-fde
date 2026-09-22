@@ -36,16 +36,31 @@ Phase 1 and half-finishing three blocks.
 >   the blocks below are ordered so the model-dependent work is last rather
 >   than first. Do not let a missing key stall a session.
 
-**Most of the claims register does not need a model.** This is the thing most
-likely to be missed. Of the 15 claims in `docs/evaluation/claims.md`:
+**Two claims are measured. Thirteen are not, and the reasons differ.**
 
-| Needs nothing new | Needs cassettes | Needs a later block |
+The previous version of this section claimed seven were reachable without a
+model. That was wrong, and B10a corrected it by reading each claim's stated
+*method* rather than its metric. The methods carry dataset requirements:
+
+| Claim | State | What it needs |
 |---|---|---|
-| C1 lead time · C6 contradictions · C7 unauthorised actions · C8 SQL guard · C10 grounding · C11 verification · C13 degradation | C5 LLM vs rules · C9 injection · C12 cost/latency · C3 root cause | C2 calibration (B12) · C4 multimodal (B13) · C14, C15 (case study) |
+| **C7** unauthorised actions | ✅ `MEASURED` **0** | nothing — 50/50 cells |
+| **C8** prohibited SQL | ✅ `MEASURED` **0** | nothing — 57/55 inputs |
+| C1 lead time | `INSUFFICIENT_DATA` | ≥40 true-breach scenarios; the pack has **1** |
+| C6 contradictions | `INSUFFICIENT_DATA` | precision/recall over ~20 seeded conflicts; the pack seeds **1** |
+| C10 grounding | `INSUFFICIENT_DATA` | generated narratives → needs the LLM arm |
+| C11 verification | `INSUFFICIENT_DATA` | post-action trajectories → **needs simulator work**, not the LLM |
+| C13 degradation | `INSUFFICIENT_DATA` | the failure-injection suite → B14 |
+| C2, C3, C4, C5, C9, C12, C14, C15 | `PLACEHOLDER` | later blocks |
 
-Seven claims are measurable **today** against code that already exists and is
-already tested. That is why B10 is split below: `B10a` needs no key and turns
-seven `PLACEHOLDER`s into numbers; `B10b` needs one recording session.
+**The lesson, and it is the useful part:** a claim's *metric* looks reachable
+long before its *method* is. Read the method row before promising a number.
+`poe bench` now records the shortfall for every blocked claim, so this does
+not have to be rediscovered — run it and read `docs/evaluation/results.md`.
+
+**The highest-leverage work is therefore scenario authoring.** Five more
+breach scenarios and ~19 more seeded conflicts unblock C1 and C6 with no
+model, no API key and no new subsystem. That is a bigger win than B10b.
 
 **The critical path to the portfolio checkpoint (end of B13):**
 
@@ -183,7 +198,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**26 commits · 736 tests · mypy --strict clean · 10 module contracts · **CI green on all five jobs** · pushed to
+**29 commits · 762 tests · mypy --strict clean · 11 module contracts · **CI green on all six jobs** · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -390,19 +405,24 @@ end, budget exhaustion escalates, a fabricated citation stops the run before
 an approval is requested. **Cassettes still to record** — the graph tests use
 scripted model nodes, which is stated in the suite rather than implied.
 
-### B10a — AxonBench v0, deterministic claims ← **NEXT** [Phase 1] — **no API key needed**
-Runner, result persistence with full provenance, ~8 deterministic graders, the
-`rules_only` arm, `poe bench` in CI, `poe bench report`.
-**Done when:** `poe bench` runs in CI and the **seven claims that need no
-model** (C1, C6, C7, C8, C10, C11, C13) have real numbers with a stored run
-behind each (I7).
+### B10a — AxonBench v0, deterministic claims ✅ **DONE** (2026-09-22) [Phase 1]
+Runner, provenance, graders, report, `poe bench` live in CI. **C7 and C8
+measured at 0**, with `run-53b8015e9c0b` committed under
+`benchmarks/results/published/`. Added an `INSUFFICIENT_DATA` status so a
+blocked claim records its shortfall instead of vanishing. Every grader shown
+to fail on broken input.
+
+### B10c — Scenario pack v2 ← **NEXT** [Phase 1] — **no API key needed, highest leverage**
+Five more breach scenarios and ~19 more seeded cross-source conflicts, so C1
+and C6 can be measured. IncidentForge already generates deterministically;
+this is authoring plus golden digests, not new machinery.
+**Done when:** `poe bench` reports C1 and C6 as `MEASURED` with their
+companion metrics (lead time **must** be quoted with false-alarm rate).
 
 ### B10b — AxonBench, the LLM arm [Phase 1] — **needs one recording session**
-Record cassettes for the two model nodes, add the `rules+llm` arm, and measure
-C5, C9, C12 and C3 against the `rules_only` baseline that has been running in
-CI since B7.
-**Done when:** both arms run offline in CI from cassettes, and C5 is a
-measured difference rather than an assertion.
+Record cassettes for the two model nodes, add the `rules_llm` arm, measure
+C5, C9, C12 and C3 against the `rules_only` baseline. `run_arm("rules_llm")`
+already refuses with a pointer rather than silently measuring nothing.
 
 ### B11 — Streaming [Phase 2]
 Redpanda, consumer, event-driven detection, duplicate/out-of-order handling,
@@ -425,59 +445,49 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — B10a
+## 7. Next block in detail — B10c
 
-Where the numbers stop being `PLACEHOLDER`. **No API key required** - that is
-the point of splitting it out.
-
-### Decide this first, in one line
-Ask whether an `ANTHROPIC_API_KEY` is available and whether ~$2–5 of spend is
-acceptable. If yes, B10b can follow in the same session. If no, B10a is a
-complete block on its own and nothing is blocked.
+Scenario authoring. **No API key, no new subsystem**, and it unblocks the two
+quality claims that everything else in the register is compared against.
 
 ### What is already in place
-- `benchmarks/axonbench/` and `benchmarks/axonbench/graders/` exist and are
-  empty. `poe bench` and `poe bench-report` are already wired in `pyproject`
-  to `benchmarks.axonbench.runner` and `.report`.
-- `benchmarks/results/` exists and is gitkept.
-- Three scenarios with declared ground truth, and `poe forge verify`.
-- **The `rules_only` arm already runs in CI** as `poe demo` / `tests/e2e`.
-  Reuse it; do not write a second one.
-- `docs/evaluation/claims.md` has 15 claims and **16 `PLACEHOLDER`s**.
+- IncidentForge generates deterministically from a seed; `poe forge verify`
+  checks every scenario against its declared ground truth.
+- `poe bench` grades whatever the pack contains and records the shortfall.
+  Adding scenarios is the only input it needs.
+- The three existing scenarios are the template:
+  `data/scenarios/pack_v1/*.yaml`.
 
 ### Deliverables
-1. `benchmarks/axonbench/runner.py` — runs an arm over the scenario pack and
-   persists a result per scenario with full provenance.
-2. `benchmarks/axonbench/graders/` — roughly eight deterministic graders, one
-   per claim in the "needs nothing new" column of §0.1.
-3. `benchmarks/axonbench/report.py` — `poe bench report` emits the markdown
-   the README embeds.
-4. Five more scenarios, if time allows. **Three is enough to ship B10a**; do
-   not let scenario authoring eat the block.
-5. Replace the seven reachable `PLACEHOLDER`s, each with a stored run behind
-   it.
+1. Five more scenarios in which a breach **actually occurs**, with varied
+   generative regimes — not five reskins of compressor degradation, or C1's
+   median becomes a measurement of one fault mode.
+2. ~19 more seeded cross-source conflicts for C6. They can ride on existing
+   scenarios; a conflict does not need its own run.
+3. Golden digests for each, in `tests/unit/test_emitters.py`.
+4. Bump the pack version. `pack_version` is in the run id, and a number
+   measured on 1.0.0 says nothing about 1.1.0.
 
 ### Watch out for
-- **A grader must be shown to fail.** Write it, break the thing it grades,
-  watch it go red. A grader that passes everything is worse than none,
-  because it gets quoted. This is the single highest-value habit in the block.
-- **Store the arm, the model id, the prompt version and the scenario digest
-  with every result.** "Which run produced this number?" must be answerable a
-  year later. That is I7.
-- **Safety metrics are absolute gates at zero** (forbidden actions, approval
-  bypass). Quality metrics are tolerance-based. Do not blend them into one
-  score - the blended number hides the only one that must never move.
-- Do not replace a `PLACEHOLDER` without a stored run. That is precisely the
-  failure I7 exists to prevent, and it is easy to do by accident when the
-  number is right in front of you.
-- The golden digests in `tests/unit/test_emitters.py` lock scenario
-  reproducibility. If you add scenarios, they get digests too.
+- **C1's lead time must be quoted with its false-alarm rate.** `claims.md`
+  says a presentation omitting it is a misuse. The grader must emit both as
+  companions, and the report already prints companions as a group for exactly
+  this reason.
+- **False-alarm rate needs non-breach scenarios too.** A pack of five breaches
+  gives a false-alarm rate of zero over a dataset with nothing to falsely
+  alarm on, which is not a measurement. Author control runs alongside.
+- Vary the *regime*, not just the numbers: door events, ambient-only heat,
+  fuel exhaustion, sensor drift. `RootCause` has nine members and the pack
+  exercises three.
+- The digests in `tests/unit/test_emitters.py` lock reproducibility. Changing
+  an existing one is a deliberate act that re-baselines stored results.
 
 ### Acceptance
-- [ ] `poe bench` runs the `rules_only` arm over the pack in CI
-- [ ] `poe bench report` generates the markdown the README embeds
-- [ ] Every grader has been shown to fail on deliberately broken input
-- [ ] C1, C6, C7, C8, C10, C11, C13 have real numbers, each with a stored run
+- [ ] `poe forge verify` passes for every new scenario
+- [ ] `poe bench` reports C1 `MEASURED` with lead time **and** false-alarm rate
+- [ ] `poe bench` reports C6 `MEASURED` with precision and recall
+- [ ] The backing run is committed under `benchmarks/results/published/` and
+      `reproducible: true`
 - [ ] `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` green; pushed;
       **CI badge checked**
 
@@ -495,4 +505,5 @@ complete block on its own and nothing is blocked.
 | 2026-09-20 | **B7** | 660 tests. `poe demo` runs the whole loop offline. Four things wrong first: the demo **committed, so it worked exactly once** (second run deduplicated into its own incident and died on a repeated transition) — it now rolls back by default; it also committed **on failure**, leaving half an incident behind; the staleness branch was staged with a **fabricated evidence hash** until the full recording was replayed, which supplies 48 real readings and moves p(breach) 0.621 → 0.687; and `-48 new readings arrived` came from differencing two sliding windows instead of counting arrivals. Verification reports **failed** and reopens the incident, which is honest — the recording is the trajectory of a truck that was not rerouted. |
 | 2026-09-20 | **B8** | 692 tests. Cassette misses **raise rather than re-record** — verified by replacing the raise with a silent fallback and watching three tests go red. Spend ceiling refuses *before* sending: output cost is bounded exactly by `max_tokens`, input cost is not knowable locally, so the honest limit is stated — overshoot is at most one call's input cost, never a runaway loop. `cache_read_tokens` stored on every invocation because caching failing is silent. Tenth contract: only `anthropic_provider` imports `anthropic`. |
 | 2026-09-21 | **B9** | 736 tests. Four findings: (1) **every observation type the prior rules read did not exist** — `setpoint_temp_c`, `door_open_state`, `reefer_fault_codes` are not declared, nothing raised, every prior sat at its 0.02 floor for ever; now guarded by `PRIOR_OBSERVATION_TYPES` checked at each lookup; (2) **a LangGraph routing function that writes state loses the write** — the budget gate set the reason and every escalation said "without a stated reason"; (3) the grounding check **ignored figures below 10**, exempting every temperature in the system while checking the dollar figures, and reported a correct "78%" as half fabricated; (4) `resolve_envelope` sat in `incidents.replay`, dragging pyodbc into the agent layer — the contract refused and it moved to `evidence/envelope.py`. |
-| | **B10a next** | AxonBench, deterministic claims. **No API key needed** — seven of the fifteen claims are measurable against code that already exists. B10b (the LLM arm) needs one cassette-recording session; see §0.1. |
+| 2026-09-22 | **B10a** | 762 tests. **C7 and C8 measured at 0**, run committed. Three findings: (1) my own previous estimate of "seven claims reachable" was **wrong — two are**; a claim's *metric* looks reachable long before its *method* is, and the method rows carry dataset requirements (C1 needs 40 scenarios, the pack has 1); (2) the three statuses in `claims.md` had no room for "a grader ran but the dataset is too small", so **`INSUFFICIENT_DATA`** was added — `MEASURED` would be the exact failure I7 prevents and `PLACEHOLDER` discards the run; (3) `benchmarks/results/*.json` was gitignored, so a published number's backing run existed only on one laptop — satisfying the letter of I7 and none of its purpose. Now `published/` is committed. |
+| | **B10c next** | Scenario pack v2. **Highest leverage and no API key**: five more breach scenarios plus control runs unblock C1 and C6. |
