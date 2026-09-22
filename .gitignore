@@ -30,6 +30,14 @@ data/generated/
 benchmarks/results/*.json
 benchmarks/results/*.md
 !benchmarks/results/.gitkeep
+
+# Runs that back a published number ARE committed. Invariant I7 says no number
+# appears anywhere unless a stored run produced it - and a run stored only on
+# the laptop that ran it makes every published figure unverifiable by anybody
+# else, which is the same thing as not storing it. Exploratory runs stay
+# ignored; a run promoted to back a claim gets copied in here deliberately.
+!benchmarks/results/published/
+!benchmarks/results/published/**
 ml/artifacts/
 *.parquet
 *.duckdb

@@ -332,6 +332,33 @@ source_modules = [
 forbidden_modules = ["anthropic"]
 
 [[tool.importlinter.contracts]]
+# A grader that can be talked into a verdict is not a grader. No model may
+# reach the code that decides whether a claim holds, and no grader may open a
+# connection - a measurement that depended on which rows happened to be
+# present would not be reproducible from its stored provenance, which is the
+# whole point of storing it.
+#
+# The drivers and the session/repository modules are named, **not**
+# `backend.app.db` wholesale. The first version forbade the package and broke
+# on `db.legacy.sqlguard`, which is a pure sqlglot AST validator that merely
+# lives next to the database it guards. The contract is about I/O, not about
+# proximity, and a contract that conflates the two teaches people to widen it.
+name = "Benchmark graders are deterministic: no model, no connections"
+type = "forbidden"
+source_modules = ["benchmarks.axonbench.graders", "benchmarks.axonbench.claims"]
+forbidden_modules = [
+    "anthropic",
+    "httpx",
+    "backend.app.llm",
+    "backend.app.db.app",
+    "backend.app.db.legacy.session",
+    "backend.app.db.legacy.repository",
+    "sqlalchemy",
+    "asyncpg",
+    "pyodbc",
+]
+
+[[tool.importlinter.contracts]]
 name = "The simulator does not depend on the application"
 type = "forbidden"
 source_modules = ["simulator"]
