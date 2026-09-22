@@ -10,7 +10,7 @@
 # rate comes from.
 
 scenario_id: normal_pharma_run_01
-pack_version: "1.0.0"
+pack_version: "1.1.0"
 description: >
   A healthy pharma shipment with a functioning reefer and moderate ambient
   temperature. No fault, no breach, no incident. Used to measure the

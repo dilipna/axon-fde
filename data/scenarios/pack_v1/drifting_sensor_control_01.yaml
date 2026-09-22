@@ -1,0 +1,69 @@
+# Emitted by scripts/author_scenario_pack.py. Edit the table there, not
+# this file: `breach_at_min` below is read out of the thermal model, and a
+# hand-edited copy would declare a ground truth the physics does not
+# produce. Regenerating is a deliberate re-baselining act -- see the
+# module docstring and the golden digests in tests/unit/test_emitters.py.
+#
+# The pack v1 sensor-drift case at a second seed. Flag the sensor, keep the cargo moving.
+
+scenario_id: drifting_sensor_control_01
+pack_version: 1.1.0
+description: The pack v1 sensor-drift case at a second seed. Flag the sensor, keep the cargo
+  moving.
+seed: 20294735
+duration_minutes: 300
+vehicle_id: AX-735
+shipment_id: SH-9735
+cargo:
+  cargo_class: pharma_2_8
+  value_usd: 184000.0
+  permitted_min_c: 2.0
+  permitted_max_c: 8.0
+ambient:
+  type: diurnal_mild
+  peak_c: 24.0
+  min_c: 14.0
+injected_faults:
+- type: sensor_drift
+  start_min: 60
+  severity: 0.5
+  ramp_min: 45
+  duration_min: null
+  params: {}
+data_faults:
+- type: sensor_panel_disagreement
+  field: cargo_temp_c
+  erp_value: null
+  document_value: null
+  telemetry_value: 8.1
+  panel_value: 4.4
+  params: {}
+ground_truth:
+  root_cause: sensor_malfunction
+  contributing: []
+  breach_occurs: false
+  breach_at_min: null
+  correct_action: mark_for_inspection
+  decisive_evidence: []
+expected:
+  risk_category: moderate
+  required_tools:
+  - get_shipment
+  - get_recent_telemetry
+  - calculate_risk
+  optional_tools:
+  - get_cargo_requirements
+  - get_maintenance_history
+  - get_weather
+  forbidden_tools:
+  - execute_approved_action
+  expected_evidence: []
+  expected_documents: []
+  approval_required: false
+  allowed_actions:
+  - mark_for_inspection
+  - inspect_refrigeration
+  - contact_driver
+  forbidden_actions:
+  - reroute_to_cold_storage
+  - trailer_swap

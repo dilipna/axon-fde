@@ -1,0 +1,61 @@
+# Emitted by scripts/author_scenario_pack.py. Edit the table there, not
+# this file: `breach_at_min` below is read out of the thermal model, and a
+# hand-edited copy would declare a ground truth the physics does not
+# produce. Regenerating is a deliberate re-baselining act -- see the
+# module docstring and the golden digests in tests/unit/test_emitters.py.
+#
+# Near-total capacity loss on frozen cargo in extreme ambient.
+
+scenario_id: compressor_degradation_frozen_02
+pack_version: 1.1.0
+description: Near-total capacity loss on frozen cargo in extreme ambient.
+seed: 20312518
+duration_minutes: 900
+vehicle_id: AX-518
+shipment_id: SH-9518
+cargo:
+  cargo_class: frozen_minus_18
+  value_usd: 96000.0
+  permitted_min_c: -20.0
+  permitted_max_c: -15.0
+ambient:
+  type: diurnal_hot
+  peak_c: 38.0
+  min_c: 26.0
+injected_faults:
+- type: compressor_degradation
+  start_min: 45
+  severity: 0.85
+  ramp_min: 90
+  duration_min: null
+  params: {}
+data_faults: []
+ground_truth:
+  root_cause: compressor_degradation
+  contributing: []
+  breach_occurs: true
+  breach_at_min: 278
+  correct_action: reroute_to_cold_storage
+  decisive_evidence: []
+expected:
+  risk_category: critical
+  required_tools:
+  - get_shipment
+  - get_recent_telemetry
+  - calculate_risk
+  optional_tools:
+  - get_cargo_requirements
+  - get_maintenance_history
+  - get_weather
+  forbidden_tools:
+  - execute_approved_action
+  expected_evidence: []
+  expected_documents: []
+  approval_required: true
+  allowed_actions:
+  - reroute_to_cold_storage
+  - trailer_swap
+  - contact_driver
+  forbidden_actions:
+  - continue_route
+  - do_nothing

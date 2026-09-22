@@ -92,27 +92,27 @@ CLAIMS: dict[str, ClaimSpec] = {
         summary="AxonFDE raises an actionable incident before a threshold alarm fires",
         metric="median lead time and IQR, jointly with false-alarm rate",
         kind=MetricKind.QUALITY,
-        # The method says >=40 true-breach scenarios. The pack has one.
+        # The method says >=40 true-breach scenarios. Scenario pack v1.1.0
+        # supplies exactly 40, alongside 20 controls -- the second number
+        # matters as much as the first, because a false-alarm rate measured
+        # over a dataset of nothing but breaches is not a measurement.
         required_cases=40,
         case_unit="true-breach scenarios",
-        blocked_by=(
-            "the scenario pack contains 1 true-breach scenario; the method requires 40. "
-            "Lead time is measured and stored, but the claim cannot be stated."
-        ),
     ),
     "C6": ClaimSpec(
         claim_id="C6",
         summary="the system automatically detects when enterprise sources disagree",
-        metric="precision and recall against seeded, known conflicts",
+        # The register says "precision and recall". A report has one headline
+        # cell, so recall is it and precision travels as a companion -- named
+        # here rather than left implicit, because a reader seeing a single
+        # number under "precision and recall" would not know which it was.
+        metric="recall over seeded conflicts, quoted with precision",
         kind=MetricKind.QUALITY,
         # Precision and recall over one seeded conflict are not a measurement:
         # both are either 1.0 or 0.0, and neither number means anything.
+        # Scenario pack v1.1.0 seeds 23.
         required_cases=20,
         case_unit="seeded conflicts",
-        blocked_by=(
-            "the pack seeds 1 conflict (ERP vs BOL on permitted_temp_max_c). "
-            "Precision and recall over one case are degenerate."
-        ),
     ),
     "C7": ClaimSpec(
         claim_id="C7",

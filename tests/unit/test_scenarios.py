@@ -37,8 +37,79 @@ def pack():
 
 
 def test_shipped_pack_loads_and_validates(pack):
-    assert pack.pack_version == "1.0.0"
+    assert pack.pack_version
     assert len(pack.scenarios) >= 3
+
+
+def test_pack_is_large_enough_for_the_claims_measured_against_it(pack):
+    """The dataset requirements of C1 and C6, asserted where the dataset lives.
+
+    This replaced an assertion that the pack version was the literal "1.0.0",
+    which broke on the first minor bump while protecting nothing: `ScenarioPack`
+    already refuses a pack whose scenarios disagree with its declared version.
+    What can actually break silently is the *size* of the pack, and the failure
+    is specific - delete nine breach scenarios and C1 drops back to
+    `INSUFFICIENT_DATA` with nothing pointing at the change that did it.
+
+    The numbers come from `docs/evaluation/claims.md` rather than from what the
+    pack happens to hold, so the pack cannot satisfy this test by accident.
+    """
+    breaching = [s for s in pack.scenarios.values() if s.ground_truth.breach_occurs]
+    controls = [s for s in pack.scenarios.values() if not s.ground_truth.breach_occurs]
+    conflicts = [
+        fault
+        for scenario in pack.scenarios.values()
+        for fault in scenario.data_faults
+        if fault.sides is not None
+    ]
+
+    assert len(breaching) >= 40, (
+        f"C1's method requires at least 40 true-breach scenarios; the pack has "
+        f"{len(breaching)}. Lead time cannot be claimed without them."
+    )
+    assert controls, (
+        "a pack of breaches alone gives a false-alarm rate of zero over a dataset "
+        "with nothing to falsely alarm on, which is not a measurement"
+    )
+    assert len(conflicts) >= 20, (
+        f"C6's method requires about 20 seeded conflicts; the pack seeds "
+        f"{len(conflicts)}. Precision and recall over fewer are degenerate."
+    )
+
+
+def test_the_breaching_scenarios_span_several_generative_regimes(pack):
+    """C1's median must not be one fault mode wearing different numbers.
+
+    Forty reskins of compressor degradation would satisfy the size test above
+    and measure that one regime rather than the detector.
+
+    **Regime is the set of injected faults, not the declared root cause.**
+    Those differ, and the difference is not pedantry: a compressor failing
+    behind a sensor that has frozen at 5 C is the same declared root cause as a
+    compressor failing in plain view, and a completely different thing to
+    detect - in the first the threshold alarm never fires at all. Counting by
+    root cause put compressor degradation at exactly 40% of the pack and hid
+    five scenarios whose whole point is the lying instrument. `claims.md` says
+    "generative regime" throughout, and this is what that phrase means.
+    """
+    regimes: dict[frozenset[str], int] = {}
+    causes: set[RootCause] = set()
+    for scenario in pack.scenarios.values():
+        if not scenario.ground_truth.breach_occurs:
+            continue
+        key = frozenset(fault.type.value for fault in scenario.injected_faults)
+        regimes[key] = regimes.get(key, 0) + 1
+        causes.add(scenario.ground_truth.root_cause)
+
+    assert len(causes) >= 4, f"breaches trace to only {sorted(causes)}"
+    assert len(regimes) >= 6, f"only {len(regimes)} distinct fault combinations breach"
+
+    breaching = sum(regimes.values())
+    worst_key, worst = max(regimes.items(), key=lambda item: item[1])
+    assert worst <= breaching * 0.4, (
+        f"{sorted(worst_key)} supplies {worst} of {breaching} breaches; the "
+        "median lead time would mostly be a property of that one regime"
+    )
 
 
 def test_pack_covers_fault_no_fault_and_data_only_cases(pack):
@@ -300,7 +371,7 @@ def test_a_cause_cannot_be_both_root_and_contributing():
 def test_erp_bol_mismatch_requires_two_differing_sides():
     with pytest.raises(ValidationError, match="requires"):
         DataFault.model_validate({"type": "erp_bol_mismatch", "field": "permitted_temp_max_c"})
-    with pytest.raises(ValidationError, match="not a mismatch"):
+    with pytest.raises(ValidationError, match="not a disagreement"):
         DataFault.model_validate(
             {
                 "type": "erp_bol_mismatch",
@@ -309,6 +380,78 @@ def test_erp_bol_mismatch_requires_two_differing_sides():
                 "document_value": 8.0,
             }
         )
+
+
+def test_sensor_panel_disagreement_requires_two_differing_sides():
+    """The same rule for the second two-sided fault, or C6's recall is inflated.
+
+    A seeded conflict that was never actually two-sided still counts in the
+    denominator of recall, so the detector is marked down for missing a
+    conflict that does not exist.
+    """
+    with pytest.raises(ValidationError, match="requires"):
+        DataFault.model_validate({"type": "sensor_panel_disagreement", "field": "cargo_temp_c"})
+    with pytest.raises(ValidationError, match="not a disagreement"):
+        DataFault.model_validate(
+            {
+                "type": "sensor_panel_disagreement",
+                "field": "cargo_temp_c",
+                "telemetry_value": 6.0,
+                "panel_value": 6.0,
+            }
+        )
+
+
+def test_a_value_declared_on_the_wrong_side_is_refused():
+    """`erp_value` on a sensor-vs-panel disagreement would be silently dropped.
+
+    The scenario would then read as seeding a conflict it does not seed. This
+    is the failure the two-sided rule cannot catch on its own, because the
+    fault still has its own two sides filled in.
+    """
+    with pytest.raises(ValidationError, match="belong to a different"):
+        DataFault.model_validate(
+            {
+                "type": "sensor_panel_disagreement",
+                "field": "cargo_temp_c",
+                "telemetry_value": 7.4,
+                "panel_value": 4.1,
+                "erp_value": 10.0,
+            }
+        )
+
+
+def test_sides_names_the_source_that_said_each_value():
+    """The grader builds evidence from this, so a swap would misattribute both."""
+    fault = DataFault.model_validate(
+        {
+            "type": "sensor_panel_disagreement",
+            "field": "cargo_temp_c",
+            "telemetry_value": 7.4,
+            "panel_value": 4.1,
+        }
+    )
+    assert fault.sides == (("telemetry", 7.4), ("visual_inspection", 4.1))
+
+    erp = DataFault.model_validate(
+        {
+            "type": "erp_bol_mismatch",
+            "field": "permitted_temp_max_c",
+            "erp_value": 10.0,
+            "document_value": 8.0,
+        }
+    )
+    assert erp.sides == (("sql_legacy", 10.0), ("document_extraction", 8.0))
+
+
+def test_a_one_sided_data_fault_has_no_sides():
+    """A stale reading is an absence, not a disagreement, and says so.
+
+    Returning an invented second value here would hand C6 a positive case that
+    nothing seeded.
+    """
+    stale = DataFault.model_validate({"type": "stale_telemetry"})
+    assert stale.sides is None
 
 
 def test_cargo_envelope_must_be_increasing():

@@ -17,7 +17,7 @@
 # decoration and the negative result gets published.
 
 scenario_id: sensor_drift_pharma_01
-pack_version: "1.0.0"
+pack_version: "1.1.0"
 description: >
   A drifting cargo temperature sensor on a healthy pharma load. Telemetry
   mimics a genuine excursion; the reefer panel photograph contradicts it. The

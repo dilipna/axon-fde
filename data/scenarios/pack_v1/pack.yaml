@@ -5,9 +5,22 @@
 # moment a scenario is silently altered. Changing a scenario's physics or its
 # ground truth is a major-version change; adding a new scenario is a minor one.
 
-pack_version: "1.0.0"
+#
+# 1.1.0 adds 57 scenarios to the original three. A minor bump, not a major
+# one: no existing scenario's physics or ground truth changed, and the three
+# v1.0.0 golden digests are unchanged. Benchmark runs recorded against 1.0.0
+# remain comparable for the claims they covered; they are not comparable for
+# C1 or C6, which could not be measured at all before this version.
+
+pack_version: "1.1.0"
 description: >
-  Phase 0 seed pack. Covers the flagship compressor-degradation incident, a
-  no-fault control, and the sensor-drift case where telemetry alone is
-  insufficient and visual evidence is decisive. Expanded to the full fault
-  catalogue in Phase 2.
+  Sixty scenarios across five generative regimes: compressor degradation, a
+  door left open, environmental heat, reefer fuel exhaustion, and an instrument
+  that lies while something real happens. Forty end in a true breach, which is
+  what claim C1's method requires; twenty are controls in which no breach
+  occurs, without which a false-alarm rate is measured over a dataset with
+  nothing to falsely alarm on. Twenty-three cross-source conflicts are seeded
+  across them for claim C6. Four cargo classes, seven ambient profiles.
+  The v1.0.0 trio - the flagship, the no-fault control and the sensor-drift
+  case - are carried unchanged and are still the scenarios quoted by name in
+  the architecture notes.

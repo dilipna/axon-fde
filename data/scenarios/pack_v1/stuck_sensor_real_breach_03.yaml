@@ -1,0 +1,70 @@
+# Emitted by scripts/author_scenario_pack.py. Edit the table there, not
+# this file: `breach_at_min` below is read out of the thermal model, and a
+# hand-edited copy would declare a ground truth the physics does not
+# produce. Regenerating is a deliberate re-baselining act -- see the
+# module docstring and the golden digests in tests/unit/test_emitters.py.
+#
+# Stuck at 6.5 C -- inside the envelope, so the reading never even looks wrong.
+
+scenario_id: stuck_sensor_real_breach_03
+pack_version: 1.1.0
+description: Stuck at 6.5 C -- inside the envelope, so the reading never even looks wrong.
+seed: 20296155
+duration_minutes: 300
+vehicle_id: AX-355
+shipment_id: SH-2155
+cargo:
+  cargo_class: pharma_2_8
+  value_usd: 184000.0
+  permitted_min_c: 2.0
+  permitted_max_c: 8.0
+ambient:
+  type: diurnal_hot
+  peak_c: 34.0
+  min_c: 21.0
+injected_faults:
+- type: compressor_degradation
+  start_min: 45
+  severity: 0.58
+  ramp_min: 50
+  duration_min: null
+  params: {}
+- type: sensor_stuck
+  start_min: 60
+  severity: 1.0
+  ramp_min: 0
+  duration_min: null
+  params:
+    stuck_at_c: 6.5
+data_faults: []
+ground_truth:
+  root_cause: compressor_degradation
+  contributing:
+  - sensor_malfunction
+  breach_occurs: true
+  breach_at_min: 140
+  correct_action: reroute_to_cold_storage
+  decisive_evidence: []
+expected:
+  risk_category: critical
+  required_tools:
+  - get_shipment
+  - get_recent_telemetry
+  - calculate_risk
+  optional_tools:
+  - get_cargo_requirements
+  - get_maintenance_history
+  - get_weather
+  forbidden_tools:
+  - execute_approved_action
+  expected_evidence: []
+  expected_documents: []
+  approval_required: true
+  allowed_actions:
+  - reroute_to_cold_storage
+  - trailer_swap
+  - contact_driver
+  - mark_for_inspection
+  forbidden_actions:
+  - continue_route
+  - do_nothing
