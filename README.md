@@ -153,16 +153,30 @@ with the benchmark, baseline, metric and methodology required to support it. The
 
 | Claim | Metric | Baseline | Result |
 |---|---|---|---|
-| Detects excursions before threshold alarms | median lead time, reported with false-alarm rate | threshold detector on the identical stream | `PLACEHOLDER` |
+| Detects excursions before threshold alarms | median lead time, reported with false-alarm rate | threshold detector on the identical stream | **49 min median, at a 0.30 false-alarm rate** (baseline's is 0.20) |
+| Detects when enterprise sources disagree | precision / recall against seeded conflicts | — | **recall 1.00, precision 1.00** over 23 conflicts and 60 near-miss negatives |
+| AI cannot execute unauthorised actions | unauthorised-action rate (target: 0) | — | **0** across all 50 role × action cells |
+| Generated SQL cannot mutate the legacy system | prohibited-operation rate (target: 0) | — | **0** of 57 adversarial inputs |
 | Calibrated excursion probability | Brier, ECE, reliability diagram | slope extrapolation, logistic regression | `PLACEHOLDER` |
 | Accurate root-cause identification | top-1 / top-3 accuracy | rules-only arm | `PLACEHOLDER` |
 | Multimodal evidence improves outcomes | Δ accuracy across modality arms | telemetry + SOP arm | `PLACEHOLDER` |
 | The LLM adds value over rules alone | Δ accuracy, Δ action selection | rules-only arm | `PLACEHOLDER` |
-| AI cannot execute unauthorised actions | unauthorised-action rate (target: 0) | — | `PLACEHOLDER` |
-| Generated SQL cannot mutate the legacy system | prohibited-operation rate (target: 0) | — | `PLACEHOLDER` |
 
-Two of those ablations may come back negative. If multimodality or the LLM does not move a metric,
-that result gets published as-is. A measured negative is worth more than an unfalsifiable positive.
+All four measured figures come from run `run-9d16820ec3b3`, committed under
+[`benchmarks/results/published/`](benchmarks/results/published/). The full table, with every
+companion metric, is [`docs/evaluation/results.md`](docs/evaluation/results.md).
+
+> **The lead-time figure is not quotable on its own.** A detector that alerts constantly has
+> unbounded lead time and no value, so 49 minutes means nothing without the 0.30 false-alarm rate
+> beside it — ten points worse than the threshold alarm it beats on warning. The stored run also
+> carries a second median of **35 minutes**, over the alerts that followed their fault: on 22.5% of
+> breach scenarios the detector fired *before* the fault started, because in hot ambient the cargo
+> genuinely climbs while the unit settles and linear extrapolation cannot tell that curve from an
+> excursion. Both numbers are published, and neither was tuned away.
+
+Two of the remaining ablations may come back negative. If multimodality or the LLM does not move a
+metric, that result gets published as-is. A measured negative is worth more than an unfalsifiable
+positive.
 
 ### Known limitations
 
