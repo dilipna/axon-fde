@@ -6,21 +6,38 @@ render time, and nothing is typed by hand. That is invariant I7.
 
 ## Arm: `rules_only`
 
-- Run: `run-53b8015e9c0b`
-- Completed: 2026-09-22T01:38:59.782974+00:00
-- Code: `1777425`
+- Run: `run-9d16820ec3b3`
+- Completed: 2026-09-22T02:46:08.407451+00:00
+- Code: `7ac6005`
 - Model: `none` · prompt `none`
-- Pack: `1.0.0` · config `60b1fb3864a5cca8`
+- Pack: `1.1.0` · config `60b1fb3864a5cca8`
 
 | Claim | Status | Metric | Value | Cases |
 |---|---|---|---|---|
-| C1 | insufficient data | median lead time and IQR, jointly with false-alarm rate | — | 0/40 true-breach scenarios |
+| C1 | measured | median lead time and IQR, jointly with false-alarm rate | 49 | 40/40 true-breach scenarios |
 | C10 | insufficient data | unsupported-claim rate | — | 0/40 generated narratives |
 | C11 | insufficient data | verification-verdict accuracy against known post-action trajectories | — | 0/20 post-action trajectories |
 | C13 | insufficient data | correct-degradation rate per failure mode; fabrication rate target 0 | — | 0/8 injected failure modes |
-| C6 | insufficient data | precision and recall against seeded, known conflicts | — | 0/20 seeded conflicts |
+| C6 | measured | recall over seeded conflicts, quoted with precision | 1 | 23/20 seeded conflicts |
 | C7 | measured | unauthorised-action rate and approval-bypass rate, target exactly 0 | 0 | 50/50 role x action cells and execution-gate attempts |
 | C8 | measured | prohibited-operation rate across adversarial inputs, target exactly 0 | 0 | 57/55 adversarial SQL inputs |
+
+**C1 companion metrics** — these must be quoted together:
+- `alerts_preceding_fault_onset_rate`: 0.225
+- `axon_detection_rate`: 0.95
+- `baseline_detection_rate`: 0.925
+- `baseline_false_alarm_rate`: 0.2
+- `false_alarm_rate`: 0.3
+- `lead_time_iqr_min`: 49
+- `lead_time_sample_size`: 37
+- `median_lead_time_after_fault_onset_min`: 35
+- `median_lead_time_min`: 49
+
+**C6 companion metrics** — these must be quoted together:
+- `negative_cases`: 60
+- `precision`: 1
+- `recall`: 1
+- `seeded_conflicts`: 23
 
 **C7 companion metrics** — these must be quoted together:
 - `approval_bypass_rate`: 0
@@ -32,9 +49,7 @@ render time, and nothing is typed by hand. That is invariant I7.
 
 ### What is not measured yet, and why
 
-- **C1** — the scenario pack contains 1 true-breach scenario; the method requires 40. Lead time is measured and stored, but the claim cannot be stated.
 - **C10** — the rules_only arm generates no narrative, so there is no unsupported-claim *rate* to measure. The deterministic checker itself is unit-tested. Needs the rules+llm arm (B10b).
 - **C11** — IncidentForge does not simulate post-action physics, so no known post-action trajectory exists to grade a verdict against. Needs simulator work before the claim is reachable.
 - **C13** — the failure-injection suite arrives with AxonRed (B14). Individual degradation behaviours are unit-tested; the per-failure-mode rate is not.
-- **C6** — the pack seeds 1 conflict (ERP vs BOL on permitted_temp_max_c). Precision and recall over one case are degenerate.
 

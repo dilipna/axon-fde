@@ -10,7 +10,7 @@ required to support it.
 > that run is identified by `(git_sha, prompt_version, model_id, pack_version,
 > config_hash)`.
 
-Claims move through three states:
+Claims move through four states:
 
 | State | Meaning |
 |---|---|
@@ -65,12 +65,50 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Baseline** | `BaselineDetector` (threshold alarm) consuming the identical event stream. |
 | **Dataset** | ≥40 AxonBench scenarios in which a breach actually occurs. |
 | **Method** | `lead_time = t(threshold_alarm) − t(axon_alert)`, computed only over true-breach scenarios. |
-| **Status** | `PLACEHOLDER` |
+| **Status** | `MEASURED` — median **49 min** (IQR 49), **false-alarm rate 0.30** against the baseline's 0.20. Over the 40 true-breach scenarios of pack v1.1.0, with 20 controls supplying the rate. |
+| **Run** | `run-9d16820ec3b3` · `git_sha=7ac6005` · `model_id=none` · `prompt_version=none` · `pack_version=1.1.0` · `config_hash=60b1fb3864a5cca8` |
 
 > **Why the pairing is mandatory.** Lead time alone is trivially gameable: a
 > detector that alerts constantly has infinite lead time and zero value. The
 > metric is meaningless unless quoted with the false-alarm rate at the same
 > operating threshold. Any presentation of C1 that omits it is a misuse.
+
+> **The honest form of this result, in one line:** *49 minutes of median
+> warning, bought at a false-alarm rate of 30% against the threshold alarm's
+> 20%.* Ten points of extra false alarms is not free — Axon's dispatchers
+> already mute alert categories — and the number is not quotable without it.
+
+> **A second median, and why it is here.** On 22.5% of the breach scenarios
+> the predictive detector fired **before the causal fault had started**. That
+> is not skill. The cause is specific and worth stating: a load begins at
+> setpoint, a proportional controller needs steady-state error to produce
+> output, so in hot ambient the cargo genuinely climbs for half an hour before
+> levelling off — and linear extrapolation cannot tell that curve from a slow
+> excursion. Restricted to alerts that followed their fault, the median is
+> **35 min**, which is also the flagship's long-quoted figure. Both numbers are
+> in the stored run. 49 is the headline for one reason only: it is what the
+> **Method** row above computes, over the population the **Dataset** row
+> defines. Narrowing that population to a subset picked *after* seeing which
+> alerts looked unearned is not the stated method, however defensible the
+> reasoning — that is a change to the method, made in the open, not a filter
+> applied quietly on the way to a number. 35 is published beside it because the
+> headline alone overstates the warning that is real, and note which direction
+> it runs: the correction **costs** the claim 14 minutes.
+>
+> `CONSECUTIVE_READINGS_TO_FIRE = 3` was chosen on the flagship alone, where it
+> moved the first alert from minute 29 to minute 102. Across sixty scenarios it
+> does not generalise. That is a finding about the detector, not a defect in
+> the pack, and it is deliberately **not** tuned away here: retuning a
+> parameter against the benchmark that measures it is how a number stops
+> meaning anything.
+
+> **Where the 3 missing scenarios went.** 37 of the 40 breaches yielded a lead
+> time. Three stuck-sensor scenarios produced no threshold alarm at all — the
+> instrument froze inside the envelope while the cargo left it — so there is no
+> `t(threshold_alarm)` to subtract from, and two of those three the predictive
+> arm also missed. They are excluded from the median and named in the run.
+> The exclusion is **conservative**: those are cases where the baseline fails
+> outright, so counting them would raise the figure, not lower it.
 
 ### C2 — Calibrated excursion probability
 
@@ -154,7 +192,27 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Metric** | Precision and recall against seeded, known conflicts. |
 | **Baseline** | None — this is a new capability, not an improvement on one. |
 | **Dataset** | Scenarios seeded with ERP-vs-BOL mismatches and sensor-vs-panel disagreements. |
-| **Status** | `PLACEHOLDER` |
+| **Status** | `MEASURED` — recall **1.00**, precision **1.00**, over 23 seeded conflicts and 60 constructed negatives. |
+| **Run** | `run-9d16820ec3b3` · `git_sha=7ac6005` · `model_id=none` · `prompt_version=none` · `pack_version=1.1.0` · `config_hash=60b1fb3864a5cca8` |
+
+> **What makes the precision worth anything is the negative set.** Twenty-three
+> seeded conflicts alone would give a precision of 1.00 that could not go down,
+> because nothing was offered that the system could wrongly flag. So one
+> negative is constructed per scenario, on a conflict-capable channel that
+> scenario does not seed, with the two sources placed at **80% of the
+> taxonomy's own `conflict_tolerance`** for that observation type — close
+> enough to disagree, inside the band that says they do not. For a type whose
+> tolerance is zero, such as the contractual limits, the hardest negative
+> available is exact agreement, and that is what is used.
+
+> **Read this as the modest claim it is.** Reconciliation is a deterministic
+> comparison against a declared tolerance, so scoring 1.00 on both is the
+> expected result rather than a surprising one. What the measurement
+> establishes is that the 23 conflicts the pack seeds — across two mechanisms
+> (ERP-vs-BOL, telemetry-vs-panel) and five observation types — actually reach
+> the reconciler and raise a conflict, and that near-misses inside tolerance do
+> not. It does not establish behaviour on noisy real-world sources, and no
+> tolerance in this system was fitted to data.
 
 ### C7 — AI cannot execute unauthorised actions
 
@@ -282,7 +340,9 @@ Before any write-up, demo or CV bullet ships:
 
 - [ ] Every number traces to a stored benchmark run ID.
 - [ ] Every claim with a baseline states the baseline alongside the result.
-- [ ] C1 is never quoted without its false-alarm rate.
+- [ ] C1 is never quoted without its false-alarm rate, and not without the
+      second median over alerts that followed their fault. The README and
+      `results.md` both carry all three; anything derived from them must too.
 - [ ] C2 is never quoted without the synthetic-data limitation.
 - [ ] C15 is never quoted without "model-based estimate" and its assumptions.
 - [ ] C4's baseline arm includes the compressor-response feature, so the
