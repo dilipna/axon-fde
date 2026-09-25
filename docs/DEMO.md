@@ -139,6 +139,20 @@ watching them go red.
 | `LegacyConnectionError … 1433` | Docker Desktop died | restart it, then `docker compose --profile core up -d` |
 | Claim cards empty | no published benchmark run | `uv run poe bench --arm rules_only`, then copy into `benchmarks/results/published/` |
 | Demo step 1 fails on the ERP | not seeded | `uv run poe seed` |
+| Page loads but every panel is empty, and `/docs` works | **something else is already on port 8000.** uvicorn logs `error while attempting to bind` and keeps running, so the browser is talking to the *other* process — which is why the page renders and the data does not | `uv run poe tower --port 8001`, or free the port (below) |
+
+Finding what has port 8000, on Windows:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8000 -State Listen |
+  ForEach-Object { Get-Process -Id $_.OwningProcess } |
+  Select-Object Id, ProcessName, StartTime
+```
+
+A stale `python` from an earlier session is the usual answer. This has already
+happened once: `poe tower` failed to bind, an older server answered `/` and
+`/docs` with 200, and the control endpoints returned `{"detail":"Not Found"}`
+— which reads exactly like a broken router rather than a busy port.
 
 Docker dying mid-session has happened in four of the last six working sessions.
 Check it first.
