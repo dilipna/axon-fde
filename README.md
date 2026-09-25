@@ -139,8 +139,24 @@ Common tasks (`uv run poe --help` for the full list):
 | `poe check` | Everything CI runs: lint, typecheck, module contracts, tests |
 | `poe test` | All tests except those that call the real LLM API |
 | `poe demo` | The end-to-end incident walkthrough |
+| `poe demo-trace` | The same run, recorded for the control tower |
+| `poe tower` | Serve the control tower on http://localhost:8000 |
 | `poe bench` | Run AxonBench |
 | `poe forge` | IncidentForge scenario CLI |
+
+### The control tower
+
+`poe demo-trace && poe tower` puts the closed loop on a page: the reported
+cargo temperature against its permitted envelope, the minute AxonFDE raised the
+incident beside the minute a threshold alarm would have, the measured claims
+with the run id behind each one, and all thirteen steps including the three
+that **refuse** something.
+
+The UI runs nothing. It reads the trace the last `poe demo` wrote, so the page
+shows a run that actually happened against real databases rather than a fixture
+— and when no run has happened it says so instead of rendering sample data. A
+dashboard that looks identical whether or not the system works is worse than an
+empty one. [`docs/DEMO.md`](docs/DEMO.md) is the runbook.
 
 ---
 
