@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AxonFDE Control Tower</title>
+<link rel="stylesheet" href="/ui/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true"></span>
+    <div>
+      <h1>AxonFDE</h1>
+      <p class="sub">Cold-chain decision intelligence &middot; <span id="arm-label">rules-only arm</span></p>
+    </div>
+  </div>
+  <div class="provenance" id="provenance">
+    <span class="pill pill-muted">loading provenance&hellip;</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── The incident ────────────────────────────────────────────── -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Flagship incident</h2>
+      <p class="hint" id="scenario-hint">&nbsp;</p>
+    </div>
+
+    <div class="chart-wrap">
+      <svg id="chart" role="img" aria-label="Cargo temperature against its permitted envelope"></svg>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <p class="caveat">
+      The line is <strong>what the sensor reported</strong>. The simulator's true temperature is
+      deliberately not served by the API &mdash; ground truth is benchmark-only, and a chart that
+      overlaid it would put it one fetch away from the application.
+    </p>
+  </section>
+
+  <!-- ── Measured claims ─────────────────────────────────────────── -->
+  <section class="panel" id="claims-panel">
+    <div class="panel-head">
+      <h2>Measured claims</h2>
+      <p class="hint">Every figure comes from a stored benchmark run. Nothing here is typed by hand.</p>
+    </div>
+    <div class="claim-grid" id="claim-grid"></div>
+    <p class="caveat" id="c1-caveat" hidden></p>
+  </section>
+
+  <!-- ── The loop ────────────────────────────────────────────────── -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>The closed loop</h2>
+      <p class="hint">
+        Thirteen steps, no language model. Replayed from the last
+        <code>poe demo --json</code> &mdash; the same code path, against the same two databases.
+      </p>
+    </div>
+    <ol class="timeline" id="timeline"></ol>
+  </section>
+
+</main>
+
+<footer>
+  <p>
+    Numbers on this page trace to <code id="run-id">&mdash;</code>.
+    Claims that are not yet measured are absent rather than estimated.
+  </p>
+</footer>
+
+<script type="module" src="/ui/app.js"></script>
+</body>
+</html>

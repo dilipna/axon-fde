@@ -117,7 +117,7 @@ constraint, and each has an ADR.
 | I5 | **No consequential action executes without a valid, unexpired, hash-matching approval.** | `ActionExecutor.execute` asks `may_execute_immediately`, never `allowed`; `tests/security/test_execution_gate.py` enumerates every gated action and asserts the `action_execution` table stays empty |
 | I6 | **Never fabricate a missing observation.** Absence is represented as absence and lowers confidence. | `resolve_envelope()` returns `None` rather than a default, proven by `test_an_unknown_shipment_yields_no_envelope_rather_than_a_default`; empty fault code lists are stored, not dropped; degradation ladder in `docs/architecture/overview.md` §7 |
 | I7 | **No number ships without a stored benchmark run behind it.** | `docs/evaluation/claims.md` |
-| I8 | **Ground truth never reaches the application.** `TelemetryEvent` carries only what a sensor could report; `GroundTruthFrame` is benchmark-only. | `test_telemetry_events_carry_no_ground_truth`, `test_written_telemetry_contains_no_ground_truth` |
+| I8 | **Ground truth never reaches the application.** `TelemetryEvent` carries only what a sensor could report; `GroundTruthFrame` is benchmark-only. | `test_telemetry_events_carry_no_ground_truth`, `test_written_telemetry_contains_no_ground_truth`, and `test_the_telemetry_endpoint_serves_no_ground_truth` for the API the UI reads |
 | I9 | **Policy and decision modules are pure** — no I/O, no LLM. | import-linter contracts in `pyproject.toml` |
 | I10 | **Audit history is append-only.** It cannot be edited through the application's credentials, nor by a connection that owns the table. | Grants on `axon_app` (SELECT + INSERT only), `trg_audit_event_append_only`, HMAC chain; `tests/integration/test_app_db.py` asserts the row is *unchanged* afterwards, not merely that an error was raised |
 
@@ -232,7 +232,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**38 commits · 833 tests · mypy --strict clean · 11 module contracts · **CI green on all six jobs** · pushed to
+**39 commits · 842 tests · mypy --strict clean · 11 module contracts · **CI green on all six jobs** · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -271,6 +271,7 @@ Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
 | LLM boundary | `backend/app/llm/` | `LLMProvider` protocol, Anthropic impl with prompt caching and structured outputs, cassettes that **fail loudly**, daily spend ceiling, per-call cost. Only `anthropic_provider` may import `anthropic` (contract). |
 | Agent workflow | `backend/app/agents/` | 14 nodes, typed checkpointable state, budget gates *between* nodes, deterministic scorer owning every confidence, deterministic grounding check. Two model nodes, each followed by a check that can reject it. |
 | Config / health / logging | `backend/app/config.py`, `api/v1/health.py`, `observability/logging.py` | Startup safety validation, TCP dependency probes, redaction |
+| Control tower | `apps/control_tower/`, `backend/app/api/v1/control.py`, `api/ui.py` | `poe demo-trace && poe tower`. Static page, no build step. Three read-only endpoints. Renders the trace of a real run; says what is missing rather than showing fixtures |
 
 ### Scenario pack (`data/scenarios/pack_v1`, version **1.1.0**, 60 scenarios)
 
@@ -327,8 +328,10 @@ superuser, because an assertion about grants is worthless without it.
 
 ### Not built
 
-Tools layer, OTel/Langfuse wiring, any UI. The API layer exposes none of
-B6-B9 yet - the services exist and are tested, but nothing is routed.
+Tools layer, OTel/Langfuse wiring. The API layer exposes **read-only control
+tower endpoints only** - the B6-B9 services are tested but none of them is
+routed, so nothing can be *driven* through HTTP. Approving an action from the
+UI is the obvious next thing and is not built.
 AxonBench exists and measures four claims; its `rules_llm` arm does not.
 **No cassettes are recorded yet.** The provider, the graph and their
 guarantees are built and tested, but `data/cassettes/` is empty: recording
@@ -367,6 +370,17 @@ uv run poe forge run-all  # scenario recordings (data/generated/ is gitignored)
 uv run poe check          # lint, mypy --strict, module contracts, tests
 uv run poe forge verify   # simulator determinism + ground-truth agreement
 ```
+
+To put it on a screen — and this is the sequence to rehearse before showing
+anybody, because Docker has died mid-session in four of the last six:
+
+```bash
+uv run poe demo-trace     # runs the loop, records what the UI reads
+uv run poe tower          # http://localhost:8000
+```
+
+`docs/DEMO.md` is the runbook: what to show, in what order, what to say about
+the false-alarm rate, and what to do when something is broken on the day.
 
 If a dependency is missing, tests **skip** with the command that fixes it.
 To get CI's behaviour instead - a missing dependency is a failure - run:
@@ -485,6 +499,15 @@ C6 at recall 1.00 / precision 1.00.** The block was roughly three times its
 brief: see §8 for why, and for the start-of-run false-alarm mode the wider
 pack exposed in the shipped detector.
 
+### B15a — Control tower, read-only ✅ **DONE** (2026-09-24) [Phase 6, pulled forward]
+`poe demo-trace && poe tower`. A static page over three read-only endpoints:
+the trace of the last closed-loop run, the published claim register, and the
+telemetry the detectors were judged against. Pulled ahead of its phase because
+a demo needs something to look at. **The UI runs nothing** — it reads what a
+real run wrote, and reports absence rather than rendering fixtures.
+Driving the loop *from* the UI (approve, execute) is not built; that needs the
+B6-B9 services routed, which they are not.
+
 ### B10b — AxonBench, the LLM arm ← **NEXT** [Phase 1] — **needs one recording session**
 Record cassettes for the two model nodes, add the `rules_llm` arm, measure
 C5, C9, C12 and C3 against the `rules_only` baseline. `run_arm("rules_llm")`
@@ -578,4 +601,5 @@ said the harness "grades whatever the pack contains".
 | 2026-09-22 | **B10a** | 762 tests. **C7 and C8 measured at 0**, run committed. Three findings: (1) my own previous estimate of "seven claims reachable" was **wrong — two are**; a claim's *metric* looks reachable long before its *method* is, and the method rows carry dataset requirements (C1 needs 40 scenarios, the pack has 1); (2) the three statuses in `claims.md` had no room for "a grader ran but the dataset is too small", so **`INSUFFICIENT_DATA`** was added — `MEASURED` would be the exact failure I7 prevents and `PLACEHOLDER` discards the run; (3) `benchmarks/results/*.json` was gitignored, so a published number's backing run existed only on one laptop — satisfying the letter of I7 and none of its purpose. Now `published/` is committed. |
 | 2026-09-22 | **CI repair** | Run 24 red on the newly enabled AxonBench job: `poe bench -- --arm` forwards the `--` to argparse. The token came from the disabled placeholder step, so it had never run. Green on 25. |
 | 2026-09-21 | **B10c** | Pack 3 → **60 scenarios** (40 breach, 20 control, 23 seeded conflicts), two new graders, **C1 and C6 measured**. Five findings, in order of how much they would have cost: (1) **the block's own brief was wrong about its size** — it said five breach scenarios where C1's method says forty, and the contradiction was sitting three lines above it in this file; it also said `poe bench` "grades whatever the pack contains" when **no C1 or C6 grader existed at all**. Re-derive scope from the register, not from the previous summary. (2) The wider pack exposed a **start-of-run false-alarm mode in the shipped detector**: a load begins at setpoint, a proportional controller needs steady-state error to produce output, so in hot ambient the cargo genuinely climbs for ~30 min before levelling — and slope extrapolation cannot tell that curve from an excursion. It fires at **minute 31 regardless of the fault**, sometimes before the fault starts. `CONSECUTIVE_READINGS_TO_FIRE = 3` was tuned on the flagship alone and does not generalise. **Not tuned away** — retuning against the benchmark that measures it is how a number stops meaning anything. (3) A test written to catch a reproducibility bug **passed against the bug**: the C6 negative set used `hash()`, which Python reseeds per process, and my subprocess test compared counts that are identical either way. Fixed by recording the channel assignment and re-proving it red. (4) The emitter's "expect_breach" guard caught a **breach scenario and a control row sharing one design** with opposite labels. (5) A "one regime ≤40% of breaches" test measured regime by *declared root cause* and hid five lying-instrument scenarios behind `compressor_degradation`; `claims.md` means the injected-fault set by "generative regime", and by that measure the largest regime is 25%. |
+| 2026-09-24 | **B15a** | Control tower. The demo's `Console` became a `Narrator` protocol with a second implementation that records, so the terminal and the UI run **the same loop over the same databases** rather than two stories that can drift. Three findings: (1) the first UI recovered the two minutes its chart marks by **regex over the narration** — it found the detection minute, missed the threshold alarm, and drew a chart missing the exact comparison the lead-time claim is about, while looking like it had rendered fine. The loop now records them as facts. (2) The API is forbidden from importing pyodbc even transitively, which ruled out running the loop in a request. Left the contract alone and had the demo write a trace the API serves — and the split turned out better anyway, since the loop owns one transaction it rolls back, and holding that open across an HTTP request would be a worse design than the one the contract forced. (3) The preamble note stole step number 1, so the UI said "step 2" where the terminal said "step 1". Numbering now counts titled steps. The I8 test (no ground truth through the API) was proven red by leaking `true_cargo_temp_c` on purpose. **Known gap: the JavaScript has no automated test** — it was verified once by executing its render functions against the live API in a DOM shim, and nothing guards it in CI. |
 | | **B10b next** | The LLM arm. **Needs an API key and a decision about spending** — see §0.1 and §7. If there is no key, go to B11 or B14 instead. |

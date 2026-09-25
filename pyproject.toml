@@ -118,6 +118,10 @@ migrate = { cmd = "alembic -c backend/app/db/migrations/alembic.ini upgrade head
 seed = { cmd = "python -m scripts.seed", help = "Seed legacy SQL Server and app Postgres" }
 
 demo = { cmd = "python -m scripts.demo", help = "Run the end-to-end incident demo" }
+# The control tower reads the trace this writes. `poe tower` serves the UI but
+# never runs the loop, so the page shows the last run that actually happened.
+demo-trace = { cmd = "python -m scripts.demo --json", help = "Run the demo and record its trace for the UI" }
+tower = { cmd = "uvicorn backend.app.main:app --port 8000", help = "Serve the control tower on http://localhost:8000" }
 forge = { cmd = "python -m simulator.incidentforge.cli", help = "IncidentForge scenario CLI" }
 bench = { cmd = "python -m benchmarks.axonbench.runner", help = "Run AxonBench" }
 bench-report = { cmd = "python -m benchmarks.axonbench.report", help = "Generate the benchmark report" }

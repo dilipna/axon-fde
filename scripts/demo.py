@@ -25,12 +25,13 @@ demonstrates are about real engines.
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -81,10 +82,54 @@ DETOUR_MINUTES = {"CS-11": 45.0, "CS-12": 95.0, "CS-13": 60.0}
 
 TOTAL_STEPS = 13
 
+#: The minute the threshold alarm fires on this recording - the first reading
+#: outside the 2-8 C envelope.
+#:
+#: A constant because the baseline detector is not run in this demo; the
+#: predictive arm is. It is the flagship's declared `breach_at_min`, asserted
+#: against the physics by `poe forge verify` and against both detectors by
+#: AxonBench's lead-time grader, so it cannot drift here unnoticed.
+BASELINE_ALARM_MINUTE = 137
+
+#: Where `--json` writes when given no path. Served read-only by the API, so
+#: the control tower shows the last run that actually happened rather than a
+#: fixture checked in beside it.
+DEFAULT_TRACE_PATH = PROJECT_ROOT / "data" / "generated" / "demo-trace.json"
+
+
+def _trace_path(args: list[str]) -> Path | None:
+    """The ``--json [PATH]`` destination, or None when the flag is absent."""
+    if "--json" not in args:
+        return None
+    index = args.index("--json")
+    following = args[index + 1] if index + 1 < len(args) else None
+    if following is None or following.startswith("--"):
+        return DEFAULT_TRACE_PATH
+    return Path(following)
+
 
 # ---------------------------------------------------------------------------
 # Presentation
 # ---------------------------------------------------------------------------
+
+
+class Narrator(Protocol):
+    """Where the loop's narration goes.
+
+    The loop takes one of these rather than printing, so the terminal demo and
+    the control-tower UI run **the same code over the same database** and
+    cannot drift into telling different stories. A UI fed from a second
+    implementation of the loop would be a mock with extra steps, and the first
+    thing an interviewer asks a dashboard is whether the numbers are real.
+    """
+
+    def step(self, title: str) -> None: ...
+    def say(self, line: str = "") -> None: ...
+    def good(self, line: str) -> None: ...
+    def refused(self, line: str) -> None: ...
+    def note(self, line: str) -> None: ...
+    def banner(self, line: str) -> None: ...
+    def fact(self, key: str, value: object) -> None: ...
 
 
 class Console:
@@ -113,6 +158,93 @@ class Console:
         print(f"\n\033[1m{line}\033[0m")
         print("=" * len(line))
 
+    def fact(self, key: str, value: object) -> None:
+        """Deliberately ignored: the prose above already states these."""
+
+
+class Recorder:
+    """Captures the same narration as structured steps, and also prints it.
+
+    It prints as well as records for one reason: a trace written by a run
+    nobody watched is indistinguishable from a trace written by a run that
+    failed halfway. The terminal stays the source of truth about whether the
+    demo worked; the JSON is what the UI reads.
+
+    The `kind` on each line is the whole vocabulary the UI needs - `good` and
+    `refused` are what let it show a refusal as a refusal rather than as
+    another grey line of log, and a governance demo whose refusals do not look
+    different from its successes has buried its own point.
+    """
+
+    def __init__(self) -> None:
+        self._console = Console()
+        self.steps: list[dict[str, Any]] = []
+        self.banners: list[str] = []
+        self.facts: dict[str, object] = {}
+
+    def _line(self, kind: str, text: str) -> None:
+        if not self.steps:
+            # Narration before the first step - the opening banner's notes.
+            self.steps.append({"number": 0, "title": "", "lines": []})
+        self.steps[-1]["lines"].append({"kind": kind, "text": text})
+
+    def step(self, title: str) -> None:
+        self._console.step(title)
+        # Numbered by titled steps, not by list length: narration before the
+        # first step occupies entry 0, and counting entries made step one
+        # render as step two in the UI while the terminal said step one.
+        number = sum(1 for entry in self.steps if entry["title"]) + 1
+        self.steps.append({"number": number, "title": title, "lines": []})
+
+    def say(self, line: str = "") -> None:
+        self._console.say(line)
+        self._line("say", line)
+
+    def good(self, line: str) -> None:
+        self._console.good(line)
+        self._line("good", line)
+
+    def refused(self, line: str) -> None:
+        self._console.refused(line)
+        self._line("refused", line)
+
+    def note(self, line: str) -> None:
+        self._console.note(line)
+        self._line("note", line)
+
+    def banner(self, line: str) -> None:
+        self._console.banner(line)
+        self.banners.append(line)
+
+    def fact(self, key: str, value: object) -> None:
+        """Record a number the UI needs to place, rather than print it.
+
+        The chart has to mark the minute the detector fired and the minute the
+        envelope was breached. The first version of the UI recovered those by
+        regex over the narration, which found one of the two and silently drew
+        a chart missing its most important mark - the comparison the whole
+        lead-time claim rests on. Prose is for people; this is for the chart.
+        """
+        self.facts[key] = value
+
+    def as_payload(self, *, exit_code: int, elapsed_seconds: float) -> dict[str, Any]:
+        return {
+            "scenario_id": SCENARIO,
+            "shipment_id": SHIPMENT_ID,
+            "vehicle_id": VEHICLE_ID,
+            "arm": "rules_only",
+            "model_id": "none",
+            "recorded_at": datetime.now(UTC).isoformat(),
+            "elapsed_seconds": round(elapsed_seconds, 2),
+            "exit_code": exit_code,
+            "total_steps": TOTAL_STEPS,
+            "banners": self.banners,
+            "facts": self.facts,
+            # Numbered from 0 when the run narrated before its first step, so
+            # a UI can render the preamble without inventing a step for it.
+            "steps": [s for s in self.steps if s["title"] or s["lines"]],
+        }
+
 
 @dataclass
 class Wiring:
@@ -134,8 +266,8 @@ class Wiring:
 # ---------------------------------------------------------------------------
 
 
-async def run_demo(*, keep: bool = False) -> int:
-    console = Console()
+async def run_demo(*, keep: bool = False, narrator: Narrator | None = None) -> int:
+    console: Narrator = narrator or Console()
     console.banner("AxonFDE - rules-only closed loop (no language model)")
     console.note(
         "Every number below is computed. Nothing is narrated by a model, and nothing is stubbed."
@@ -189,7 +321,7 @@ async def run_demo(*, keep: bool = False) -> int:
         await engine.dispose()
 
 
-async def _loop(console: Console, wiring: Wiring) -> int:
+async def _loop(console: Narrator, wiring: Wiring) -> int:
     recording = PROJECT_ROOT / "data" / "generated" / SCENARIO / "telemetry.parquet"
     if not recording.exists():
         console.refused(f"{recording} is missing. Run `uv run poe forge run-all` first.")
@@ -272,9 +404,16 @@ async def _loop(console: Console, wiring: Wiring) -> int:
         f"by the {result.detection.detected_by.value} detector"
     )
     console.note(
-        "The threshold baseline does not fire until minute 137, when the cargo is "
-        "already out of spec. That gap is the lead time."
+        f"The threshold baseline does not fire until minute {BASELINE_ALARM_MINUTE}, when the "
+        "cargo is already out of spec. That gap is the lead time."
     )
+    # Recorded as data, not only as prose. The control tower marks both minutes
+    # on its chart, and recovering them by reading the sentences back is how
+    # the first version came to draw the detection line and silently omit the
+    # breach line it is measured against.
+    console.fact("detected_at_minute", result.detected_at_minute)
+    console.fact("baseline_alarm_minute", BASELINE_ALARM_MINUTE)
+    console.fact("lead_time_minutes", BASELINE_ALARM_MINUTE - (result.detected_at_minute or 0))
     incident = await wiring.incidents.get(result.incident_id)
     assert incident is not None
 
@@ -719,15 +858,36 @@ def main(argv: list[str] | None = None) -> int:
         with suppress(AttributeError, ValueError):
             stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
 
-    keep = "--keep" in (argv if argv is not None else sys.argv[1:])
+    args = list(argv if argv is not None else sys.argv[1:])
+    keep = "--keep" in args
+    trace_path = _trace_path(args)
+
+    # The recorder prints as well as records, so `--json` never turns a visible
+    # run into a silent one. A trace file from a run nobody watched looks
+    # exactly like a trace from a run that died halfway.
+    narrator: Narrator = Recorder() if trace_path is not None else Console()
+
     started = datetime.now(UTC)
     try:
-        code = asyncio.run(run_demo(keep=keep))
+        code = asyncio.run(run_demo(keep=keep, narrator=narrator))
     except Exception as exc:
         print(f"\n\033[31mThe demo stopped: {type(exc).__name__}: {exc}\033[0m")
         print("Check that `poe up`, `poe migrate`, `poe seed` and `poe forge run-all` have run.")
         return 1
-    print(f"\n\033[2mElapsed {(datetime.now(UTC) - started).total_seconds():.1f}s\033[0m")
+
+    elapsed = (datetime.now(UTC) - started).total_seconds()
+    if trace_path is not None and isinstance(narrator, Recorder):
+        # Written only after a completed run. A partial trace served to the UI
+        # would render as a demo that simply had fewer steps.
+        payload = narrator.as_payload(exit_code=code, elapsed_seconds=elapsed)
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        trace_path.write_text(
+            json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n",
+            encoding="utf-8",
+        )
+        print(f"\n\033[2mTrace written to {trace_path}\033[0m")
+
+    print(f"\n\033[2mElapsed {elapsed:.1f}s\033[0m")
     return code
 
 

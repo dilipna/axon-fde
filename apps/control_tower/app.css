@@ -1,0 +1,213 @@
+/* Control tower styling.
+   One file, no preprocessor. Colours are tokens so the palette is changed in
+   one place rather than hunted through rules. */
+
+:root {
+  --bg:        #0e1117;
+  --surface:   #161b23;
+  --surface-2: #1d232d;
+  --line:      #2a323e;
+  --text:      #e6edf3;
+  --text-dim:  #9aa7b4;
+  --text-faint:#6b7887;
+
+  --accent:    #4c8dff;
+  --good:      #3fb950;
+  --refused:   #d99b2b;
+  --bad:       #f0564a;
+  --envelope:  rgba(76, 141, 255, 0.10);
+
+  --radius: 10px;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Top bar ──────────────────────────────────────────────────────── */
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.brand { display: flex; align-items: center; gap: 14px; }
+
+.mark {
+  width: 34px; height: 34px; flex: none;
+  border-radius: 9px;
+  background: linear-gradient(145deg, var(--accent), #7b5cff);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+}
+
+.topbar h1 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+.sub { margin: 2px 0 0; font-size: 13px; color: var(--text-dim); }
+
+.provenance { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.pill {
+  font: 12px/1 var(--mono);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.pill-muted { color: var(--text-faint); }
+.pill-warn  { color: var(--refused); border-color: rgba(217,155,43,.4); }
+
+/* ── Layout ───────────────────────────────────────────────────────── */
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.panel-head { margin-bottom: 16px; }
+.panel-head h2 { margin: 0; font-size: 15px; letter-spacing: .02em; text-transform: uppercase; color: var(--text-dim); }
+.hint { margin: 6px 0 0; font-size: 13.5px; color: var(--text-dim); }
+
+.caveat {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid var(--refused);
+  background: rgba(217,155,43,.06);
+  border-radius: 0 6px 6px 0;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+.caveat strong { color: var(--text); }
+
+code { font: 12.5px/1 var(--mono); background: var(--surface-2); padding: 2px 5px; border-radius: 4px; }
+
+/* ── Claim cards ──────────────────────────────────────────────────── */
+
+.claim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.claim {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.claim-id { font: 11px/1 var(--mono); color: var(--text-faint); letter-spacing: .08em; }
+.claim-value { margin: 8px 0 2px; font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+.claim-value.zero { color: var(--good); }
+.claim-label { font-size: 13px; color: var(--text-dim); }
+.claim-cases { margin-top: 8px; font: 11.5px/1.4 var(--mono); color: var(--text-faint); }
+
+/* The companion a claim may not be quoted without. */
+.claim-pair {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  font-size: 12.5px;
+  color: var(--refused);
+}
+
+/* ── Chart ────────────────────────────────────────────────────────── */
+
+.chart-wrap { position: relative; }
+#chart { width: 100%; height: 300px; display: block; overflow: visible; }
+
+.legend {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  margin-top: 12px; font-size: 12.5px; color: var(--text-dim);
+}
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
+.swatch.box { height: 10px; width: 10px; border-radius: 2px; }
+
+/* ── Timeline ─────────────────────────────────────────────────────── */
+
+.timeline { list-style: none; margin: 0; padding: 0; }
+
+.tstep {
+  position: relative;
+  padding: 0 0 20px 30px;
+  border-left: 1px solid var(--line);
+}
+.tstep:last-child { border-left-color: transparent; padding-bottom: 0; }
+
+.tstep::before {
+  content: attr(data-n);
+  position: absolute;
+  left: -11px; top: 0;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text-faint);
+  font: 11px/20px var(--mono);
+  text-align: center;
+}
+.tstep.has-refusal::before { border-color: var(--refused); color: var(--refused); }
+
+.tstep h3 { margin: 1px 0 8px; font-size: 14.5px; font-weight: 600; }
+
+.tline {
+  display: flex; gap: 8px; align-items: baseline;
+  font-size: 13.5px; padding: 2px 0;
+  color: var(--text-dim);
+}
+.tline .glyph { flex: none; width: 14px; font: 12px/1.5 var(--mono); }
+.tline.good    { color: var(--text); }
+.tline.good .glyph    { color: var(--good); }
+.tline.refused { color: var(--text); }
+.tline.refused .glyph { color: var(--refused); }
+.tline.note    { color: var(--text-faint); font-size: 13px; }
+
+/* ── States ───────────────────────────────────────────────────────── */
+
+.empty {
+  padding: 24px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+.empty code { display: inline-block; margin-top: 8px; }
+
+footer {
+  border-top: 1px solid var(--line);
+  padding: 18px 24px 40px;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  main { padding: 16px; }
+  .panel { padding: 16px; }
+  .claim-value { font-size: 22px; }
+}

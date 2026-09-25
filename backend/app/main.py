@@ -12,7 +12,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from backend.app.api.v1 import health
+from backend.app.api.ui import mount_control_tower
+from backend.app.api.v1 import control, health
 from backend.app.config import Environment, get_settings
 from backend.app.domain.taxonomy import load_taxonomy
 from backend.app.observability.logging import configure_logging, get_logger
@@ -67,6 +68,8 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(health.router, prefix=API_V1_PREFIX)
+    app.include_router(control.router, prefix=API_V1_PREFIX)
+    mount_control_tower(app)
 
     return app
 
