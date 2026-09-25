@@ -281,6 +281,160 @@ function renderChart(points, marks) {
   ].join("");
 }
 
+/* ── Why temperature alone is not enough ──────────────────────────── */
+
+/* The window claims.md computes its C4 figures over: the 30 readings *ending*
+ * at minute 100, i.e. minutes 71-100 inclusive.
+ *
+ * The boundary convention is not a detail. An inclusive 70-100 window is 31
+ * readings and yields -8.8 rpm/min where the register records -9.2, for the
+ * same scenario and the same stated "30-minute window". A reader comparing
+ * this page against `claims.md` would find them disagreeing with no way to
+ * tell which was wrong. The slopes below are recomputed from served data
+ * rather than copied, so the window is the only thing that could silently
+ * drift from the register - which is why it is spelled out here. */
+const SLOPE_AT = 100;
+const SLOPE_WINDOW = 30;
+const SLOPE_FROM = SLOPE_AT - SLOPE_WINDOW + 1;
+const SLOPE_TO = SLOPE_AT;
+
+const COMPARED = [
+  {
+    id: "compressor_degradation_pharma_01",
+    verdict: "the cargo really is warming",
+    kind: "real",
+  },
+  {
+    id: "sensor_drift_pharma_01",
+    verdict: "the cargo is fine — the sensor is lying",
+    kind: "lying",
+  },
+];
+
+/* Least squares over the window, not the difference between its endpoints.
+ *
+ * The first version subtracted endpoints and produced −8.7 rpm/min where
+ * claims.md records −9.2 for the same scenario and window. Both are "the
+ * slope", and a reader comparing the screen against the register would find
+ * them disagreeing with no way to tell which was wrong. A fit is also what
+ * `risk/features.py` uses, so the page now computes it the way the system
+ * does rather than a cheaper way that looks the same. */
+function slope(points, key) {
+  const window = points.slice(SLOPE_FROM, SLOPE_TO + 1);
+  if (window.length < 2) return null;
+
+  const n = window.length;
+  const meanX = (SLOPE_FROM + SLOPE_TO) / 2;
+  const meanY = window.reduce((sum, p) => sum + p[key], 0) / n;
+
+  let num = 0;
+  let den = 0;
+  window.forEach((p, i) => {
+    const dx = SLOPE_FROM + i - meanX;
+    num += dx * (p[key] - meanY);
+    den += dx * dx;
+  });
+  return den === 0 ? null : num / den;
+}
+
+function sparkline(points, key, colour) {
+  const W = 260;
+  const H = 70;
+  const pad = 6;
+  const svg = mk("svg", { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "none" });
+
+  const vals = points.map((p) => p[key]);
+  const lo = Math.min(...vals);
+  const hi = Math.max(...vals);
+  const span = hi - lo || 1;
+  const x = (i) => pad + (i / (points.length - 1)) * (W - 2 * pad);
+  const y = (v) => pad + (1 - (v - lo) / span) * (H - 2 * pad);
+
+  /* The window the quoted slope is measured over, shaded so the number and
+   * the picture are visibly about the same stretch of the run. */
+  svg.appendChild(
+    mk("rect", {
+      x: x(SLOPE_FROM),
+      y: pad,
+      width: Math.max(1, x(SLOPE_TO) - x(SLOPE_FROM)),
+      height: H - 2 * pad,
+      fill: "rgba(255,255,255,.05)",
+    })
+  );
+  svg.appendChild(
+    mk("path", {
+      d: points
+        .map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p[key]).toFixed(1)}`)
+        .join(" "),
+      fill: "none",
+      stroke: colour,
+      "stroke-width": 1.6,
+    })
+  );
+  return svg;
+}
+
+function renderComparison(loaded) {
+  const host = el("#compare");
+  host.innerHTML = "";
+
+  for (const { id, verdict, kind, points } of loaded) {
+    const row = document.createElement("div");
+    row.className = "cmp-row";
+
+    const head = document.createElement("div");
+    head.className = "cmp-head";
+    const name = document.createElement("span");
+    name.className = "cmp-name";
+    name.textContent = id;
+    const verdictEl = document.createElement("span");
+    verdictEl.className = `cmp-verdict ${kind}`;
+    verdictEl.textContent = `— ${verdict}`;
+
+    const codes = [...new Set(points.flatMap((p) => p.fault_codes))];
+    const badge = document.createElement("span");
+    badge.className = `cmp-codes${codes.length ? " present" : ""}`;
+    badge.textContent = codes.length ? `unit reports ${codes.join(", ")}` : "no fault code";
+
+    head.append(name, verdictEl, badge);
+
+    const charts = document.createElement("div");
+    charts.className = "cmp-charts";
+
+    const tSlope = slope(points, "cargo_temp_c");
+    const rSlope = slope(points, "compressor_rpm");
+
+    for (const [key, colour, unit, value] of [
+      ["cargo_temp_c", "var(--accent)", "°C/min", tSlope],
+      ["compressor_rpm", "var(--text-dim)", "rpm/min", rSlope],
+    ]) {
+      const cell = document.createElement("div");
+      cell.appendChild(sparkline(points, key, colour));
+      const cap = document.createElement("div");
+      cap.className = "cmp-cap";
+      cap.innerHTML = `${key} &nbsp; <b>${value >= 0 ? "+" : ""}${value.toFixed(
+        key === "cargo_temp_c" ? 3 : 1
+      )} ${unit}</b>`;
+      cell.appendChild(cap);
+      charts.appendChild(cell);
+    }
+
+    row.append(head, charts);
+    host.appendChild(row);
+  }
+
+  el("#compare-note").innerHTML =
+    `Both temperature traces climb, and over minutes ${SLOPE_FROM}–${SLOPE_TO} the <em>lying</em> ` +
+    `sensor climbs faster. Temperature alone cannot separate them. What can is the ` +
+    `<strong>compressor response</strong>: a unit winding <em>down</em> while cargo warms is ` +
+    `losing the fight; one winding <em>up</em> while the reading races is physically incoherent, ` +
+    `and the instrument is what is wrong. The absence of a fault code says the same thing. ` +
+    `<strong>Both are single-modality telemetry.</strong> That is why the multimodal ablation's ` +
+    `baseline arm must include compressor response — otherwise a photograph gets credited with a ` +
+    `discrimination telemetry already made, and the claim is inflated. Recorded in ` +
+    `<code>claims.md</code> before the ablation was built.`;
+}
+
 /* ── Timeline ─────────────────────────────────────────────────────── */
 
 const GLYPH = { good: "✓", refused: "⛔", note: "", say: "" };
@@ -384,5 +538,17 @@ function detectionMarks(trace) {
     renderChart(telemetry.points, detectionMarks(trace.value));
   } catch (err) {
     showEmpty(el("#legend"), err);
+  }
+
+  try {
+    const loaded = await Promise.all(
+      COMPARED.map(async (c) => ({
+        ...c,
+        points: (await getJSON(`${API}/control/telemetry/${c.id}`)).points,
+      }))
+    );
+    renderComparison(loaded);
+  } catch (err) {
+    showEmpty(el("#compare"), err);
   }
 })();

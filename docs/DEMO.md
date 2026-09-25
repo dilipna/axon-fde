@@ -79,7 +79,29 @@ Then the caveat under the cards, which is the strongest thing on the page:
 
 If you say nothing else, say that.
 
-### 3. The timeline — 90 seconds
+### 3. "Two shipments that look the same" — 60 seconds, the sophisticated beat
+
+Two scenarios, four sparklines. Both cargo temperatures climb; the **lying**
+sensor climbs faster (+0.039 °C/min against +0.016).
+
+> "From temperature alone these are the same picture, and the fake one looks
+> worse. What separates them is the compressor: one is winding *down* at
+> −9.2 rpm/min while the cargo warms — a unit losing the fight. The other is
+> winding *up* at +2.0 while the reading races, which is physically incoherent,
+> so the instrument is what's wrong. The second one also reports no fault code."
+
+Then the punchline, which is the bit that shows measurement discipline:
+
+> "Both of those are single-modality telemetry. So our multimodal ablation's
+> *baseline* arm has to include compressor response — otherwise we'd credit a
+> photograph with a discrimination telemetry already made, and the claim would
+> be inflated. We wrote that into the register before building the ablation."
+
+Every number on that panel is computed in the browser from the served
+telemetry, over the same 30-reading window `claims.md` uses. They match the
+register because they are the same calculation, not because they were copied.
+
+### 4. The timeline — 90 seconds
 
 Thirteen steps, no language model anywhere in them. Three steps carry a
 **refusal** and they are the point of the whole system:
