@@ -118,8 +118,36 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Metric** | AUC-PR, Brier score, Expected Calibration Error, reliability diagram. |
 | **Baseline** | (1) current-temperature margin rule, (2) linear slope extrapolation, (3) logistic regression. |
 | **Dataset** | Held-out scenarios split by **generative regime** — unseen seeds, unseen fault types, unseen ambient ranges. |
-| **Method** | Isotonic calibration fitted on a dedicated split; operating threshold chosen by expected cost, not 0.5. |
-| **Status** | `PLACEHOLDER` |
+| **Method** | Isotonic calibration fitted on a dedicated split; operating threshold chosen by expected cost, not 0.5. **As run:** leave-one-regime-out over the 12 fault regimes (every scenario scored by a model that never saw its regime), a dedicated calibration split (every 4th scenario), a fixed false-alarm budget of 0.30 in place of a cost-chosen threshold (that belongs to the decision layer). |
+| **Status** | `MEASURED` for the candidate that would ship — a **logistic regression** on the risk features plus the two baselines' scores: **ECE 0.030**, AUC-PR 0.689, Brier 0.068, out of regime, over 60/60 scenarios. Slope extrapolation: ECE 0.119, AUC-PR 0.284, Brier 0.139. Not the isotonic-calibrated LightGBM the register named; see below. **Stated limitation: synthetic data only.** |
+| **Run** | `run-a361f65e424e` · `git_sha=c9a8f9a` · `model_id=none` · `prompt_version=none` · `pack_version=1.1.0` |
+
+> **The pre-registered stop condition triggered, decisively.** LightGBM +
+> isotonic failed to beat slope extrapolation after both allowed feature
+> iterations: **−57 min** median lead time at FAR ≤ 0.30 (95% interval over
+> scenarios [−74.5, −42.0]); ECE 0.069, AUC-PR 0.450. Twelve regimes are
+> effectively sixty independent scenarios however many rows there are, and the
+> trees fit regime quirks. The plan says to publish that and ship the simpler
+> model — which is what the logistic candidate is. `5 points` in the stop
+> condition was read as 5 minutes of median lead time, decided before any result.
+>
+> **What the bootstrap over scenarios establishes for the logistic candidate,
+> against slope extrapolation:** AUC-PR +0.36 [+0.09, +0.56] and ECE −0.081
+> [−0.184, −0.012] are real; Brier −0.067 [−0.162, +0.003] touches zero; the
+> **+11.1 min lead-time gain [−2.5, +25.0] is not established** and must not be
+> quoted. That interval holds the thresholds fixed, so it is optimistic.
+>
+> **Selection caveat.** The v2 features were chosen after seeing iteration 1's
+> per-regime failure, and the logistic model was identified as the winner
+> afterwards, so the held-out regimes were consulted twice. Confirm on fresh
+> scenarios before treating the advantage as settled. Its coefficients are not
+> physically interpretable (headroom has a *positive* weight — collinearity with
+> the slope-score input), so it is a predictive stack, not a physical model.
+>
+> **Not shipped as the default.** The detector still uses slope extrapolation:
+> swapping primary moves C1 and the demo's minute 102 and is its own block.
+> The model is a versioned artifact (`data/models/risk_v1/`) that
+> `LinearRiskEstimator` loads and refuses if its feature list has changed.
 
 > **Stated limitation, mandatory at every point of use:** trained and evaluated
 > on synthetic data from a documented lumped-capacitance thermal model.

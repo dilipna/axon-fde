@@ -6,9 +6,9 @@ render time, and nothing is typed by hand. That is invariant I7.
 
 ## Arm: `rules_only`
 
-- Run: `run-c99db2657550`
-- Completed: 2026-09-26T20:56:36.498952+00:00
-- Code: `cdc615d`
+- Run: `run-a361f65e424e`
+- Completed: 2026-09-26T21:49:38.519173+00:00
+- Code: `c9a8f9a`
 - Model: `none` · prompt `none`
 - Pack: `1.1.0` · config `42da15021752172e`
 
@@ -19,6 +19,7 @@ render time, and nothing is typed by hand. That is invariant I7.
 | C11 | insufficient data | verification-verdict accuracy against known post-action trajectories | — | 0/20 post-action trajectories |
 | C12 | insufficient data | p95 model cost per incident, with p50 and latency percentiles | — | 0/40 investigated incidents |
 | C13 | insufficient data | correct-degradation rate per failure mode; fabrication rate target 0 | — | 0/8 injected failure modes |
+| C2 | measured | expected calibration error out of regime, with AUC-PR, Brier and the baselines | 0.030426 | 60/60 out-of-regime scenarios |
 | C3 | measured | top-1 root-cause accuracy, with top-3 and contributing-cause F1 | 0.5 | 44/40 investigated incidents |
 | C5 | insufficient data | delta top-1 root-cause accuracy (rules+LLM minus rules-only), with delta action and judged explanation quality | — | 0/40 investigated incidents |
 | C6 | measured | recall over seeded conflicts, quoted with precision | 1 | 23/20 seeded conflicts |
@@ -36,6 +37,27 @@ render time, and nothing is typed by hand. That is invariant I7.
 - `lead_time_sample_size`: 37
 - `median_lead_time_after_fault_onset_min`: 35
 - `median_lead_time_min`: 49
+
+**C2 companion metrics** — these must be quoted together:
+- `candidate_auc_pr`: 0.689446
+- `candidate_brier`: 0.0682414
+- `candidate_false_alarm_rate`: 0.3
+- `candidate_median_lead_min`: 80
+- `delta_auc_pr_ci95_high`: 0.555555
+- `delta_auc_pr_ci95_low`: 0.0877057
+- `delta_ece_ci95_high`: -0.0120037
+- `delta_ece_ci95_low`: -0.184031
+- `delta_lead_min_ci95_high`: 25
+- `delta_lead_min_ci95_low`: -2.525
+- `lightgbm_ece`: 0.0691584
+- `lightgbm_lead_improvement_min`: -57
+- `lightgbm_passed_stop_condition`: 0
+- `rule_margin_ece`: 0.213773
+- `slope_auc_pr`: 0.283557
+- `slope_brier`: 0.138994
+- `slope_ece`: 0.11869
+- `slope_median_lead_min`: 68.5
+- `target_false_alarm_rate`: 0.3
 
 **C3 companion metrics** — these must be quoted together:
 - `contributing_cause_f1`: 0.125
