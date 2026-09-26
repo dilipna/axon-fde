@@ -32,6 +32,7 @@ def redact(**event: object) -> dict[str, object]:
         "jwt_secret",
         "api_key",
         "anthropic_api_key",
+        "openai_api_key",
         "authorization",
         "token",
         "access_token",
