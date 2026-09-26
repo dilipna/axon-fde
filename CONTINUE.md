@@ -20,6 +20,30 @@ is realistic. Each block leaves the repository green and releasable.
 
 ---
 
+## 0.0 ⏳ FOUR DAYS TO A RECRUITER DEMO — read this before §0.1
+
+**Deadline: 2026-09-30.** Set on 2026-09-26. This overrides the block ordering
+in §6 and the phase plan entirely. Two things get done, in this order, and
+nothing else gets started.
+
+| Day | Do | Why it and not something else |
+|---|---|---|
+| 1 | **B15b — redesign the control tower** | The owner has seen B15a and **rejected the look**: "more futuristic and impressive". It is the only artifact a recruiter actually looks at. |
+| 2 | **B10b — the LLM arm** (needs a key, ~$2–5) | The demo currently contains **no language model**. For an AI company that is the first question asked and the weakest answer given. One recording session fixes it permanently. |
+| 3 | Rehearse `docs/DEMO.md` end to end, twice, on a cold machine | Docker has died mid-session in five of the last seven. The failure you have not rehearsed is the one that happens. |
+| 4 | Buffer. **Do not start a new block.** | |
+
+**Explicitly NOT in scope before the demo.** B11 streaming, B12 trained model,
+B13 multimodal, B14 AxonRed, B16 AWS, B17 case study. Each is a multi-session
+block. Starting one buys a half-finished subsystem and an unrehearsed demo,
+which is strictly worse than what exists today.
+
+**What exists today is already demoable and already green.** 39 commits, 842
+tests, CI green on run 31, four claims measured with published runs behind
+them. If days 1 and 2 both fail, the demo still runs. Protect that.
+
+---
+
 ## 0.1 The fastest path from here
 
 Read this before choosing what to do. It is the difference between finishing
@@ -499,7 +523,7 @@ C6 at recall 1.00 / precision 1.00.** The block was roughly three times its
 brief: see §8 for why, and for the start-of-run false-alarm mode the wider
 pack exposed in the shipped detector.
 
-### B15a — Control tower, read-only ✅ **DONE** (2026-09-24) [Phase 6, pulled forward]
+### B15a — Control tower, read-only ✅ **BUILT** / ⚠️ **design rejected** (2026-09-24) [Phase 6, pulled forward]
 `poe demo-trace && poe tower`. A static page over three read-only endpoints:
 the trace of the last closed-loop run, the published claim register, and the
 telemetry the detectors were judged against. Pulled ahead of its phase because
@@ -508,7 +532,47 @@ real run wrote, and reports absence rather than rendering fixtures.
 Driving the loop *from* the UI (approve, execute) is not built; that needs the
 B6-B9 services routed, which they are not.
 
-### B10b — AxonBench, the LLM arm ← **NEXT** [Phase 1] — **needs one recording session**
+### B15b — Redesign the control tower ← **NEXT** [demo-critical, no API key]
+**B15a's design was rejected by the owner.** The data, the endpoints and the
+tests are all fine and must not be touched; what is wanted is the *look*:
+"more futuristic and impressive". This is a CSS-and-SVG block, not a rewrite.
+
+**What must keep working** — all of it is already tested, so breaking it is
+loud rather than silent:
+- `tests/unit/test_control_api.py` (9 tests), including the I8 guard.
+- The four figures in the comparison panel must keep matching `claims.md`
+  (+0.016 / −9.2 / +0.039 / +2.0). They are computed, not copied; the window
+  convention is the fragile part — see §8.
+- C1 must never render without its false-alarm rate. The card is built to
+  refuse; keep that.
+
+**Where the design work actually is:** `apps/control_tower/app.css` is the bulk
+of it, plus the SVG built in `renderChart` / `sparkline` in `app.js`. No build
+step, no framework — do not add one.
+
+**Load the `dataviz` skill first, and run its validator.** Do not pick colours
+by eye. It caught a real error already: a candidate dark palette of
+`#22d3ee,#a78bfa,#fbbf24,#fb7185` **FAILED the lightness band** — dark mode
+wants OKLCH L in **0.48–0.67** and those sit at 0.71–0.84. Everything else
+about them passed (chroma, CVD ΔE 11.4, contrast). So: same hues, darker steps.
+
+```bash
+mkdir -p /tmp/vp && cd /tmp/vp && echo '{"type":"module"}' > package.json
+cp "<skill>/scripts/validate_palette.js" .
+node validate_palette.js "#hex,#hex,#hex,#hex" --mode dark --surface "#070b14"
+```
+The script is ESM but named `.js`, and its CLI guard requires that exact
+filename — hence the `package.json`. Copying it to `.mjs` silently does nothing.
+
+**Verify it renders without a browser.** There is a working harness pattern:
+drive the render functions against the live API inside a DOM shim under node.
+`scripts/` has no copy of it yet — writing one into `tests/` would also close
+the standing "the JavaScript has no automated test" gap in one move.
+
+**Done when:** the owner says it looks good. That is the only acceptance
+criterion, and it needs them to look — do not self-certify a visual change.
+
+### B10b — AxonBench, the LLM arm [Phase 1] — **needs one recording session**
 Record cassettes for the two model nodes, add the `rules_llm` arm, measure
 C5, C9, C12 and C3 against the `rules_only` baseline. `run_arm("rules_llm")`
 already refuses with a pointer rather than silently measuring nothing.
@@ -527,14 +591,24 @@ lead-time-at-fixed-false-alarm-rate after two feature iterations, ship the
 baseline and publish the negative result.
 
 Then: B13 multimodal [Phase 4] · B14 AxonRed + failure injection [Phase 5] ·
-B15 control tower UI [Phase 6] · B16 AWS [Phase 7] · B17 case study [Phase 8].
+B16 AWS [Phase 7] · B17 case study [Phase 8]. B15 is part-done: B15a shipped the
+read-only page, B15b restyles it, and driving the loop *from* the UI is still open.
 
 **Portfolio-ready checkpoint: end of B13.** Protect it. A finished, measured,
 honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — B10b (the LLM arm)
+## 7. Next block in detail — B15b, then B10b
+
+**B15b is §6's entry above and needs nothing repeated here.** It is a visual
+block: load `dataviz`, validate the palette, restyle `app.css` and the two SVG
+builders, show it to the owner. The one thing worth saying twice: **the numbers
+and the tests are correct — do not "improve" them while restyling.**
+
+Below is B10b, which is day 2.
+
+## 7b. B10b (the LLM arm)
 
 **This is the one block that needs a decision before it starts.** Read §0.1.
 If there is no `ANTHROPIC_API_KEY` this session, or no willingness to spend
@@ -602,4 +676,5 @@ said the harness "grades whatever the pack contains".
 | 2026-09-22 | **CI repair** | Run 24 red on the newly enabled AxonBench job: `poe bench -- --arm` forwards the `--` to argparse. The token came from the disabled placeholder step, so it had never run. Green on 25. |
 | 2026-09-21 | **B10c** | Pack 3 → **60 scenarios** (40 breach, 20 control, 23 seeded conflicts), two new graders, **C1 and C6 measured**. Five findings, in order of how much they would have cost: (1) **the block's own brief was wrong about its size** — it said five breach scenarios where C1's method says forty, and the contradiction was sitting three lines above it in this file; it also said `poe bench` "grades whatever the pack contains" when **no C1 or C6 grader existed at all**. Re-derive scope from the register, not from the previous summary. (2) The wider pack exposed a **start-of-run false-alarm mode in the shipped detector**: a load begins at setpoint, a proportional controller needs steady-state error to produce output, so in hot ambient the cargo genuinely climbs for ~30 min before levelling — and slope extrapolation cannot tell that curve from an excursion. It fires at **minute 31 regardless of the fault**, sometimes before the fault starts. `CONSECUTIVE_READINGS_TO_FIRE = 3` was tuned on the flagship alone and does not generalise. **Not tuned away** — retuning against the benchmark that measures it is how a number stops meaning anything. (3) A test written to catch a reproducibility bug **passed against the bug**: the C6 negative set used `hash()`, which Python reseeds per process, and my subprocess test compared counts that are identical either way. Fixed by recording the channel assignment and re-proving it red. (4) The emitter's "expect_breach" guard caught a **breach scenario and a control row sharing one design** with opposite labels. (5) A "one regime ≤40% of breaches" test measured regime by *declared root cause* and hid five lying-instrument scenarios behind `compressor_degradation`; `claims.md` means the injected-fault set by "generative regime", and by that measure the largest regime is 25%. |
 | 2026-09-24 | **B15a** | Control tower. The demo's `Console` became a `Narrator` protocol with a second implementation that records, so the terminal and the UI run **the same loop over the same databases** rather than two stories that can drift. Three findings: (1) the first UI recovered the two minutes its chart marks by **regex over the narration** — it found the detection minute, missed the threshold alarm, and drew a chart missing the exact comparison the lead-time claim is about, while looking like it had rendered fine. The loop now records them as facts. (2) The API is forbidden from importing pyodbc even transitively, which ruled out running the loop in a request. Left the contract alone and had the demo write a trace the API serves — and the split turned out better anyway, since the loop owns one transaction it rolls back, and holding that open across an HTTP request would be a worse design than the one the contract forced. (3) The preamble note stole step number 1, so the UI said "step 2" where the terminal said "step 1". Numbering now counts titled steps. The I8 test (no ground truth through the API) was proven red by leaking `true_cargo_temp_c` on purpose. (4) The comparison panel's slopes were endpoint differences, reporting **-8.7 rpm/min where `claims.md` records -9.2** for the same scenario and window. Both are "the slope"; nothing on either side said which. Fixed to a least-squares fit (what `risk/features.py` uses) — still 0.4 out, because the register's "30-minute window at minute 100" means the thirty readings **ending** at 100 (71–100), not an inclusive 70–100, which is thirty-one. **A window's boundary convention was worth four tenths of a rpm/min**, and a UI quoting a number the register contradicts is worse than no UI. All four figures now match because they are the same calculation, not copied values. **Known gap: the JavaScript has no automated test** — it was verified once by executing its render functions against the live API in a DOM shim, and nothing guards it in CI. |
+| 2026-09-26 | **handoff** | Owner set a **four-day deadline** (demo 09-30) and **rejected B15a's visual design** — "more futuristic and impressive". §0.0 added and it overrides the phase plan: B15b (redesign) then B10b (LLM arm), nothing else started. One finding already banked for B15b: the `dataviz` validator **failed** a candidate dark palette on the **lightness band** — dark mode wants OKLCH L 0.48–0.67 and the candidates sat at 0.71–0.84, while passing chroma, CVD and contrast. Same hues, darker steps. Also: that validator is ESM named `.js` and its CLI guard tests the filename, so it only runs from a directory with `{"type":"module"}` — renaming it to `.mjs` makes it exit 0 having done nothing. |
 | | **B10b next** | The LLM arm. **Needs an API key and a decision about spending** — see §0.1 and §7. If there is no key, go to B11 or B14 instead. |
