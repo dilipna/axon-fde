@@ -137,8 +137,26 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Claim** | The system identifies the correct root cause of an incident. |
 | **Metric** | Top-1 and top-3 accuracy; contributing-cause F1. |
 | **Baseline** | `rules_only` arm (no LLM). |
-| **Dataset** | AxonBench scenarios with IncidentForge ground truth. |
-| **Status** | `PLACEHOLDER` |
+| **Dataset** | AxonBench scenarios with IncidentForge ground truth. **No count is stated**; the harness requires 40 *investigated incidents*, borrowed from C1's forty and not from this register, where an incident is a scenario the predictive detector opened one on (44 of 60: 38 breach scenarios plus 6 non-breach ones — near-miss controls with a real but non-breaching fault — on which the detector also fired). |
+| **Status** | `PLACEHOLDER` for the claim as stated. **The `rules_only` baseline is `MEASURED`**: top-1 **0.50**, top-3 0.70, contributing-cause F1 0.125 over 44 investigated incidents. The `rules_llm` arm is not recorded. |
+| **Run** | `run-c99db2657550` · `git_sha=cdc615d` · `model_id=none` · `prompt_version=none` · `pack_version=1.1.0` · `config_hash=42da15021752172e` |
+
+> **What the baseline number is made of.** 0.50 top-1 hides a sharp split, by
+> true cause: environmental heat **6/6**, compressor degradation **14/15**,
+> door left open **2/11**, sensor malfunction **0/4**, reefer fuel exhaustion
+> **0/8**. There is no fuel rule, so that cause sits at the 0.02 floor, and on
+> door and sensor incidents the rules answer `compressor_degradation`. That is
+> a statement about a handful of hand-written rules, not about diagnosis in
+> general. Nine of the 44 incidents were opened *before* the causal fault
+> began (the start-of-run artefact recorded against C1); on the other 35
+> top-1 is 0.46.
+>
+> **The model cannot fix the fuel cases by design.** The scorer computes
+> `confidence = prior × support` with support capped at 1, so a model may
+> re-order and drop hypotheses but can never raise one above its rule prior
+> (I2). A cause the rules gave the floor stays at the floor whatever the model
+> says. If C5 lands at or near zero, that is the architecture working as
+> specified, and worth stating that way.
 
 ### C4 — Multimodal evidence improves outcomes
 
@@ -177,7 +195,17 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Claim** | The language model contributes beyond what deterministic rules achieve. |
 | **Metric** | Δ root-cause accuracy, Δ correct-action selection, judge-scored explanation quality. |
 | **Baseline** | `rules_only`: rule-derived hypotheses, rule-derived actions, templated narrative. |
-| **Status** | `PLACEHOLDER` — **may be refuted; publish either way** |
+| **Dataset** | Not stated. Same 44 investigated incidents as C3, both arms on each. |
+| **Status** | `PLACEHOLDER` — **may be refuted; publish either way**. Grader, arm and prompts are built and tested against a scripted provider; **no cassettes are recorded** because the OpenAI account had no credit (`429 credit_balance_exhausted`), so there is no number. |
+
+> **What C5 can and cannot show.** The decision engine ranks actions from the
+> computed breach probability and never reads a hypothesis, so
+> correct-action selection is identical across the arms *by construction*; the
+> grader measures the delta anyway and a test turns red if they ever diverge.
+> Root-cause accuracy is the only place the model can help, and it is capped
+> by the rule priors (see C3). The judge-scored explanation quality uses a
+> model from the same vendor as the arm it scores, blind to which summary is
+> which; treat it as indicative.
 
 > This is the ablation most likely to be attacked in an interview and the one
 > most worth running early. If the LLM contributes little, that is a finding
@@ -261,7 +289,8 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Claim** | Injected instructions in documents, images, SOPs and database values do not alter system behaviour. |
 | **Metric** | Attack success rate, policy-violation rate, leakage rate, **and benign-task degradation**. |
 | **Baseline** | The same scenarios with defences disabled. |
-| **Status** | `PLACEHOLDER` |
+| **Dataset** | Not stated, but the metric names four modalities (documents, images, SOPs, database values) and a defences-off baseline. |
+| **Status** | `INSUFFICIENT_DATA` — **cannot be measured yet, and not for want of an API key.** There is no attack pack, no image modality until B13, and no attack suite until AxonRed (B14). A small hand-written pack would run into the stop condition below: an attack success rate of 0 from weak attacks measures the attacks. The structural defences are real and tested (`ProposedLink` has no confidence field, the scorer ignores prose, the grounding check rejects an untraceable figure) but a structural argument is not a measured rate. |
 
 > Benign-task degradation is part of the claim, not a footnote. A defence that
 > costs eight points of root-cause accuracy is a bad defence, and reporting
@@ -278,7 +307,7 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Claim** | The system does not assert anything its evidence does not support. |
 | **Metric** | Unsupported-claim rate. |
 | **Method** | **Deterministic**, not LLM-judged: every cited evidence ID must exist in the context bundle, and every numeric claim in the narrative must match an evidence value within tolerance. |
-| **Status** | `PLACEHOLDER` |
+| **Status** | `PLACEHOLDER` — the grader exists and takes its verdict from `check_grounding`; it needs the `rules_llm` arm's narratives, which are not recorded. **Known leniency:** a figure is matched against *every* numeric observation in the bundle within 0.05, and a bundle holds over a thousand readings, so a wrong figure can pass by landing near an unrelated one. The stored rate is a lower bound and ships with the count of figures checked. |
 
 ### C11 — Outcome verification
 
@@ -294,7 +323,8 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 |---|---|
 | **Claim** | An incident is investigated end to end for $X at p95 latency Y seconds. |
 | **Metric** | Cost p50/p95 and latency p50/p95, aggregated from `model_invocation` rows and OTel spans. |
-| **Status** | `PLACEHOLDER` |
+| **Dataset** | Not stated. Same 44 investigated incidents. |
+| **Status** | `PLACEHOLDER` — grader built; no recording, so no number. Aggregated from each workflow call's recorded invocation (tokens, cost, latency), not from `model_invocation` rows or OTel spans, which nothing writes yet. **Latency will be the recording session's**, replayed from the cassette — network and vendor load on the day — and cost is recomputed from stored token counts at the prices in `pricing.py`. Covers the model calls only; the judge is excluded. |
 
 ### C13 — Safe degradation
 
