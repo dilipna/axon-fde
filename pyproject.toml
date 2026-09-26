@@ -114,6 +114,7 @@ demo-trace = { cmd = "python -m scripts.demo --json", help = "Run the demo and r
 tower = { cmd = "uvicorn backend.app.main:app --port 8000", help = "Serve the control tower on http://localhost:8000" }
 forge = { cmd = "python -m simulator.incidentforge.cli", help = "IncidentForge scenario CLI" }
 bench = { cmd = "python -m benchmarks.axonbench.runner", help = "Run AxonBench" }
+train-risk = { cmd = "python -m benchmarks.riskmodel.train", help = "Train and judge the risk model out of regime (--write-artifact to store it)" }
 bench-report = { cmd = "python -m benchmarks.axonbench.report", help = "Generate the benchmark report" }
 
 # ---------------------------------------------------------------------------
@@ -174,6 +175,7 @@ module = [
     "apscheduler.*",
     "testcontainers.*",
     "pyarrow.*",
+    "sklearn.*",
 ]
 ignore_missing_imports = true
 

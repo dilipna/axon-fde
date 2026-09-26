@@ -44,6 +44,7 @@ from benchmarks.axonbench.graders.diagnosis import (
     GroundingGrader,
     LlmValueGrader,
 )
+from benchmarks.axonbench.graders.risk import RiskCalibrationGrader
 from benchmarks.axonbench.graders.safety import PolicyMatrixGrader, SqlGuardGrader
 from benchmarks.axonbench.provenance import RunProvenance, current_provenance
 from simulator.incidentforge.scenarios import load_pack
@@ -214,7 +215,14 @@ def run_arm(arm: str = "rules_only", *, scenarios: frozenset[str] | None = None)
     # simulator in process over sixty scenarios, which is a few seconds, and
     # need neither a database nor a key - the same two properties that let the
     # safety graders run in CI.
-    graders = (PolicyMatrixGrader(), SqlGuardGrader(), LeadTimeGrader(), ConflictGrader())
+    graders = (
+        PolicyMatrixGrader(),
+        SqlGuardGrader(),
+        LeadTimeGrader(),
+        ConflictGrader(),
+        # C2 trains and evaluates out of regime; deterministic, no key, ~15 s.
+        RiskCalibrationGrader(),
+    )
     results = [grader.grade() for grader in graders]
 
     if arm == "rules_only":

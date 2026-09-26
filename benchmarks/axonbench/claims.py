@@ -99,6 +99,17 @@ CLAIMS: dict[str, ClaimSpec] = {
         required_cases=40,
         case_unit="true-breach scenarios",
     ),
+    "C2": ClaimSpec(
+        claim_id="C2",
+        summary="the risk model outputs calibrated probabilities, not just accurate rankings",
+        metric="expected calibration error out of regime, with AUC-PR, Brier and the baselines",
+        kind=MetricKind.QUALITY,
+        # The register's dataset is "held-out scenarios split by generative
+        # regime", with no count. Every scenario in the pack is held out once,
+        # by leave-one-regime-out, so the requirement is the whole pack.
+        required_cases=60,
+        case_unit="out-of-regime scenarios",
+    ),
     "C3": ClaimSpec(
         claim_id="C3",
         summary="the system identifies the correct root cause of an incident",
