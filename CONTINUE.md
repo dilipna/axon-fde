@@ -28,8 +28,8 @@ nothing else gets started.
 
 | Day | Do | Why it and not something else |
 |---|---|---|
-| 1 | **B15b — redesign the control tower** | The owner has seen B15a and **rejected the look**: "more futuristic and impressive". It is the only artifact a recruiter actually looks at. |
-| 2 | **B10b — record cassettes, OpenAI** (~$2–5) | The demo contains **no language model**; for an AI company that is the first question and the weakest answer. The vendor port is done (see below), so this is a recording session only. |
+| 1 ✅ built, **awaiting the owner's look** | **B15b — redesign the control tower** | The owner has seen B15a and **rejected the look**: "more futuristic and impressive". It is the only artifact a recruiter actually looks at. |
+| 2 ⛔ **blocked on billing** | **B10b — record cassettes, OpenAI** (~$2–5) | The demo contains **no language model**; for an AI company that is the first question and the weakest answer. The vendor port is done (see below), so this is a recording session only. |
 | 3 | Rehearse `docs/DEMO.md` end to end, twice, on a cold machine | **Docker Desktop has now died mid-session six times**, twice in this one — the daemon, not the containers. It is the single largest time sink in the project and the most likely thing to break the demo. Rehearse the restart, not just the demo. |
 | 4 | Buffer. **Do not start a new block.** | |
 
@@ -38,9 +38,9 @@ B13 multimodal, B14 AxonRed, B16 AWS, B17 case study. Each is a multi-session
 block. Starting one buys a half-finished subsystem and an unrehearsed demo,
 which is strictly worse than what exists today.
 
-**What exists today is already demoable and already green.** 39 commits, 842
-tests, CI green on run 31, four claims measured with published runs behind
-them. If days 1 and 2 both fail, the demo still runs. Protect that.
+**What exists today is already demoable and already green.** 42 commits, 903
+tests under the real gate, four claims measured (plus C3's rules baseline)
+with published runs behind them. If days 1 and 2 both fail, the demo still runs. Protect that.
 
 ---
 
@@ -269,7 +269,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**39 commits · 842 tests · mypy --strict clean · 11 module contracts · **CI green on all six jobs** · pushed to
+**42 commits · 903 tests · mypy --strict clean · 11 module contracts · CI status: see the §8 row for 2026-09-26 · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -369,13 +369,14 @@ Tools layer, OTel/Langfuse wiring. The API layer exposes **read-only control
 tower endpoints only** - the B6-B9 services are tested but none of them is
 routed, so nothing can be *driven* through HTTP. Approving an action from the
 UI is the obvious next thing and is not built.
-AxonBench exists and measures four claims; its `rules_llm` arm does not.
-**No cassettes are recorded yet.** The provider, the graph and their
-guarantees are built and tested, but `data/cassettes/` is empty: recording
-needs an API key and a deliberate session. The graph tests supply the two
-model nodes as scripted functions, which tests the graph and says nothing
-about what a model would produce. **`poe demo` is still rules-only** and is
-the unchanged C5 baseline.
+AxonBench measures four claims plus C3's rules baseline. The `rules_llm` arm
+is **built and tested but has no recording**: the two model nodes
+(`agents/nodes/model_nodes.py`), the prompts (`agents/prompts/`), the digest
+(`agents/digest.py`), the runner (`benchmarks/axonbench/llm_arm.py`) and the
+graders (`graders/diagnosis.py`) all exist and are tested against a *scripted*
+provider, which tests the machinery and says nothing about what a model would
+produce. **`data/cassettes/` is still empty** — the OpenAI account had no credit
+(`429 credit_balance_exhausted`). **`poe demo` is still rules-only.**
 
 ---
 
@@ -388,6 +389,7 @@ the unchanged C5 baseline.
 | Docker | Desktop; **it shuts down between sessions — start it first.** Volumes persist, so no reseed needed. |
 | ODBC | Only the legacy `SQL Server` driver is installed, not msodbcsql18. `resolve_driver()` handles this; CI installs 18. |
 | RAM | 15.7 GB, ~8 GB to the Docker VM. Never run more than the `core` profile locally. |
+| Port 8000 | **Was held by two unrelated projects on 2026-09-26** (a `jhos` uvicorn and a `wc26-mlops` container), so `poe tower` could not bind. Check `docker ps` and `Get-NetTCPConnection -LocalPort 8000` before a demo; the tower was served with `uv run uvicorn backend.app.main:app --port 8010` instead. |
 | Key versions | anthropic **1.7.0**, langgraph **1.2.11**, langgraph-checkpoint-postgres **3.1.2**, pydantic 2.13, sqlglot 30.18 |
 
 > LangGraph is **1.x**, not the 0.2.x most tutorials show. Check the current
@@ -585,7 +587,19 @@ demo benefit, and two vendors behind one protocol is the stronger story anyway.
 > the published rate per model, with the ratio kept only as a fallback for models
 > that publish none. Locked by `TestCacheReadPricingIsPerModel`.
 
-### B15b — Redesign the control tower ← **NEXT** [demo-critical, no API key]
+### B15b — Redesign the control tower ✅ **BUILT, awaiting the owner's look** (2026-09-26) [demo-critical]
+**Committed as `061e930`; the owner has not yet seen it, so it is not accepted.**
+Palette validated with the dataviz script (cyan `#0891b2`, violet `#7c5cf0`,
+amber `#bf8104`, rose `#e0445f`, dark surface `#0d1424`; all L 0.48–0.67).
+Two findings from that run shaped the design and are recorded in `app.css`:
+red vs green collapse under CVD (ΔE **1.2**) so the chart never pairs them, and
+amber vs rose is only **7.5** (a WARN) so the threshold alarm is dashed and
+directly labelled. Added hero readouts computed from the recorded facts, a
+crosshair tooltip, and a draw-in line. Endpoints, `test_control_api.py` (9/9)
+and the four `claims.md`-matching figures are untouched. Still open: the JS has
+no automated test, and there was no light theme (the tower is dark-only).
+
+### B15b — original brief (kept for the record)
 **B15a's design was rejected by the owner.** The data, the endpoints and the
 tests are all fine and must not be touched; what is wanted is the *look*:
 "more futuristic and impressive". This is a CSS-and-SVG block, not a rewrite.
@@ -625,10 +639,14 @@ the standing "the JavaScript has no automated test" gap in one move.
 **Done when:** the owner says it looks good. That is the only acceptance
 criterion, and it needs them to look — do not self-certify a visual change.
 
-### B10b — AxonBench, the LLM arm [Phase 1] — **needs one recording session**
-Record cassettes for the two model nodes, add the `rules_llm` arm, measure
-C5, C9, C12 and C3 against the `rules_only` baseline. `run_arm("rules_llm")`
-already refuses with a pointer rather than silently measuring nothing.
+### B10b — AxonBench, the LLM arm [Phase 1] — ⚠️ **built; recording blocked on billing** ← **NEXT**
+**Done (commit `cdc615d`):** the model nodes, prompts, digest, arm runner, and graders
+for C3, C5, C10 and C12; C3's **rules baseline measured (top-1 0.50 over 44
+incidents, run `run-c99db2657550`)**; C9 registered as `INSUFFICIENT_DATA` with its
+real blocker. 61 new tests, each proven able to fail.
+
+**Not done:** recording, and therefore any number for the LLM arm; the CI step
+(deliberately absent — see `ci.yml`). **Steps are in §7.**
 
 ### B11 — Streaming [Phase 2]
 Redpanda, consumer, event-driven detection, duplicate/out-of-order handling,
@@ -652,66 +670,56 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — B15b, then B10b
+## 7. Next block in detail — finish B10b (record), then rehearse
 
-**B15b is §6's entry above and needs nothing repeated here.** It is a visual
-block: load `dataviz`, validate the palette, restyle `app.css` and the two SVG
-builders, show it to the owner. The one thing worth saying twice: **the numbers
-and the tests are correct — do not "improve" them while restyling.**
+### Step 0 — a person, not code: put credit on the OpenAI account
+The key in `.env` is valid but the account returns
+`429 insufficient_quota / credit_balance_exhausted`
+(<https://platform.openai.com/settings/organization/billing/>). **Nothing was
+spent** on 2026-09-26. Everything else in B10b is already built.
 
-Below is B10b, which is day 2.
+### Step 1 — pilot two incidents and read the cost before scaling
+```bash
+cd /c/dev/axonfde && docker compose ps       # Docker must be up for the gate, not for recording
+AXON_LLM_MODE=record AXON_DAILY_SPEND_LIMIT_USD=0.75 \
+  uv run poe bench --arm rules_llm --scenarios compressor_degradation_pharma_01,door_open_pharma_01
+```
+(PowerShell: `$env:AXON_LLM_MODE="record"; $env:AXON_DAILY_SPEND_LIMIT_USD="0.75"` first.)
+Read the C12 row and `arm_notes.judge_cost_usd`. Per-incident cost is **unmeasured
+until this runs**; do the arithmetic for 44 before the next step. **The spend ledger
+is per process** — it resets on every invocation, so track the running total by hand
+against the $5 authorisation. Pilot cassettes are reused by the full run (same keys).
 
-## 7b. B10b (the LLM arm)
+### Step 2 — the full recording
+```bash
+AXON_LLM_MODE=record AXON_DAILY_SPEND_LIMIT_USD=3.5 uv run poe bench --arm rules_llm
+```
+Then **prove replay is offline**: unset the key and run
+`uv run poe bench --arm rules_llm` with no `AXON_LLM_MODE` (cassette is the default).
+A miss raises `CassetteMissError` naming the key — that is the design.
 
-**This is the one block that needs a decision before it starts.** Read §0.1.
-If there is no `ANTHROPIC_API_KEY` this session, or no willingness to spend
-~$2-5 on it, say so at the start and go to B11 or B14 instead. Do not open
-this block hoping a key turns up.
+### Step 3 — in the same commit as the cassettes
+1. Commit `data/cassettes/` (check `.gitignore` does not exclude it).
+2. Add `uv run poe bench --arm rules_llm` to the `benchmark-gate` job in `ci.yml`.
+3. Copy the clean-tree `rules_llm` run into `benchmarks/results/published/`,
+   `uv run poe bench-report`, and fill in the C3/C5/C10/C12 rows of `claims.md` —
+   **including a negative or null C5 if that is what it says.** The register expects it.
+4. `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check`, push, then the no-auth
+   curl in §1 to confirm CI.
 
-### What is already in place
-- `LLMProvider`, the Anthropic implementation, prompt caching, structured
-  outputs, a daily spend ceiling that refuses *before* sending, and cassettes
-  that raise on a miss rather than silently re-recording (B8).
-- The 14-node graph, its budget gates, the deterministic scorer and the
-  deterministic grounding check (B9). The graph tests supply the two model
-  nodes as scripted functions.
-- `run_arm("rules_llm")` already refuses with a pointer instead of measuring
-  nothing, so the arm cannot accidentally report an empty result.
-- `data/cassettes/` is **empty**. That is the whole blocker.
+### What to expect, so the result is not a surprise
+- **C5's action delta is 0 by construction** (the decision engine never reads a hypothesis).
+- **C5's accuracy delta is bounded above by the rule priors** (`confidence = prior × support`,
+  support ≤ 1). The 8 fuel-exhaustion incidents are at the 0.02 floor and cannot be rescued.
+  A model can re-order and drop; it cannot raise. A null result is the architecture working.
+- If the model proposes no link for an incident, that incident scores as *wrong* for the
+  LLM arm (there is no fallback to the rules). That is the shipped behaviour, stated.
+- A reasoning model bills its thinking as output tokens; `LINKS_MAX_TOKENS = 6000` and
+  `effort="low"` are the levers if the pilot costs more than expected.
 
-### Deliverables
-1. Record cassettes for both model nodes against a handful of scenarios.
-   One recording session; every later run replays offline and free.
-2. Add the `rules_llm` arm to `poe bench` and to the AxonBench CI job.
-   Cassette replay only — **no API key in CI**. An arm that needed one would
-   either not run there or spend money on every push.
-3. Measure C5, C9, C12 and C3 against the `rules_only` baseline, which is
-   `poe demo` and has not changed since B7.
-
-### Do the claim-method check first, before recording anything
-B10a and B10c were both mis-sized because a claim's *metric* reads as
-reachable long before its *method* is. Open `claims.md`, read the **Dataset**
-and **Method** rows for C3, C5, C9 and C12, and write down how many cases each
-needs. Then look at `benchmarks/axonbench/graders/` and count how many of the
-four graders exist. In B10c the answer was **zero of two**, while the brief
-said the harness "grades whatever the pack contains".
-
-### Watch out for
-- **Cost.** The ceiling refuses in advance, but the honest bound is stated in
-  `backend/app/llm/spend.py`: overshoot is at most one call's input cost.
-- **C9 is prompt injection.** It is a safety gate, so a non-zero result fails
-  CI and is a refutation to publish, not a number to tune.
-- **The CI job must not need a key.** Cassette replay only. An arm that runs
-  nowhere quietly stops being measured, and an arm that spends money on every
-  push gets switched off.
-
-### Acceptance
-- [ ] Cassettes committed; `poe bench --arm rules_llm` replays offline
-- [ ] The `rules_llm` arm runs in CI with no API key
-- [ ] Each of C3, C5, C9, C12 either `MEASURED` with its companions or
-      `INSUFFICIENT_DATA` with the shortfall recorded — never quietly absent
-- [ ] `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check` green; pushed;
-      **CI badge checked**
+### Then: rehearse (§0.0 day 3)
+`docs/DEMO.md` end to end, twice, **cold**, including the Docker restart and the port-8000
+check in §3. Do not start a new block.
 
 ## 8. Session log
 
@@ -733,4 +741,5 @@ said the harness "grades whatever the pack contains".
 | 2026-09-24 | **B15a** | Control tower. The demo's `Console` became a `Narrator` protocol with a second implementation that records, so the terminal and the UI run **the same loop over the same databases** rather than two stories that can drift. Three findings: (1) the first UI recovered the two minutes its chart marks by **regex over the narration** — it found the detection minute, missed the threshold alarm, and drew a chart missing the exact comparison the lead-time claim is about, while looking like it had rendered fine. The loop now records them as facts. (2) The API is forbidden from importing pyodbc even transitively, which ruled out running the loop in a request. Left the contract alone and had the demo write a trace the API serves — and the split turned out better anyway, since the loop owns one transaction it rolls back, and holding that open across an HTTP request would be a worse design than the one the contract forced. (3) The preamble note stole step number 1, so the UI said "step 2" where the terminal said "step 1". Numbering now counts titled steps. The I8 test (no ground truth through the API) was proven red by leaking `true_cargo_temp_c` on purpose. (4) The comparison panel's slopes were endpoint differences, reporting **-8.7 rpm/min where `claims.md` records -9.2** for the same scenario and window. Both are "the slope"; nothing on either side said which. Fixed to a least-squares fit (what `risk/features.py` uses) — still 0.4 out, because the register's "30-minute window at minute 100" means the thirty readings **ending** at 100 (71–100), not an inclusive 70–100, which is thirty-one. **A window's boundary convention was worth four tenths of a rpm/min**, and a UI quoting a number the register contradicts is worse than no UI. All four figures now match because they are the same calculation, not copied values. **Known gap: the JavaScript has no automated test** — it was verified once by executing its render functions against the live API in a DOM shim, and nothing guards it in CI. |
 | 2026-09-26 | **handoff** | Owner set a **four-day deadline** (demo 09-30) and **rejected B15a's visual design** — "more futuristic and impressive". §0.0 added and it overrides the phase plan: B15b (redesign) then B10b (LLM arm), nothing else started. One finding already banked for B15b: the `dataviz` validator **failed** a candidate dark palette on the **lightness band** — dark mode wants OKLCH L 0.48–0.67 and the candidates sat at 0.71–0.84, while passing chroma, CVD and contrast. Same hues, darker steps. Also: that validator is ESM named `.js` and its CLI guard tests the filename, so it only runs from a directory with `{"type":"module"}` — renaming it to `.mjs` makes it exit 0 having done nothing. |
 | 2026-09-26 | **OpenAI port** | Owner chose ChatGPT over Claude. `OpenAIProvider` added behind the existing `LLMProvider` protocol; **nothing outside `backend/app/llm/` changed**, which is the B8 protocol claim tested rather than asserted. Findings: (1) OpenAI's `prompt_tokens` **includes** cached tokens where Anthropic's excludes them, so passing it through double-bills every cached token and makes a well-cached call cost *more* than an uncached one — caught by writing the cost test first, and proven by reintroducing it. (2) `reasoning_effort` is a **400** on non-reasoning models rather than an ignored field, so the model set is explicit; a name-pattern guess would fail on a paid call. (3) **mypy passed while the package failed to import** — `build_provider`'s annotations name TYPE_CHECKING-only types and the module lacked `from __future__ import annotations`; mypy never executes a module, so only importing it catches this. (4) Two config tests were pinned to the literal `claude-opus-5` and `ANTHROPIC_API_KEY`; both were protecting the brand rather than the property, and now assert that the reasoning model is priced and costlier than the judge, and that a refusal names the *selected* vendor's key. **Prices and model ids are unverified — see B10b-prep.** |
-| | **B10b next** | The LLM arm. **Needs an API key and a decision about spending** — see §0.1 and §7. If there is no key, go to B11 or B14 instead. |
+| 2026-09-26 | **B15b + B10b (partial)** | Owner: "complete as much as you can, make no mistakes." **B15b built** (`061e930`), awaiting their look — palette validated, two CVD findings above. **B10b built but not recorded**: OpenAI returned `credit_balance_exhausted`, **$0 spent**. Findings, in order of cost avoided: (1) **`agents/nodes/` and `agents/prompts/` were empty** — §6 called B10b "a recording session only"; the two model nodes had never existed outside scripted test doubles, so the block was a build, not a recording. Same lesson as B10c a third time: re-derive size from the tree, not from the last summary. (2) **Evidence ids are random UUIDs**, so one in a prompt makes every cassette replay a miss; the digest uses stable handles (`E07`). (3) **Reading the prompt before paying for it found a real bug**: the digest showed only the last-sorted source for a type, presenting the ERP's 10 °C as the ceiling and hiding the Bill of Lading's 8 °C from the model. (4) **The rules baseline for C3 is 0.50 — and 0/8 on fuel exhaustion**, because no fuel rule exists and the scorer caps a model at its prior; C5 is structurally bounded and its action delta is 0 by construction. (5) `claims.md` states **no dataset size for C3, C5 or C12**; the harness's 40 is borrowed from C1 and labelled so. (6) **C9 cannot be measured yet for a reason other than the key**: no attack pack, no images until B13, and a weak pack trips the register's own stop condition. (7) Two things I wrote in `claims.md` from memory were wrong (the 6 non-breach incidents are near-miss controls with real faults, not `no_fault`; and "right on every compressor incident" was 14/15) — caught by recomputing from the stored run before committing. (8) Port 8000 was occupied by two unrelated projects; tower served on 8010. Real gate: **903 passed**. |
+| | **Next** | Step 0 in §7 (billing), then pilot → full recording → CI step in the same commit as the cassettes. Then rehearse. |

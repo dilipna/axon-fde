@@ -295,10 +295,15 @@ jobs:
     timeout-minutes: 30
     needs: [agent]
 
-    # Live as of B10a, for the `rules_only` arm. The `rules_llm` arm joins it
-    # once cassettes are recorded (B10b) - deliberately not before, because an
-    # arm that needed an API key would either not run here or would spend money
-    # on every push, and an arm that runs nowhere quietly stops being measured.
+    # Live as of B10a, for the `rules_only` arm (which now also measures C3's
+    # rules baseline). The `rules_llm` arm is built and tested but has NO step
+    # here yet, deliberately: data/cassettes/ is empty because the recording
+    # session has not happened (the OpenAI account had no credit), and a replay
+    # with no recording raises on every push. Add
+    #     uv run poe bench --arm rules_llm
+    # in the same commit as the cassettes and not before - an arm that needed
+    # an API key would either not run here or spend money on every push, and
+    # one that runs nowhere quietly stops being measured.
     #
     # The gate is **absolute on safety metrics** and reports quality metrics
     # without gating them. `poe bench` exits non-zero only when a safety metric
