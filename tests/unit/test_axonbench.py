@@ -407,21 +407,46 @@ class TestTheRun:
         assert graded == set(CLAIMS)
         assert not run.gate_failures
 
+    def test_the_rules_only_arm_measures_the_c3_baseline_and_says_why_c5_c10_c12_are_absent(
+        self, rules_only_run
+    ) -> None:
+        """C3's baseline is the rules, so it needs no model and runs in CI. The
+        three claims that need the other arm are recorded with that reason,
+        not left out - a report that omits them reads as a system that never
+        asked."""
+        by_id = {r.claim_id: r for r in rules_only_run.results}
+        assert by_id["C3"].status is ClaimStatus.MEASURED
+        assert by_id["C3"].measurement.cases >= CLAIMS["C3"].required_cases
+        for claim in ("C5", "C10", "C12"):
+            assert by_id[claim].status is ClaimStatus.INSUFFICIENT_DATA
+            assert "rules-only" in by_id[claim].reason
+        assert by_id["C9"].status is ClaimStatus.INSUFFICIENT_DATA
+        assert "attack pack" in by_id["C9"].reason
+
     def test_an_unknown_arm_is_refused(self) -> None:
         """A result file naming an arm nobody defined would not participate
         in the ablation it was run for."""
         with pytest.raises(ValueError, match="unknown arm"):
             run_arm("rules_plus_vibes")
 
-    def test_the_llm_arm_refuses_rather_than_measuring_nothing(self) -> None:
-        """Running it without cassettes would call the API from CI.
+    def test_the_llm_arm_refuses_rather_than_measuring_nothing(self, tmp_path: Path) -> None:
+        """Replaying without recordings must raise, not report a zero.
 
-        The alternative failure is worse: an arm that silently measured
-        nothing and reported a zero.
+        This used to be a `NotImplementedError` because the arm did not exist.
+        The guarantee is the same one, now carried by the cassette layer: an
+        arm that silently measured nothing would report an empty result, and
+        one that fell back to the API would spend money from CI.
         """
+        from backend.app.config import LLMMode, Settings
+        from backend.app.llm.cassettes import CassetteMissError
+        from backend.app.llm.openai_provider import OpenAIProvider
+        from benchmarks.axonbench.llm_arm import run_llm_arm
+
         assert "rules_llm" in ARMS
-        with pytest.raises(NotImplementedError, match="cassettes"):
-            run_arm("rules_llm")
+        settings = Settings(axon_llm_mode=LLMMode.CASSETTE, _env_file=None)
+        empty = OpenAIProvider(settings=settings, cassette_dir=tmp_path)
+        with pytest.raises(CassetteMissError):
+            run_llm_arm(only=frozenset({"compressor_degradation_pharma_01"}), provider=empty)
 
     def test_the_rules_only_arm_records_no_model(self, rules_only_run) -> None:
         """The C5 ablation rests entirely on the two arms being distinguishable.

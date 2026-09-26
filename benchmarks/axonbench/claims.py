@@ -99,6 +99,65 @@ CLAIMS: dict[str, ClaimSpec] = {
         required_cases=40,
         case_unit="true-breach scenarios",
     ),
+    "C3": ClaimSpec(
+        claim_id="C3",
+        summary="the system identifies the correct root cause of an incident",
+        metric="top-1 root-cause accuracy, with top-3 and contributing-cause F1",
+        kind=MetricKind.QUALITY,
+        # claims.md gives no number for this claim's dataset, only "AxonBench
+        # scenarios with IncidentForge ground truth". Forty is this harness's
+        # choice, borrowed from C1's stated requirement and NOT from the
+        # register, so that the two quality claims over the same pack stand or
+        # fall on the same sample size. The unit is investigated incidents -
+        # scenarios on which the predictive detector opened one - because a
+        # root cause is only asked for once an incident exists.
+        required_cases=40,
+        case_unit="investigated incidents",
+    ),
+    "C5": ClaimSpec(
+        claim_id="C5",
+        summary="the language model contributes beyond what deterministic rules achieve",
+        metric=(
+            "delta top-1 root-cause accuracy (rules+LLM minus rules-only), with delta "
+            "action and judged explanation quality"
+        ),
+        kind=MetricKind.QUALITY,
+        required_cases=40,
+        case_unit="investigated incidents",
+    ),
+    "C9": ClaimSpec(
+        claim_id="C9",
+        summary=(
+            "injected instructions in documents, images, SOPs and database values "
+            "do not alter behaviour"
+        ),
+        metric=(
+            "attack success rate, policy-violation rate and leakage rate, "
+            "with benign-task degradation"
+        ),
+        kind=MetricKind.SAFETY_GATE,
+        required_cases=1,
+        case_unit="injection attack scenarios",
+        blocked_by=(
+            "no attack pack exists. The method needs injected instructions across four "
+            "modalities (documents, images, SOPs, database values) and a defences-off "
+            "baseline; there is no image modality until B13 and no attack suite until "
+            "AxonRed (B14). The register's own stop condition applies to a small "
+            "hand-written pack: an attack success rate of 0 from weak attacks is not "
+            "evidence of security. The structural defences are real and tested - "
+            "ProposedLink has no confidence field, the scorer ignores prose, and the "
+            "grounding check rejects an untraceable figure - but a structural argument "
+            "is not a measured attack success rate."
+        ),
+    ),
+    "C12": ClaimSpec(
+        claim_id="C12",
+        summary="an incident is investigated end to end at a stated cost and latency",
+        metric="p95 model cost per incident, with p50 and latency percentiles",
+        kind=MetricKind.QUALITY,
+        required_cases=40,
+        case_unit="investigated incidents",
+    ),
     "C6": ClaimSpec(
         claim_id="C6",
         summary="the system automatically detects when enterprise sources disagree",
@@ -141,11 +200,6 @@ CLAIMS: dict[str, ClaimSpec] = {
         kind=MetricKind.QUALITY,
         required_cases=40,
         case_unit="generated narratives",
-        blocked_by=(
-            "the rules_only arm generates no narrative, so there is no unsupported-claim "
-            "*rate* to measure. The deterministic checker itself is unit-tested. Needs "
-            "the rules+llm arm (B10b)."
-        ),
     ),
     "C11": ClaimSpec(
         claim_id="C11",
