@@ -192,8 +192,8 @@ function renderChart(points, marks) {
   if (!points.length) return;
 
   const W = svg.clientWidth || 900;
-  const H = 300;
-  const pad = { t: 14, r: 16, b: 26, l: 40 };
+  const H = 340;
+  const pad = { t: 22, r: 18, b: 30, l: 44 };
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
   const temps = points.map((p) => p.cargo_temp_c);
@@ -204,6 +204,26 @@ function renderChart(points, marks) {
   const x = (m) => pad.l + (m / maxMin) * (W - pad.l - pad.r);
   const y = (t) => pad.t + (1 - (t - lo) / (hi - lo)) * (H - pad.t - pad.b);
 
+  /* Gradient under the line and a glow filter. Decoration only: the line and
+   * the marks carry the data. */
+  const defs = mk("defs", {});
+  defs.innerHTML =
+    `<linearGradient id="area" x1="0" y1="0" x2="0" y2="1">` +
+    `<stop offset="0" stop-color="#7c5cf0" stop-opacity=".38"/>` +
+    `<stop offset="1" stop-color="#7c5cf0" stop-opacity="0"/></linearGradient>` +
+    `<filter id="glow" x="-5%" y="-20%" width="110%" height="140%">` +
+    `<feGaussianBlur stdDeviation="3" result="b"/>` +
+    `<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  svg.appendChild(defs);
+
+  /* Recessive horizontal grid. */
+  const step = hi - lo > 14 ? 4 : 2;
+  for (let t = Math.ceil(lo / step) * step; t <= hi; t += step) {
+    svg.appendChild(
+      mk("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "rgba(148,170,220,.08)" })
+    );
+  }
+
   /* The permitted envelope as a band, so "in spec" is a region rather than a
    * number the viewer has to hold in their head. */
   svg.appendChild(
@@ -213,14 +233,14 @@ function renderChart(points, marks) {
       width: W - pad.l - pad.r,
       height: Math.max(0, y(PERMITTED_MIN_C) - y(PERMITTED_MAX_C)),
       fill: "var(--envelope)",
-      stroke: "rgba(76,141,255,.35)",
-      "stroke-dasharray": "3 3",
+      stroke: "rgba(159,176,208,.4)",
+      "stroke-dasharray": "2 4",
     })
   );
 
   for (const t of [PERMITTED_MIN_C, PERMITTED_MAX_C]) {
     const label = mk("text", {
-      x: 6,
+      x: 8,
       y: y(t) + 4,
       fill: "var(--text-faint)",
       "font-size": "11",
@@ -230,12 +250,32 @@ function renderChart(points, marks) {
     svg.appendChild(label);
   }
 
-  const d = points
+  const line = points
     .map((p, i) => `${i ? "L" : "M"}${x(p.minute).toFixed(1)},${y(p.cargo_temp_c).toFixed(1)}`)
     .join(" ");
+  const base = y(lo);
   svg.appendChild(
-    mk("path", { d, fill: "none", stroke: "var(--accent)", "stroke-width": 1.8 })
+    mk("path", {
+      d: `${line} L${x(maxMin).toFixed(1)},${base} L${x(points[0].minute).toFixed(1)},${base} Z`,
+      fill: "url(#area)",
+    })
   );
+  const trace = mk("path", {
+    d: line,
+    fill: "none",
+    stroke: "var(--violet-ink)",
+    "stroke-width": 2,
+    "stroke-linejoin": "round",
+    filter: "url(#glow)",
+    class: "draw",
+  });
+  svg.appendChild(trace);
+  /* The draw-in animation needs the path length; set it once the node is live. */
+  try {
+    trace.style.setProperty("--len", String(Math.ceil(trace.getTotalLength())));
+  } catch {
+    trace.removeAttribute("class"); /* no layout engine: draw it statically */
+  }
 
   for (const m of marks) {
     if (m.minute === null || m.minute === undefined) continue;
@@ -246,18 +286,27 @@ function renderChart(points, marks) {
         y1: pad.t,
         y2: H - pad.b,
         stroke: m.colour,
-        "stroke-width": 1.4,
+        "stroke-width": 1.6,
         "stroke-dasharray": m.dash ?? "0",
       })
     );
+    /* Direct label, in ink rather than the series colour, on a plate so it
+     * stays legible over the trace. */
+    const text = `${m.label} ${m.minute}′`;
+    const w = text.length * 6.7 + 12;
+    const left = x(m.minute) + w + 6 > W - pad.r;
+    const lx = left ? x(m.minute) - w - 5 : x(m.minute) + 5;
+    svg.appendChild(
+      mk("rect", { x: lx, y: pad.t - 2, width: w, height: 18, rx: 5, fill: "rgba(7,11,20,.88)", stroke: m.colour, "stroke-opacity": 0.7 })
+    );
     const label = mk("text", {
-      x: x(m.minute) + 5,
-      y: pad.t + 12,
-      fill: m.colour,
+      x: lx + 6,
+      y: pad.t + 11,
+      fill: "var(--text)",
       "font-size": "11",
       "font-family": "var(--mono)",
     });
-    label.textContent = `${m.label} ${m.minute}′`;
+    label.textContent = text;
     svg.appendChild(label);
   }
 
@@ -273,12 +322,69 @@ function renderChart(points, marks) {
   svg.appendChild(axis);
 
   el("#legend").innerHTML = [
-    `<span><i class="swatch" style="background:var(--accent)"></i>reported cargo temperature</span>`,
-    `<span><i class="swatch box" style="background:var(--envelope);border:1px dashed rgba(76,141,255,.5)"></i>permitted envelope (${PERMITTED_MIN_C}–${PERMITTED_MAX_C}°C, per the signed Bill of Lading)</span>`,
+    `<span><i class="swatch" style="background:var(--violet-ink)"></i>reported cargo temperature</span>`,
+    `<span><i class="swatch box" style="background:var(--envelope);border:1px dashed rgba(159,176,208,.6)"></i>permitted envelope (${PERMITTED_MIN_C}–${PERMITTED_MAX_C}°C, per the signed Bill of Lading)</span>`,
     ...marks
       .filter((m) => m.minute !== null && m.minute !== undefined)
-      .map((m) => `<span><i class="swatch" style="background:${m.colour}"></i>${m.legend}</span>`),
+      .map(
+        (m) =>
+          `<span><i class="swatch${m.dash ? " dash" : ""}" style="background:${m.colour};border-color:${m.colour}"></i>${m.legend}</span>`
+      ),
   ].join("");
+
+  attachCrosshair(svg, points, marks, { x, y, pad, W, H, maxMin });
+}
+
+/* Crosshair + tooltip: hover reads out the exact reported value and what the
+ * system had concluded by then. Values come from the served points; nothing
+ * is interpolated for display. */
+function attachCrosshair(svg, points, marks, g) {
+  const wrap = svg.parentElement;
+  const old = wrap.querySelector(".tip");
+  if (old) old.remove();
+  const tip = document.createElement("div");
+  tip.className = "tip";
+  wrap.appendChild(tip);
+
+  const cross = mk("line", { y1: g.pad.t, y2: g.H - g.pad.b, stroke: "rgba(232,238,252,.5)", "stroke-width": 1, visibility: "hidden" });
+  const dot = mk("circle", { r: 4.5, fill: "var(--violet-ink)", stroke: "#070b14", "stroke-width": 2, visibility: "hidden" });
+  svg.append(cross, dot);
+
+  const detect = marks.find((m) => m.label === "AxonFDE")?.minute;
+  const alarm = marks.find((m) => m.label !== "AxonFDE")?.minute;
+
+  svg.onmousemove = (ev) => {
+    const box = svg.getBoundingClientRect();
+    const vx = ((ev.clientX - box.left) / box.width) * g.W;
+    const minute = Math.max(0, Math.min(g.maxMin, ((vx - g.pad.l) / (g.W - g.pad.l - g.pad.r)) * g.maxMin));
+    const p = points.reduce((best, q) => (Math.abs(q.minute - minute) < Math.abs(best.minute - minute) ? q : best));
+    const px = g.x(p.minute);
+    cross.setAttribute("x1", px);
+    cross.setAttribute("x2", px);
+    cross.setAttribute("visibility", "visible");
+    dot.setAttribute("cx", px);
+    dot.setAttribute("cy", g.y(p.cargo_temp_c));
+    dot.setAttribute("visibility", "visible");
+
+    const state =
+      alarm != null && p.minute >= alarm
+        ? "threshold alarm has fired"
+        : detect != null && p.minute >= detect
+        ? "AxonFDE has already flagged this"
+        : "no alert yet";
+    tip.innerHTML =
+      `<div class="t">minute ${p.minute}</div><div>reported <b>${p.cargo_temp_c.toFixed(2)}°C</b></div>` +
+      `<div class="state">${state}</div>`;
+    const tx = (px / g.W) * box.width;
+    tip.style.left = `${Math.min(tx + 14, box.width - 170)}px`;
+    tip.style.top = `${Math.max(0, (g.y(p.cargo_temp_c) / g.H) * box.height - 70)}px`;
+    tip.classList.add("on");
+  };
+  svg.onmouseleave = () => {
+    cross.setAttribute("visibility", "hidden");
+    dot.setAttribute("visibility", "hidden");
+    tip.classList.remove("on");
+  };
 }
 
 /* ── Why temperature alone is not enough ──────────────────────────── */
@@ -358,7 +464,7 @@ function sparkline(points, key, colour) {
       y: pad,
       width: Math.max(1, x(SLOPE_TO) - x(SLOPE_FROM)),
       height: H - 2 * pad,
-      fill: "rgba(255,255,255,.05)",
+      fill: "rgba(159,176,208,.10)",
     })
   );
   svg.appendChild(
@@ -368,7 +474,8 @@ function sparkline(points, key, colour) {
         .join(" "),
       fill: "none",
       stroke: colour,
-      "stroke-width": 1.6,
+      "stroke-width": 1.8,
+      "stroke-linejoin": "round",
     })
   );
   return svg;
@@ -405,14 +512,14 @@ function renderComparison(loaded) {
     const rSlope = slope(points, "compressor_rpm");
 
     for (const [key, colour, unit, value] of [
-      ["cargo_temp_c", "var(--accent)", "°C/min", tSlope],
-      ["compressor_rpm", "var(--text-dim)", "rpm/min", rSlope],
+      ["cargo_temp_c", "var(--violet-ink)", "°C/min", tSlope],
+      ["compressor_rpm", "var(--cyan-ink)", "rpm/min", rSlope],
     ]) {
       const cell = document.createElement("div");
       cell.appendChild(sparkline(points, key, colour));
       const cap = document.createElement("div");
       cap.className = "cmp-cap";
-      cap.innerHTML = `${key} &nbsp; <b>${value >= 0 ? "+" : ""}${value.toFixed(
+      cap.innerHTML = `<i style="background:${colour}"></i>${key} &nbsp; <b>${value >= 0 ? "+" : ""}${value.toFixed(
         key === "cargo_temp_c" ? 3 : 1
       )} ${unit}</b>`;
       cell.appendChild(cap);
@@ -474,6 +581,15 @@ function renderTimeline(trace) {
     f.lead_time_minutes == null
       ? ""
       : ` · ${f.lead_time_minutes} min of warning on this shipment`;
+  /* Hero readouts: the same recorded facts the chart marks read. The warning
+   * shown is this shipment's, labelled as such - C1's fleet median is only ever
+   * shown with its false-alarm rate, in the claims panel. */
+  if (f.detected_at_minute != null && f.baseline_alarm_minute != null) {
+    el("#ro-detect").innerHTML = `${f.detected_at_minute}<small>min</small>`;
+    el("#ro-alarm").innerHTML = `${f.baseline_alarm_minute}<small>min</small>`;
+    el("#ro-lead").innerHTML = `${f.baseline_alarm_minute - f.detected_at_minute}<small>min</small>`;
+    el("#readouts").hidden = false;
+  }
   el("#scenario-hint").textContent =
     `${trace.scenario_id} · shipment ${trace.shipment_id} · vehicle ${trace.vehicle_id}` +
     `${lead} · replayed in ${trace.elapsed_seconds}s`;
@@ -493,7 +609,7 @@ function detectionMarks(trace) {
   if (f.detected_at_minute != null) {
     marks.push({
       minute: Number(f.detected_at_minute),
-      colour: "var(--good)",
+      colour: "var(--cyan)",
       label: "AxonFDE",
       legend: "predictive detection",
     });
@@ -501,8 +617,8 @@ function detectionMarks(trace) {
   if (f.baseline_alarm_minute != null) {
     marks.push({
       minute: Number(f.baseline_alarm_minute),
-      colour: "var(--bad)",
-      dash: "4 3",
+      colour: "var(--rose)",
+      dash: "5 4",
       label: "threshold alarm",
       legend: "threshold alarm — the cargo is already out of spec",
     });

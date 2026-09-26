@@ -21,6 +21,21 @@
   </div>
 </header>
 
+<section class="hero">
+  <span class="eyebrow">Live replay &middot; closed-loop decision intelligence</span>
+  <h2>It saw the failure before the alarm did.</h2>
+  <p class="lede">
+    A refrigerated truck's compressor is degrading. A threshold alarm waits for the cargo to leave
+    its permitted range; AxonFDE reads the trend, reconciles the conflicting paperwork, and acts
+    while there is still time to save the load. Every figure below is computed from a stored run.
+  </p>
+  <div class="readouts" id="readouts" hidden>
+    <div class="readout axon"><div class="k">AxonFDE detects</div><div class="v" id="ro-detect">&mdash;</div><div class="d">predictive detection, this shipment</div></div>
+    <div class="readout alarm"><div class="k">Threshold alarm</div><div class="v" id="ro-alarm">&mdash;</div><div class="d">cargo already out of spec</div></div>
+    <div class="readout margin"><div class="k">Warning gained</div><div class="v" id="ro-lead">&mdash;</div><div class="d" id="ro-lead-d">on this one shipment &mdash; not the fleet claim</div></div>
+  </div>
+</section>
+
 <main>
 
   <!-- ── The incident ────────────────────────────────────────────── -->
