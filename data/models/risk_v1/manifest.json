@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "version": "logistic-stack-v2-394cea51077facda",
+  "model": "logistic_regression",
+  "features": [
+    "headroom_c",
+    "temp_slope_c_per_min",
+    "minutes_to_breach",
+    "ambient_temp_c",
+    "compressor_rpm",
+    "compressor_rpm_slope",
+    "fault_code_count",
+    "has_prior_maintenance_warning",
+    "minutes_to_destination",
+    "door_open",
+    "slope_extrapolation_score",
+    "rule_margin_score",
+    "cooling_response"
+  ],
+  "feature_set": "v2",
+  "horizon_minutes": 60,
+  "training_scenarios_sha": "394cea51077facda",
+  "rows": 17208,
+  "git_sha": "dbc86f2-dirty",
+  "limitation": "synthetic data; real-world generalisation is unvalidated",
+  "selection_caveat": "chosen after the held-out regimes had been consulted twice (two feature iterations); LightGBM, the pre-registered model, failed its stop condition"
+}
