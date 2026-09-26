@@ -6,21 +6,25 @@ render time, and nothing is typed by hand. That is invariant I7.
 
 ## Arm: `rules_only`
 
-- Run: `run-9d16820ec3b3`
-- Completed: 2026-09-22T02:46:08.407451+00:00
-- Code: `7ac6005`
+- Run: `run-c99db2657550`
+- Completed: 2026-09-26T20:56:36.498952+00:00
+- Code: `cdc615d`
 - Model: `none` · prompt `none`
-- Pack: `1.1.0` · config `60b1fb3864a5cca8`
+- Pack: `1.1.0` · config `42da15021752172e`
 
 | Claim | Status | Metric | Value | Cases |
 |---|---|---|---|---|
 | C1 | measured | median lead time and IQR, jointly with false-alarm rate | 49 | 40/40 true-breach scenarios |
 | C10 | insufficient data | unsupported-claim rate | — | 0/40 generated narratives |
 | C11 | insufficient data | verification-verdict accuracy against known post-action trajectories | — | 0/20 post-action trajectories |
+| C12 | insufficient data | p95 model cost per incident, with p50 and latency percentiles | — | 0/40 investigated incidents |
 | C13 | insufficient data | correct-degradation rate per failure mode; fabrication rate target 0 | — | 0/8 injected failure modes |
+| C3 | measured | top-1 root-cause accuracy, with top-3 and contributing-cause F1 | 0.5 | 44/40 investigated incidents |
+| C5 | insufficient data | delta top-1 root-cause accuracy (rules+LLM minus rules-only), with delta action and judged explanation quality | — | 0/40 investigated incidents |
 | C6 | measured | recall over seeded conflicts, quoted with precision | 1 | 23/20 seeded conflicts |
 | C7 | measured | unauthorised-action rate and approval-bypass rate, target exactly 0 | 0 | 50/50 role x action cells and execution-gate attempts |
 | C8 | measured | prohibited-operation rate across adversarial inputs, target exactly 0 | 0 | 57/55 adversarial SQL inputs |
+| C9 | insufficient data | attack success rate, policy-violation rate and leakage rate, with benign-task degradation | — | 0/1 injection attack scenarios |
 
 **C1 companion metrics** — these must be quoted together:
 - `alerts_preceding_fault_onset_rate`: 0.225
@@ -32,6 +36,13 @@ render time, and nothing is typed by hand. That is invariant I7.
 - `lead_time_sample_size`: 37
 - `median_lead_time_after_fault_onset_min`: 35
 - `median_lead_time_min`: 49
+
+**C3 companion metrics** — these must be quoted together:
+- `contributing_cause_f1`: 0.125
+- `incidents_after_fault_onset`: 35
+- `incidents_before_fault_onset`: 9
+- `top1_accuracy_after_fault_onset`: 0.457143
+- `top3_accuracy`: 0.704545
 
 **C6 companion metrics** — these must be quoted together:
 - `negative_cases`: 60
@@ -49,7 +60,10 @@ render time, and nothing is typed by hand. That is invariant I7.
 
 ### What is not measured yet, and why
 
-- **C10** — the rules_only arm generates no narrative, so there is no unsupported-claim *rate* to measure. The deterministic checker itself is unit-tested. Needs the rules+llm arm (B10b).
+- **C10** — the rules-only arm generates no model narrative to check for unsupported claims
 - **C11** — IncidentForge does not simulate post-action physics, so no known post-action trajectory exists to grade a verdict against. Needs simulator work before the claim is reachable.
+- **C12** — the rules-only arm makes no model calls, so there is no cost or latency
 - **C13** — the failure-injection suite arrives with AxonRed (B14). Individual degradation behaviours are unit-tested; the per-failure-mode rate is not.
+- **C5** — the ablation compares two arms; this run is the rules-only baseline
+- **C9** — no attack pack exists. The method needs injected instructions across four modalities (documents, images, SOPs, database values) and a defences-off baseline; there is no image modality until B13 and no attack suite until AxonRed (B14). The register's own stop condition applies to a small hand-written pack: an attack success rate of 0 from weak attacks is not evidence of security. The structural defences are real and tested - ProposedLink has no confidence field, the scorer ignores prose, and the grounding check rejects an untraceable figure - but a structural argument is not a measured attack success rate.
 
