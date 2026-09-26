@@ -25,7 +25,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -37,6 +37,13 @@ from benchmarks.axonbench.graders.detection import (
     ConflictGrader,
     LeadTimeGrader,
 )
+from benchmarks.axonbench.graders.diagnosis import (
+    CaseOutcome,
+    CostLatencyGrader,
+    DiagnosisGrader,
+    GroundingGrader,
+    LlmValueGrader,
+)
 from benchmarks.axonbench.graders.safety import PolicyMatrixGrader, SqlGuardGrader
 from benchmarks.axonbench.provenance import RunProvenance, current_provenance
 from simulator.incidentforge.scenarios import load_pack
@@ -46,8 +53,9 @@ __all__ = ["ARMS", "RESULTS_DIR", "BenchRun", "main", "run_arm"]
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RESULTS_DIR = PROJECT_ROOT / "benchmarks" / "results"
 
-#: The arms the ablation compares. `rules_only` is the one that has been
-#: running in CI since B7; `rules_llm` arrives with cassettes in B10b.
+#: The arms the ablation compares. `rules_only` has run in CI since B7.
+#: `rules_llm` replays recorded cassettes (B10b) - no key, no network, and a
+#: missing recording raises rather than re-recording.
 ARMS = ("rules_only", "rules_llm")
 
 
@@ -55,7 +63,7 @@ ARMS = ("rules_only", "rules_llm")
 #: Listed explicitly rather than scraped from Settings: a config hash over
 #: everything would change when an unrelated setting moved, and two runs that
 #: should share an id would not.
-def _config() -> dict[str, Any]:
+def _config(scenario_filter: frozenset[str] | None = None) -> dict[str, Any]:
     from backend.app.actions.effects import MIN_SLOPE_WINDOW_MINUTES
     from backend.app.incidents.detection import CONSECUTIVE_READINGS_TO_FIRE
     from backend.app.risk.baselines import DEFAULT_HORIZON_MINUTES
@@ -64,8 +72,15 @@ def _config() -> dict[str, Any]:
         RECOVERY_HOLD_READINGS,
         STOPPED_RISING_SLOPE_C_PER_MIN,
     )
+    from benchmarks.axonbench.graders.diagnosis import CONTRIBUTING_THRESHOLD
+    from benchmarks.axonbench.llm_arm import CASE_HISTORY_MINUTES
 
     return {
+        # A filtered run measures a different dataset and must not share an id
+        # with the full one.
+        "scenario_filter": sorted(scenario_filter) if scenario_filter else "all",
+        "case_history_minutes": CASE_HISTORY_MINUTES,
+        "contributing_threshold": CONTRIBUTING_THRESHOLD,
         "risk_horizon_minutes": DEFAULT_HORIZON_MINUTES,
         "risk_window_minutes": DEFAULT_WINDOW_MINUTES,
         "risk_window_coverage": MIN_WINDOW_COVERAGE,
@@ -95,6 +110,9 @@ class BenchRun:
     arm: str
     provenance: RunProvenance
     results: tuple[GraderResult, ...]
+    #: What the arm did that is not a claim: which scenarios were not
+    #: investigated and why, the models, what the judge cost.
+    notes: dict[str, Any] = field(default_factory=dict)
 
     @property
     def gate_failures(self) -> tuple[GraderResult, ...]:
@@ -114,6 +132,7 @@ class BenchRun:
             "arm": self.arm,
             "provenance": self.provenance.as_payload(),
             "completed_at": datetime.now(UTC).isoformat(),
+            "arm_notes": self.notes,
             "results": [result.as_payload() for result in self.results],
             "summary": {
                 "measured": len(self.measured),
@@ -137,8 +156,49 @@ class BenchRun:
         return target
 
 
-def run_arm(arm: str = "rules_only") -> BenchRun:
+#: Claims only the rules+LLM arm can produce. Listed for the rules-only arm as
+#: `INSUFFICIENT_DATA` rather than left out: a report that omits them reads as
+#: a system that never asked. Held here and not in `CLAIMS.blocked_by`, because
+#: that field blocks a claim in *every* arm and these are reachable in one.
+_NEEDS_THE_LLM_ARM = {
+    "C5": "the ablation compares two arms; this run is the rules-only baseline",
+    "C10": "the rules-only arm generates no model narrative to check for unsupported claims",
+    "C12": "the rules-only arm makes no model calls, so there is no cost or latency",
+}
+
+
+def _insufficient(claim_id: str, reason: str) -> GraderResult:
+    return GraderResult(
+        claim_id=claim_id,
+        measurement=Measurement(value=0.0, cases=0),
+        status=ClaimStatus.INSUFFICIENT_DATA,
+        reason=reason,
+    )
+
+
+def _arm_notes(outcomes: list[CaseOutcome], meta: Any) -> dict[str, Any]:
+    return {
+        "investigated": len(outcomes),
+        "no_incident_opened": sorted(meta.not_detected),
+        "stopped_before_the_model": dict(sorted(meta.not_investigated.items())),
+        "llm_mode": meta.llm_mode,
+        "models": meta.models,
+        "prompt_version": meta.prompt_version,
+        # The judge scores both arms' summaries for C5. Its spend is grading
+        # infrastructure, not part of an incident's cost, so it is reported
+        # here and kept out of C12.
+        "judge_calls": meta.judge_calls,
+        "judge_cost_usd": round(meta.judge_cost_usd, 6),
+    }
+
+
+def run_arm(arm: str = "rules_only", *, scenarios: frozenset[str] | None = None) -> BenchRun:
     """Grade every claim this harness can reach, for one arm.
+
+    ``scenarios`` restricts the incident-level claims to a subset. It exists for
+    pilots and tests, and a restricted run is honest about it: the config hash
+    changes, and the case count falls below the claim's requirement, so it
+    reports `INSUFFICIENT_DATA` rather than a smaller `MEASURED`.
 
     Raises:
         ValueError: An arm name that is not in ``ARMS``. Refused rather than
@@ -147,19 +207,41 @@ def run_arm(arm: str = "rules_only") -> BenchRun:
     """
     if arm not in ARMS:
         raise ValueError(f"unknown arm {arm!r}; expected one of {', '.join(ARMS)}")
-    if arm == "rules_llm":
-        raise NotImplementedError(
-            "the rules_llm arm needs recorded cassettes (B10b). Running it without "
-            "them would either call the API from CI or silently measure nothing."
-        )
 
-    provenance = current_provenance(config=_config(), pack_version=_pack_version())
+    from benchmarks.axonbench.llm_arm import run_llm_arm, run_rules_arm
+
     # C1 and C6 joined the list with scenario pack v1.1.0. They run the
     # simulator in process over sixty scenarios, which is a few seconds, and
     # need neither a database nor a key - the same two properties that let the
     # safety graders run in CI.
     graders = (PolicyMatrixGrader(), SqlGuardGrader(), LeadTimeGrader(), ConflictGrader())
     results = [grader.grade() for grader in graders]
+
+    if arm == "rules_only":
+        outcomes, meta = run_rules_arm(only=scenarios)
+        results.append(DiagnosisGrader(tuple(outcomes), arm="rules").grade())
+        results.extend(_insufficient(claim, why) for claim, why in _NEEDS_THE_LLM_ARM.items())
+        provenance = current_provenance(config=_config(scenarios), pack_version=_pack_version())
+    else:
+        outcomes, meta = run_llm_arm(only=scenarios)
+        frozen = tuple(outcomes)
+        results.extend(
+            [
+                DiagnosisGrader(frozen, arm="llm").grade(),
+                LlmValueGrader(frozen).grade(),
+                GroundingGrader(frozen).grade(),
+                CostLatencyGrader(frozen).grade(),
+            ]
+        )
+        provenance = current_provenance(
+            config=_config(scenarios),
+            pack_version=_pack_version(),
+            prompt_version=meta.prompt_version,
+            model_id=(
+                f"{meta.models['propose_links']} (links), {meta.models['narrate']} (narrative), "
+                f"{meta.models['judge']} (judge)"
+            ),
+        )
 
     # Every claim this harness knows about but cannot yet reach gets a
     # recorded blocker rather than being left out. A report listing two green
@@ -171,16 +253,11 @@ def run_arm(arm: str = "rules_only") -> BenchRun:
     for claim_id, spec in sorted(CLAIMS.items()):
         if claim_id in graded or not spec.blocked_by:
             continue
-        results.append(
-            GraderResult(
-                claim_id=claim_id,
-                measurement=Measurement(value=0.0, cases=0),
-                status=ClaimStatus.INSUFFICIENT_DATA,
-                reason=spec.blocked_by,
-            )
-        )
+        results.append(_insufficient(claim_id, spec.blocked_by))
 
-    return BenchRun(arm=arm, provenance=provenance, results=tuple(results))
+    return BenchRun(
+        arm=arm, provenance=provenance, results=tuple(results), notes=_arm_notes(outcomes, meta)
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -192,9 +269,16 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Where to store the run. Defaults to benchmarks/results/.",
     )
+    parser.add_argument(
+        "--scenarios",
+        default="",
+        help="Comma-separated scenario ids to restrict the incident-level claims to "
+        "(pilots and tests). A restricted run reports INSUFFICIENT_DATA, not a smaller MEASURED.",
+    )
     args = parser.parse_args(argv)
 
-    run = run_arm(args.arm)
+    only = frozenset(part for part in args.scenarios.split(",") if part) or None
+    run = run_arm(args.arm, scenarios=only)
     path = run.store(args.results_dir)
 
     print(f"AxonBench - arm={run.arm} run={run.provenance.run_id}")
@@ -221,7 +305,11 @@ def main(argv: list[str] | None = None) -> int:
         )
         if result.status is not ClaimStatus.MEASURED:
             print(f"         {result.reason}")
-    print(f"  stored: {path.relative_to(PROJECT_ROOT)}")
+    try:
+        shown = path.relative_to(PROJECT_ROOT)
+    except ValueError:  # --results-dir pointed outside the repository
+        shown = path
+    print(f"  stored: {shown}")
 
     # Only the safety gates decide the exit code.
     if run.gate_failures:

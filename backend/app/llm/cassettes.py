@@ -62,7 +62,7 @@ class CassetteMissError(RuntimeError):
             "miss asserts whatever the model said today, and every test keeps "
             "passing while what they protected quietly stops being protected.\n\n"
             "If the prompt changed, this is expected - re-record it on purpose:\n"
-            "    AXON_LLM_MODE=record ANTHROPIC_API_KEY=... uv run pytest <test>\n"
+            "    AXON_LLM_MODE=record <your selected vendor's API key set> uv run <command>\n"
             "That costs money, which is the point."
         )
         self.key = key
