@@ -21,7 +21,7 @@
   "horizon_minutes": 60,
   "training_scenarios_sha": "394cea51077facda",
   "rows": 17208,
-  "git_sha": "dbc86f2-dirty",
+  "git_sha": "24bc9e3",
   "limitation": "synthetic data; real-world generalisation is unvalidated",
   "selection_caveat": "chosen after the held-out regimes had been consulted twice (two feature iterations); LightGBM, the pre-registered model, failed its stop condition"
 }
