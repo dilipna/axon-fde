@@ -12,6 +12,7 @@ import pytest
 from pydantic import ValidationError
 
 from backend.app.config import Environment, LLMMode, Settings
+from backend.app.llm.pricing import price_for
 
 pytestmark = pytest.mark.unit
 
@@ -70,9 +71,30 @@ def test_defaults_are_local_and_cost_nothing():
     assert settings.llm_calls_cost_money is False
 
 
-def test_reasoning_model_is_the_frontier_model():
+def test_reasoning_model_is_priced_and_is_not_the_cheap_one():
+    """The heaviest node gets the strongest model, and its cost is knowable.
+
+    This replaced an assertion on the literal "claude-opus-5", which broke the
+    moment the default vendor changed and was protecting the brand rather than
+    the property. Two things actually matter: the reasoning node must not be
+    pointed at the judge's cheap model, and every configured model must have a
+    price - an unpriced one raises at call time rather than at startup, which
+    is the wrong end of a paid run to find out.
+    """
     settings = make_settings()
-    assert settings.axon_model_reasoning == "claude-opus-5"
+
+    assert settings.axon_model_reasoning != settings.axon_model_judge
+    for model in (
+        settings.axon_model_reasoning,
+        settings.axon_model_extraction,
+        settings.axon_model_judge,
+    ):
+        price = price_for(model)  # raises UnknownModelError if unpriced
+        assert price.output_per_mtok > 0
+
+    reasoning = price_for(settings.axon_model_reasoning)
+    judge = price_for(settings.axon_model_judge)
+    assert reasoning.output_per_mtok >= judge.output_per_mtok
 
 
 def test_tracing_is_off_until_both_keys_are_present():
@@ -167,9 +189,47 @@ def test_production_rejects_development_defaults(override, expected):
         make_settings(**_deployed(**override))
 
 
-def test_production_rejects_paid_llm_mode_without_a_key():
-    with pytest.raises(ValidationError, match="ANTHROPIC_API_KEY"):
-        make_settings(**_deployed(axon_llm_mode="live", anthropic_api_key=None))
+@pytest.mark.parametrize(
+    ("vendor", "key_name"),
+    [("openai", "OPENAI_API_KEY"), ("anthropic", "ANTHROPIC_API_KEY")],
+)
+def test_production_rejects_paid_llm_mode_without_the_selected_vendors_key(
+    vendor: str, key_name: str
+):
+    """The refusal must name the key the configured vendor needs.
+
+    Parametrised rather than pinned to Anthropic, because the interesting bug
+    is a message that names the *other* vendor's key - which sends someone to
+    set a variable that will not help, and reads as a broken validator rather
+    than a missing key.
+    """
+    with pytest.raises(ValidationError, match=key_name):
+        make_settings(
+            **_deployed(
+                axon_llm_mode="live",
+                axon_llm_vendor=vendor,
+                anthropic_api_key=None,
+                openai_api_key=None,
+            )
+        )
+
+
+def test_a_key_for_the_unselected_vendor_does_not_count_as_configured():
+    """Having the wrong vendor's key is unconfigured, not configured.
+
+    Otherwise a deployment carrying a stale ANTHROPIC_API_KEY while set to
+    OpenAI starts happily and fails on the first model call, in production,
+    with a 401 rather than a configuration error.
+    """
+    with pytest.raises(ValidationError, match="OPENAI_API_KEY"):
+        make_settings(
+            **_deployed(
+                axon_llm_mode="live",
+                axon_llm_vendor="openai",
+                anthropic_api_key="sk-ant-stale",
+                openai_api_key=None,
+            )
+        )
 
 
 def test_the_audit_key_is_bytes_and_absent_when_unset():

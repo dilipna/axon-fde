@@ -41,6 +41,24 @@ class LLMMode(StrEnum):
     LIVE = "live"
 
 
+class LLMVendor(StrEnum):
+    """Which vendor's API the provider talks to.
+
+    Two implementations exist behind the one `LLMProvider` protocol. This
+    selects between them at the edge so nothing above the `llm` package has to
+    know which is active - which was the point of writing the protocol first.
+
+    A vendor is a *configuration* choice and not a code change, but it is not a
+    free one: cassettes are keyed on the model, so switching vendors invalidates
+    every recording and the ablation arms of any benchmark run made with the
+    other one. `pack_version` is in a run's provenance for the scenarios; the
+    model id is in there for exactly this.
+    """
+
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -103,11 +121,16 @@ class Settings(BaseSettings):
     s3_region: str = "us-east-1"
 
     # -- language model ----------------------------------------------------
+    # Two vendors are configurable and exactly one is active, chosen by
+    # `axon_llm_vendor`. Both keys are optional because the default mode spends
+    # nothing and needs neither.
     anthropic_api_key: SecretStr | None = None
+    openai_api_key: SecretStr | None = None
+    axon_llm_vendor: LLMVendor = LLMVendor.OPENAI
     axon_llm_mode: LLMMode = LLMMode.CASSETTE
-    axon_model_reasoning: str = "claude-opus-5"
-    axon_model_extraction: str = "claude-sonnet-5"
-    axon_model_judge: str = "claude-haiku-4-5"
+    axon_model_reasoning: str = "gpt-5"
+    axon_model_extraction: str = "gpt-5-mini"
+    axon_model_judge: str = "gpt-4.1-mini"
     # A careless benchmark loop can otherwise burn a month's budget in an hour.
     axon_daily_spend_limit_usd: float = Field(default=5.0, ge=0.0)
 
@@ -270,8 +293,8 @@ class Settings(BaseSettings):
             problems.append("AXON_AUDIT_HMAC_KEY is shorter than 32 characters")
         if "Local_Dev" in self.mssql_sa_password.get_secret_value():
             problems.append("MSSQL_SA_PASSWORD is still the development default")
-        if self.llm_calls_cost_money and self.anthropic_api_key is None:
-            problems.append("LLM mode requires an API key but ANTHROPIC_API_KEY is unset")
+        if self.llm_calls_cost_money and self.active_api_key is None:
+            problems.append(f"LLM mode requires an API key but {self.required_key_name} is unset")
 
         if problems:
             raise ValueError(
@@ -279,6 +302,30 @@ class Settings(BaseSettings):
                 + "\n  - ".join(problems)
             )
         return self
+
+    @property
+    def required_key_name(self) -> str:
+        """The environment variable the selected vendor needs.
+
+        Named rather than hardcoded so a missing-key message says which key is
+        missing. Telling someone ANTHROPIC_API_KEY is unset while they are
+        configured for OpenAI is worse than saying nothing.
+        """
+        return "OPENAI_API_KEY" if self.axon_llm_vendor is LLMVendor.OPENAI else "ANTHROPIC_API_KEY"
+
+    @property
+    def active_api_key(self) -> SecretStr | None:
+        """The key for the selected vendor, ignoring the other one.
+
+        Deliberately not "whichever key is set". A configuration with only the
+        unused vendor's key present must fail as unconfigured, not quietly call
+        the vendor nobody selected.
+        """
+        return (
+            self.openai_api_key
+            if self.axon_llm_vendor is LLMVendor.OPENAI
+            else self.anthropic_api_key
+        )
 
     @model_validator(mode="after")
     def _warn_on_spend_risk(self) -> Self:
@@ -288,13 +335,14 @@ class Settings(BaseSettings):
                 f"AXON_LLM_MODE={self.axon_llm_mode} will call a paid API but "
                 "AXON_DAILY_SPEND_LIMIT_USD is 0. Set a positive ceiling."
             )
-        if self.llm_calls_cost_money and self.anthropic_api_key is None:
+        if self.llm_calls_cost_money and self.active_api_key is None:
             # Not fatal locally: this is usually someone forgetting to export
             # the key, and a clear message beats a confusing 401 later.
             print(  # noqa: T201 - startup diagnostics predate logging setup
-                f"WARNING: AXON_LLM_MODE={self.axon_llm_mode} requires "
-                "ANTHROPIC_API_KEY, which is not set. Falling back to cassette "
-                "mode would be silent, so calls will fail instead.",
+                f"WARNING: AXON_LLM_MODE={self.axon_llm_mode} with "
+                f"AXON_LLM_VENDOR={self.axon_llm_vendor.value} requires "
+                f"{self.required_key_name}, which is not set. Falling back to "
+                "cassette mode would be silent, so calls will fail instead.",
                 file=sys.stderr,
             )
         return self

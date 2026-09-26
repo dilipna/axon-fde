@@ -13,35 +13,27 @@ dependencies = [
     "pydantic-settings>=2.6",
     "python-multipart>=0.0.20",
     "pyjwt[crypto]>=2.10",
-
     # --- Application database (PostgreSQL + pgvector) ---
     "sqlalchemy[asyncio]>=2.0.36,<3",
     "asyncpg>=0.30",
     "alembic>=1.14",
     "pgvector>=0.3.6",
-
     # --- Legacy database (SQL Server, sync driver run in a threadpool) ---
     "pyodbc>=5.2",
-
     # --- SQL safety ---
     "sqlglot>=30.18,<31",
-
     # --- Agent orchestration ---
     "langgraph>=1.2,<2",
     "langgraph-checkpoint-postgres>=3.1,<4",
-
     # --- LLM provider ---
+    "openai>=1.109.1",
     "anthropic>=1.7,<2",
-
     # --- Retrieval (local ONNX embeddings; deliberately avoids a torch dependency) ---
     "fastembed>=0.8,<0.9",
-
     # --- Object store ---
     "boto3>=1.35",
-
     # --- Scheduling (outcome verification) ---
     "apscheduler>=3.11",
-
     # --- Observability ---
     "structlog>=24.4",
     "opentelemetry-sdk>=1.29",
@@ -50,14 +42,12 @@ dependencies = [
     "opentelemetry-instrumentation-sqlalchemy>=0.50b0",
     "opentelemetry-instrumentation-httpx>=0.50b0",
     "langfuse>=4.15,<5",
-
     # --- Data / ML ---
     "numpy>=2.1",
     "pandas>=2.2",
     "pyarrow>=18.0",
     "scikit-learn>=1.5",
     "lightgbm>=4.5",
-
     # --- Utilities ---
     "httpx>=0.28",
     "typer>=0.15",
@@ -313,12 +303,18 @@ source_modules = ["backend.app.decision"]
 forbidden_modules = ["backend.app.db", "httpx", "anthropic", "backend.app.llm"]
 
 [[tool.importlinter.contracts]]
-# One module may import `anthropic`, and it is the one named after it.
-# Everything else talks to the `LLMProvider` protocol, which is what lets a
-# cassette stand in for the model without any caller noticing - and what keeps
-# I1 structural: `LLMResponse` has nowhere to put an observation, and nothing
-# outside this module can construct a different response type.
-name = "Only the Anthropic provider imports the Anthropic SDK"
+# Exactly two modules may import a vendor SDK, and each is named after the
+# vendor it imports: `anthropic_provider` and `openai_provider`. Everything
+# else talks to the `LLMProvider` protocol, which is what lets a cassette - or
+# the other vendor - stand in without any caller noticing, and what keeps I1
+# structural: `LLMResponse` has nowhere to put an observation, and nothing
+# outside those modules can construct a different response type.
+#
+# Both SDKs are forbidden to both lists rather than each to its own. A stray
+# `import openai` inside `anthropic_provider` would be a real defect - two
+# vendors reachable from one module is how a "which model answered this?"
+# question stops having an answer - and a per-vendor rule would permit it.
+name = "Only the vendor provider modules import a vendor SDK"
 type = "forbidden"
 source_modules = [
     "backend.app.llm.provider",
@@ -333,7 +329,7 @@ source_modules = [
     "backend.app.audit",
     "backend.app.evidence",
 ]
-forbidden_modules = ["anthropic"]
+forbidden_modules = ["anthropic", "openai"]
 
 [[tool.importlinter.contracts]]
 # A grader that can be talked into a verdict is not a grader. No model may

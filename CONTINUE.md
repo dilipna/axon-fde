@@ -29,8 +29,8 @@ nothing else gets started.
 | Day | Do | Why it and not something else |
 |---|---|---|
 | 1 | **B15b — redesign the control tower** | The owner has seen B15a and **rejected the look**: "more futuristic and impressive". It is the only artifact a recruiter actually looks at. |
-| 2 | **B10b — the LLM arm** (needs a key, ~$2–5) | The demo currently contains **no language model**. For an AI company that is the first question asked and the weakest answer given. One recording session fixes it permanently. |
-| 3 | Rehearse `docs/DEMO.md` end to end, twice, on a cold machine | Docker has died mid-session in five of the last seven. The failure you have not rehearsed is the one that happens. |
+| 2 | **B10b — record cassettes, OpenAI** (~$2–5) | The demo contains **no language model**; for an AI company that is the first question and the weakest answer. The vendor port is done (see below), so this is a recording session only. |
+| 3 | Rehearse `docs/DEMO.md` end to end, twice, on a cold machine | **Docker Desktop has now died mid-session six times**, twice in this one — the daemon, not the containers. It is the single largest time sink in the project and the most likely thing to break the demo. Rehearse the restart, not just the demo. |
 | 4 | Buffer. **Do not start a new block.** | |
 
 **Explicitly NOT in scope before the demo.** B11 streaming, B12 trained model,
@@ -112,8 +112,21 @@ skipping it, and it is worth more than a half-built Redpanda integration.
 
 **What actually makes a session slow**, measured across the last four:
 
-1. Docker is down, or drops mid-session. Start it first and re-check after any
-   long gap - it died twice in one session.
+1. **Docker Desktop dies, not just the containers.** Six occurrences now. The
+   tell is `failed to connect to the docker API at npipe:...dockerDesktopLinuxEngine`
+   rather than a container being unhealthy. Restarting compose does nothing;
+   the desktop app has to be relaunched and waited for:
+
+   ```bash
+   "/c/Users/Dilip/AppData/Local/Programs/DockerDesktop/Docker Desktop.exe" &
+   until docker info >/dev/null 2>&1; do sleep 5; done
+   docker compose --profile core up -d
+   until docker compose ps --format "{{.Service}} {{.Health}}" | grep -q "mssql healthy"; do sleep 5; done
+   ```
+
+   Re-check before every gate run, not just at session start. A gate that dies
+   this way reports **121 errors and 0 failures** - and `AXON_REQUIRE_INTEGRATION=1`
+   is what makes it errors rather than a silent green.
 2. Guessing at a name instead of reading it. Three separate bugs came from
    invented observation types, an invented `ShipmentRecord` field and an
    invented `ChainVerification` field. Grep before writing.
@@ -532,6 +545,40 @@ real run wrote, and reports absence rather than rendering fixtures.
 Driving the loop *from* the UI (approve, execute) is not built; that needs the
 B6-B9 services routed, which they are not.
 
+### B10b-prep — OpenAI vendor port ✅ **DONE** (2026-09-26) [Phase 1]
+The owner chose ChatGPT over Claude. `OpenAIProvider` implements the same
+`LLMProvider` protocol, `AXON_LLM_VENDOR` selects between them, and
+`build_provider()` is the one place that switch happens — call that, never a
+provider class by name.
+
+**Nothing outside `backend/app/llm/` needed changing to add a vendor**, which is
+the B8 protocol claim finally tested rather than asserted. Anthropic was kept
+rather than ripped out: removing it meant rewriting 27 passing tests for no
+demo benefit, and two vendors behind one protocol is the stronger story anyway.
+
+**Three real differences, documented in the module rather than smoothed over:**
+1. **No cache-write and no breakpoint to place.** OpenAI caches long prefixes
+   automatically. `LLMRequest.cache_prefix` therefore **does nothing** on this
+   vendor and `cache_write_tokens` is always 0. `cached_tokens` is still read
+   and recorded, so "is caching working?" stays answerable.
+2. **`effort` only exists on reasoning models.** Sent only for models in
+   `REASONING_MODELS`; anywhere else it is a 400, not an ignored field, and it
+   would land on a paid call.
+3. **`prompt_tokens` includes cached tokens where Anthropic's excludes them.**
+   Passing it straight through double-bills every cached token and makes a
+   well-cached call cost *more* than an uncached one. The subtraction in
+   `_usage_from` is the fix and two tests go red without it.
+
+> ⚠️ **The OpenAI prices in `pricing.py` are UNVERIFIED** and listed in
+> `UNVERIFIED_PRICES`. `PRICES_AS_OF` does not cover them. **Check them against
+> OpenAI's published pricing before any record or live run** — the daily spend
+> ceiling is computed from them, so a wrong figure makes the ceiling wrong by an
+> unknown margin in an unknown direction. This is the first thing B10b does.
+
+> ⚠️ **Model ids are unconfirmed too.** `gpt-5` / `gpt-5-mini` / `gpt-4.1-mini`
+> are the configured defaults and were not checked against the live model list.
+> A wrong id is a 404 on the first call. Verify before recording.
+
 ### B15b — Redesign the control tower ← **NEXT** [demo-critical, no API key]
 **B15a's design was rejected by the owner.** The data, the endpoints and the
 tests are all fine and must not be touched; what is wanted is the *look*:
@@ -677,4 +724,5 @@ said the harness "grades whatever the pack contains".
 | 2026-09-21 | **B10c** | Pack 3 → **60 scenarios** (40 breach, 20 control, 23 seeded conflicts), two new graders, **C1 and C6 measured**. Five findings, in order of how much they would have cost: (1) **the block's own brief was wrong about its size** — it said five breach scenarios where C1's method says forty, and the contradiction was sitting three lines above it in this file; it also said `poe bench` "grades whatever the pack contains" when **no C1 or C6 grader existed at all**. Re-derive scope from the register, not from the previous summary. (2) The wider pack exposed a **start-of-run false-alarm mode in the shipped detector**: a load begins at setpoint, a proportional controller needs steady-state error to produce output, so in hot ambient the cargo genuinely climbs for ~30 min before levelling — and slope extrapolation cannot tell that curve from an excursion. It fires at **minute 31 regardless of the fault**, sometimes before the fault starts. `CONSECUTIVE_READINGS_TO_FIRE = 3` was tuned on the flagship alone and does not generalise. **Not tuned away** — retuning against the benchmark that measures it is how a number stops meaning anything. (3) A test written to catch a reproducibility bug **passed against the bug**: the C6 negative set used `hash()`, which Python reseeds per process, and my subprocess test compared counts that are identical either way. Fixed by recording the channel assignment and re-proving it red. (4) The emitter's "expect_breach" guard caught a **breach scenario and a control row sharing one design** with opposite labels. (5) A "one regime ≤40% of breaches" test measured regime by *declared root cause* and hid five lying-instrument scenarios behind `compressor_degradation`; `claims.md` means the injected-fault set by "generative regime", and by that measure the largest regime is 25%. |
 | 2026-09-24 | **B15a** | Control tower. The demo's `Console` became a `Narrator` protocol with a second implementation that records, so the terminal and the UI run **the same loop over the same databases** rather than two stories that can drift. Three findings: (1) the first UI recovered the two minutes its chart marks by **regex over the narration** — it found the detection minute, missed the threshold alarm, and drew a chart missing the exact comparison the lead-time claim is about, while looking like it had rendered fine. The loop now records them as facts. (2) The API is forbidden from importing pyodbc even transitively, which ruled out running the loop in a request. Left the contract alone and had the demo write a trace the API serves — and the split turned out better anyway, since the loop owns one transaction it rolls back, and holding that open across an HTTP request would be a worse design than the one the contract forced. (3) The preamble note stole step number 1, so the UI said "step 2" where the terminal said "step 1". Numbering now counts titled steps. The I8 test (no ground truth through the API) was proven red by leaking `true_cargo_temp_c` on purpose. (4) The comparison panel's slopes were endpoint differences, reporting **-8.7 rpm/min where `claims.md` records -9.2** for the same scenario and window. Both are "the slope"; nothing on either side said which. Fixed to a least-squares fit (what `risk/features.py` uses) — still 0.4 out, because the register's "30-minute window at minute 100" means the thirty readings **ending** at 100 (71–100), not an inclusive 70–100, which is thirty-one. **A window's boundary convention was worth four tenths of a rpm/min**, and a UI quoting a number the register contradicts is worse than no UI. All four figures now match because they are the same calculation, not copied values. **Known gap: the JavaScript has no automated test** — it was verified once by executing its render functions against the live API in a DOM shim, and nothing guards it in CI. |
 | 2026-09-26 | **handoff** | Owner set a **four-day deadline** (demo 09-30) and **rejected B15a's visual design** — "more futuristic and impressive". §0.0 added and it overrides the phase plan: B15b (redesign) then B10b (LLM arm), nothing else started. One finding already banked for B15b: the `dataviz` validator **failed** a candidate dark palette on the **lightness band** — dark mode wants OKLCH L 0.48–0.67 and the candidates sat at 0.71–0.84, while passing chroma, CVD and contrast. Same hues, darker steps. Also: that validator is ESM named `.js` and its CLI guard tests the filename, so it only runs from a directory with `{"type":"module"}` — renaming it to `.mjs` makes it exit 0 having done nothing. |
+| 2026-09-26 | **OpenAI port** | Owner chose ChatGPT over Claude. `OpenAIProvider` added behind the existing `LLMProvider` protocol; **nothing outside `backend/app/llm/` changed**, which is the B8 protocol claim tested rather than asserted. Findings: (1) OpenAI's `prompt_tokens` **includes** cached tokens where Anthropic's excludes them, so passing it through double-bills every cached token and makes a well-cached call cost *more* than an uncached one — caught by writing the cost test first, and proven by reintroducing it. (2) `reasoning_effort` is a **400** on non-reasoning models rather than an ignored field, so the model set is explicit; a name-pattern guess would fail on a paid call. (3) **mypy passed while the package failed to import** — `build_provider`'s annotations name TYPE_CHECKING-only types and the module lacked `from __future__ import annotations`; mypy never executes a module, so only importing it catches this. (4) Two config tests were pinned to the literal `claude-opus-5` and `ANTHROPIC_API_KEY`; both were protecting the brand rather than the property, and now assert that the reasoning model is priced and costlier than the judge, and that a refusal names the *selected* vendor's key. **Prices and model ids are unverified — see B10b-prep.** |
 | | **B10b next** | The LLM arm. **Needs an API key and a decision about spending** — see §0.1 and §7. If there is no key, go to B11 or B14 instead. |

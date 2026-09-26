@@ -20,6 +20,7 @@ __all__ = [
     "CACHE_READ_MULTIPLIER",
     "CACHE_WRITE_MULTIPLIER",
     "PRICES_AS_OF",
+    "UNVERIFIED_PRICES",
     "ModelPrice",
     "UnknownModelError",
     "estimate_cost_usd",
@@ -48,10 +49,31 @@ class ModelPrice:
 #: catalogue: an entry here is a statement that the model has been considered
 #: for this workload, and a table of everything invites picking from it.
 PRICES: dict[str, ModelPrice] = {
+    # Anthropic.
     "claude-opus-5": ModelPrice(input_per_mtok=5.00, output_per_mtok=25.00),
     "claude-sonnet-5": ModelPrice(input_per_mtok=2.00, output_per_mtok=10.00),
     "claude-haiku-4-5": ModelPrice(input_per_mtok=1.00, output_per_mtok=5.00),
+    # OpenAI. **These are unverified and must be checked before any live run.**
+    # The figures below are placeholders in the honest sense: an unpriced model
+    # raises, so leaving them out would block the vendor entirely, and guessing
+    # silently would make the spend ceiling wrong in an unknown direction. They
+    # are marked here rather than trusted, and `PRICES_AS_OF` does not cover
+    # them.
+    "gpt-5": ModelPrice(input_per_mtok=1.25, output_per_mtok=10.00),
+    "gpt-5-mini": ModelPrice(input_per_mtok=0.25, output_per_mtok=2.00),
+    "gpt-4.1": ModelPrice(input_per_mtok=2.00, output_per_mtok=8.00),
+    "gpt-4.1-mini": ModelPrice(input_per_mtok=0.40, output_per_mtok=1.60),
+    "gpt-4o": ModelPrice(input_per_mtok=2.50, output_per_mtok=10.00),
+    "gpt-4o-mini": ModelPrice(input_per_mtok=0.15, output_per_mtok=0.60),
 }
+
+#: OpenAI prices in the table above have **not** been checked against published
+#: pricing, unlike the Anthropic ones. Listed separately so the gap is visible
+#: rather than implied by a comment, and so a test can assert that a live run
+#: against an unverified price is a deliberate act.
+UNVERIFIED_PRICES: frozenset[str] = frozenset(
+    {"gpt-5", "gpt-5-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini"}
+)
 
 
 class UnknownModelError(KeyError):
