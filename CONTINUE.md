@@ -569,15 +569,21 @@ demo benefit, and two vendors behind one protocol is the stronger story anyway.
    well-cached call cost *more* than an uncached one. The subtraction in
    `_usage_from` is the fix and two tests go red without it.
 
-> ⚠️ **The OpenAI prices in `pricing.py` are UNVERIFIED** and listed in
-> `UNVERIFIED_PRICES`. `PRICES_AS_OF` does not cover them. **Check them against
-> OpenAI's published pricing before any record or live run** — the daily spend
-> ceiling is computed from them, so a wrong figure makes the ceiling wrong by an
-> unknown margin in an unknown direction. This is the first thing B10b does.
-
-> ⚠️ **Model ids are unconfirmed too.** `gpt-5` / `gpt-5-mini` / `gpt-4.1-mini`
-> are the configured defaults and were not checked against the live model list.
-> A wrong id is a 404 on the first call. Verify before recording.
+> ✅ **Prices and model ids are verified** against
+> `developers.openai.com/api/docs/pricing`, Standard tier, on the date in
+> `PRICES_AS_OF` (2026-09-26). All six configured ids exist and every
+> input/output figure was already correct.
+>
+> **Verifying them found a real bug, which is the reason to verify rather than
+> assume.** `CACHE_READ_MULTIPLIER = 0.1` was a single global ratio and the
+> module's own docstring claimed it applied uniformly. True for three Anthropic
+> models; false the moment OpenAI's joined — gpt-5 caches at 0.1x input, the
+> **gpt-4.1 family at 0.25x and the gpt-4o family at 0.5x**. The flat ratio
+> **under-charged cached reads by up to five times**, and the spend ceiling is
+> computed from it, so it under-estimated in the direction that lets a budget be
+> overrun rather than trip early. `ModelPrice.cached_input_per_mtok` now carries
+> the published rate per model, with the ratio kept only as a fallback for models
+> that publish none. Locked by `TestCacheReadPricingIsPerModel`.
 
 ### B15b — Redesign the control tower ← **NEXT** [demo-critical, no API key]
 **B15a's design was rejected by the owner.** The data, the endpoints and the
@@ -677,6 +683,8 @@ this block hoping a key turns up.
 1. Record cassettes for both model nodes against a handful of scenarios.
    One recording session; every later run replays offline and free.
 2. Add the `rules_llm` arm to `poe bench` and to the AxonBench CI job.
+   Cassette replay only — **no API key in CI**. An arm that needed one would
+   either not run there or spend money on every push.
 3. Measure C5, C9, C12 and C3 against the `rules_only` baseline, which is
    `poe demo` and has not changed since B7.
 
