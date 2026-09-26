@@ -20,7 +20,6 @@ __all__ = [
     "CACHE_READ_MULTIPLIER",
     "CACHE_WRITE_MULTIPLIER",
     "PRICES_AS_OF",
-    "UNVERIFIED_PRICES",
     "ModelPrice",
     "UnknownModelError",
     "estimate_cost_usd",
@@ -28,11 +27,19 @@ __all__ = [
 ]
 
 #: When the table below was last checked against published pricing.
-PRICES_AS_OF = "2026-06-24"
+PRICES_AS_OF = "2026-09-26"
 
-#: Cached input is billed at a fraction of the normal input rate, and writing
-#: to the cache costs more than not caching. Both are ratios rather than
-#: absolute prices because they apply uniformly across the models here.
+#: Fallback ratios, used only when a model does not state its own cached rate.
+#:
+#: **These were a single global ratio and that was wrong.** The docstring here
+#: claimed they "apply uniformly across the models", which held while the table
+#: contained three Anthropic models and broke the moment OpenAI's joined:
+#: gpt-5 does cache reads at 0.1x its input rate, but the gpt-4.1 family is at
+#: 0.25x and the gpt-4o family at 0.5x. A flat 0.1 **under-charged cached reads
+#: by two and a half to five times** - and the spend ceiling is computed from
+#: this, so it under-estimated in exactly the direction that lets a budget be
+#: overrun. Per-model `cached_input_per_mtok` is now preferred and these are the
+#: fallback for models that do not publish one.
 CACHE_READ_MULTIPLIER = 0.1
 CACHE_WRITE_MULTIPLIER = 1.25
 
@@ -43,6 +50,18 @@ class ModelPrice:
 
     input_per_mtok: float
     output_per_mtok: float
+    #: The published rate for a cached input token, when the vendor states one.
+    #: `None` falls back to `input_per_mtok * CACHE_READ_MULTIPLIER`, which is
+    #: correct for Anthropic and for OpenAI's gpt-5 family and wrong by up to
+    #: five times for its others - so an entry that can state this should.
+    cached_input_per_mtok: float | None = None
+
+    @property
+    def cache_read_per_mtok(self) -> float:
+        """What a cached input token actually costs."""
+        if self.cached_input_per_mtok is not None:
+            return self.cached_input_per_mtok
+        return self.input_per_mtok * CACHE_READ_MULTIPLIER
 
 
 #: Only the models this system is configured to use. Deliberately not the full
@@ -53,27 +72,17 @@ PRICES: dict[str, ModelPrice] = {
     "claude-opus-5": ModelPrice(input_per_mtok=5.00, output_per_mtok=25.00),
     "claude-sonnet-5": ModelPrice(input_per_mtok=2.00, output_per_mtok=10.00),
     "claude-haiku-4-5": ModelPrice(input_per_mtok=1.00, output_per_mtok=5.00),
-    # OpenAI. **These are unverified and must be checked before any live run.**
-    # The figures below are placeholders in the honest sense: an unpriced model
-    # raises, so leaving them out would block the vendor entirely, and guessing
-    # silently would make the spend ceiling wrong in an unknown direction. They
-    # are marked here rather than trusted, and `PRICES_AS_OF` does not cover
-    # them.
-    "gpt-5": ModelPrice(input_per_mtok=1.25, output_per_mtok=10.00),
-    "gpt-5-mini": ModelPrice(input_per_mtok=0.25, output_per_mtok=2.00),
-    "gpt-4.1": ModelPrice(input_per_mtok=2.00, output_per_mtok=8.00),
-    "gpt-4.1-mini": ModelPrice(input_per_mtok=0.40, output_per_mtok=1.60),
-    "gpt-4o": ModelPrice(input_per_mtok=2.50, output_per_mtok=10.00),
-    "gpt-4o-mini": ModelPrice(input_per_mtok=0.15, output_per_mtok=0.60),
+    # OpenAI. Checked against developers.openai.com/api/docs/pricing on the
+    # date in `PRICES_AS_OF`, Standard tier. Each states its own cached rate
+    # because the ratio is **not** uniform across these families: 0.1x for
+    # gpt-5, 0.25x for gpt-4.1, 0.5x for gpt-4o.
+    "gpt-5": ModelPrice(1.25, 10.00, cached_input_per_mtok=0.125),
+    "gpt-5-mini": ModelPrice(0.25, 2.00, cached_input_per_mtok=0.025),
+    "gpt-4.1": ModelPrice(2.00, 8.00, cached_input_per_mtok=0.50),
+    "gpt-4.1-mini": ModelPrice(0.40, 1.60, cached_input_per_mtok=0.10),
+    "gpt-4o": ModelPrice(2.50, 10.00, cached_input_per_mtok=1.25),
+    "gpt-4o-mini": ModelPrice(0.15, 0.60, cached_input_per_mtok=0.075),
 }
-
-#: OpenAI prices in the table above have **not** been checked against published
-#: pricing, unlike the Anthropic ones. Listed separately so the gap is visible
-#: rather than implied by a comment, and so a test can assert that a live run
-#: against an unverified price is a deliberate act.
-UNVERIFIED_PRICES: frozenset[str] = frozenset(
-    {"gpt-5", "gpt-5-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini"}
-)
 
 
 class UnknownModelError(KeyError):
@@ -116,9 +125,12 @@ def estimate_cost_usd(
     price = price_for(model)
     per_token_in = price.input_per_mtok / 1_000_000
     per_token_out = price.output_per_mtok / 1_000_000
+    # The model's own cached rate, not a global ratio. See CACHE_READ_MULTIPLIER
+    # for why that distinction is worth up to five times the cached-read bill.
+    per_token_cached = price.cache_read_per_mtok / 1_000_000
     return (
         input_tokens * per_token_in
-        + cache_read_tokens * per_token_in * CACHE_READ_MULTIPLIER
+        + cache_read_tokens * per_token_cached
         + cache_write_tokens * per_token_in * CACHE_WRITE_MULTIPLIER
         + output_tokens * per_token_out
     )

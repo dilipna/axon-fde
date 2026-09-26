@@ -21,6 +21,7 @@ from backend.app.llm.pricing import (
     CACHE_READ_MULTIPLIER,
     UnknownModelError,
     estimate_cost_usd,
+    price_for,
 )
 from backend.app.llm.provider import LLMRequest, LLMResponse, TokenUsage
 from backend.app.llm.spend import SpendLedger, SpendLimitExceededError
@@ -315,3 +316,55 @@ def test_the_response_has_nowhere_to_put_an_observation() -> None:
     assert "confidence" not in fields
     assert "observation" not in fields
     assert "evidence" not in fields
+
+
+class TestCacheReadPricingIsPerModel:
+    """A single global cache-read ratio was wrong, and wrong in the unsafe direction.
+
+    `CACHE_READ_MULTIPLIER = 0.1` held while the price table contained only
+    Anthropic models. OpenAI's ratios are not uniform - 0.1x for the gpt-5
+    family, 0.25x for gpt-4.1, 0.5x for gpt-4o - so a flat 0.1 under-charged
+    cached reads by up to five times. The spend ceiling is computed from this,
+    so it under-estimated: the direction that lets a budget be overrun rather
+    than the one that trips it early.
+    """
+
+    @pytest.mark.parametrize(
+        ("model", "expected_per_mtok"),
+        [
+            ("gpt-5", 0.125),
+            ("gpt-5-mini", 0.025),
+            ("gpt-4.1", 0.50),
+            ("gpt-4.1-mini", 0.10),
+            ("gpt-4o", 1.25),
+            ("gpt-4o-mini", 0.075),
+        ],
+    )
+    def test_each_openai_model_states_its_own_cached_rate(
+        self, model: str, expected_per_mtok: float
+    ):
+        """Checked against the published table on the date in `PRICES_AS_OF`."""
+        assert price_for(model).cache_read_per_mtok == pytest.approx(expected_per_mtok)
+
+    def test_a_model_without_a_stated_rate_falls_back_to_the_ratio(self):
+        """Anthropic's models do cache reads at a tenth, so the fallback is right there."""
+        claude = price_for("claude-opus-5")
+        assert claude.cached_input_per_mtok is None
+        assert claude.cache_read_per_mtok == pytest.approx(
+            claude.input_per_mtok * CACHE_READ_MULTIPLIER
+        )
+
+    def test_a_cached_gpt_4o_call_is_not_costed_as_if_it_were_gpt_5(self):
+        """The bug, as a number rather than as a ratio.
+
+        Ten thousand cached tokens on gpt-4o cost $0.0125. Under the flat 0.1
+        multiplier they were costed at $0.0025 - a fifth of the real figure, on
+        the model with the most expensive cache in the table.
+        """
+        actual = estimate_cost_usd(
+            model="gpt-4o", input_tokens=0, output_tokens=0, cache_read_tokens=10_000
+        )
+        assert actual == pytest.approx(0.0125)
+
+        under_the_old_flat_ratio = 10_000 * (2.50 / 1_000_000) * CACHE_READ_MULTIPLIER
+        assert actual == pytest.approx(under_the_old_flat_ratio * 5)
