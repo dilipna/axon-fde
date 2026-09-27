@@ -29,18 +29,20 @@ nothing else gets started.
 | Day | Do | Why it and not something else |
 |---|---|---|
 | 1 ✅ built, **awaiting the owner's look** | **B15b — redesign the control tower** | The owner has seen B15a and **rejected the look**: "more futuristic and impressive". It is the only artifact a recruiter actually looks at. |
-| 2 ⛔ **blocked on billing** | **B10b — record cassettes, OpenAI** (~$2–5) | The demo contains **no language model**; for an AI company that is the first question and the weakest answer. The vendor port is done (see below), so this is a recording session only. |
+| 2 ✅ **done, on Groq not OpenAI** | **B10b — record cassettes** | The demo now **shows a real model investigation** (§7 below and `docs/DEMO.md` §5). OpenAI never got credit; recorded on Groq's free tier instead, $0 spent. C5 came back `REFUTED` — say so, it's a stronger signal than a win. |
 | 3 | Rehearse `docs/DEMO.md` end to end, twice, on a cold machine | **Docker Desktop has now died mid-session six times**, twice in this one — the daemon, not the containers. It is the single largest time sink in the project and the most likely thing to break the demo. Rehearse the restart, not just the demo. |
 | 4 | Buffer. **Do not start a new block.** | |
 
-**Explicitly NOT in scope before the demo.** B11 streaming, B12 trained model,
-B13 multimodal, B14 AxonRed, B16 AWS, B17 case study. Each is a multi-session
-block. Starting one buys a half-finished subsystem and an unrehearsed demo,
-which is strictly worse than what exists today.
+**Explicitly NOT in scope before the demo.** B11 streaming, B13 multimodal,
+B14 AxonRed, B16 AWS, B17 case study. B12 (trained risk model) landed anyway —
+see its own entry — because it needed no key and was already mid-flight.
+Starting one of the above now buys a half-finished subsystem and an
+unrehearsed demo, which is strictly worse than what exists today.
 
-**What exists today is already demoable and already green.** 42 commits, 903
-tests under the real gate, four claims measured (plus C3's rules baseline)
-with published runs behind them. If days 1 and 2 both fail, the demo still runs. Protect that.
+**What exists today is already demoable and already green.** 51 commits, 937
+tests under the real gate, six claims cleanly `MEASURED` (C1, C2, C3, C6, C7,
+C8) plus C5/C10/C12 measured with caveats, all with published runs behind
+them. If day 3 fails, the demo still runs. Protect that.
 
 ---
 
@@ -369,14 +371,13 @@ Tools layer, OTel/Langfuse wiring. The API layer exposes **read-only control
 tower endpoints only** - the B6-B9 services are tested but none of them is
 routed, so nothing can be *driven* through HTTP. Approving an action from the
 UI is the obvious next thing and is not built.
-AxonBench measures four claims plus C3's rules baseline. The `rules_llm` arm
-is **built and tested but has no recording**: the two model nodes
-(`agents/nodes/model_nodes.py`), the prompts (`agents/prompts/`), the digest
-(`agents/digest.py`), the runner (`benchmarks/axonbench/llm_arm.py`) and the
-graders (`graders/diagnosis.py`) all exist and are tested against a *scripted*
-provider, which tests the machinery and says nothing about what a model would
-produce. **`data/cassettes/` is still empty** — the OpenAI account had no credit
-(`429 credit_balance_exhausted`). **`poe demo` is still rules-only.**
+AxonBench measures **all four ablation-dependent claims plus C1/C2/C6/C7/C8**:
+C3, C5, C10, C12 recorded on Groq's free tier (`openai/gpt-oss-120b`/`-20b`,
+$0 spent — the OpenAI account never got credit). `poe demo`'s own 13 steps
+are still rules-only, unchanged since B7 (that is what C5 is measured
+against), but the script now runs a strictly additive LLM showcase after the
+loop closes, replaying the flagship incident from a committed cassette — see
+B10b in §6 and `docs/DEMO.md` §5.
 
 ---
 
@@ -639,14 +640,43 @@ the standing "the JavaScript has no automated test" gap in one move.
 **Done when:** the owner says it looks good. That is the only acceptance
 criterion, and it needs them to look — do not self-certify a visual change.
 
-### B10b — AxonBench, the LLM arm [Phase 1] — ⚠️ **built; recording blocked on billing** ← **NEXT**
-**Done (commit `cdc615d`):** the model nodes, prompts, digest, arm runner, and graders
-for C3, C5, C10 and C12; C3's **rules baseline measured (top-1 0.50 over 44
-incidents, run `run-c99db2657550`)**; C9 registered as `INSUFFICIENT_DATA` with its
-real blocker. 61 new tests, each proven able to fail.
+### B10b — AxonBench, the LLM arm ✅ **DONE** (2026-09-27) [Phase 1]
+**Recorded on Groq's free tier, not OpenAI** — the OpenAI account never got
+credit, so `AXON_LLM_VENDOR` now defaults to `groq` (`openai/gpt-oss-120b` /
+`-20b`). `OpenAIProvider` is reused with a base URL; no new provider class.
+44 incidents, 176 cassettes, **$0 spent**, committed under `data/cassettes/`.
+CI now runs `poe bench --arm rules_llm` in cassette mode with no key set.
 
-**Not done:** recording, and therefore any number for the LLM arm; the CI step
-(deliberately absent — see `ci.yml`). **Steps are in §7.**
+**C3, C5, C10, C12 all `MEASURED`** (run `run-a48b31474123`, published):
+- **C3** rules_llm top-1 **0.432** vs rules_only's **0.500** — worse.
+- **C5 `REFUTED`**: Δtop-1 **−0.068**, Δcorrect-action **0.000** (identical
+  on all 44 — the I2/decision-engine separation, confirmed on real model
+  output), Δexplanation quality **+1.45**/5 (the one place it helped).
+- **C10**: unsupported-claim rate **0.318** (14/44), almost entirely
+  `gpt-oss` rounding a dollar figure to the nearest dollar against a 0.05
+  *absolute* tolerance already documented as too tight for one — **not
+  loosened**, to avoid tuning against this run.
+- **C12**: **$0.00063** p95/incident (priced at the paid tier), 8.5s p50
+  latency.
+- **Read C5 and C10 in `claims.md` before quoting either** — both say
+  plainly this is a small free model, not a verdict on `gpt-5` or
+  `claude-sonnet-5`.
+
+**Two real bugs found recording, both fixed and tested red-then-green:**
+1. `gpt-oss` writes negative numbers with a typographic minus (en dash,
+   minus sign, non-breaking hyphen); `[-+]?` didn't match it, so a *correct*
+   negative reading (frozen cargo) was flagged as fabricated. Parser bug, not
+   a threshold — `grounding.py`'s `_MINUS_LIKE` normalises it, keyed by code
+   point so the source carries no ambiguous glyph.
+2. `gpt-oss-120b`'s **output price was wrong** in `pricing.py` (0.75
+   recorded from memory; console.groq.com says 0.60) — caught by actually
+   checking it, same discipline as the OpenAI rows in B10b-prep. **Verify a
+   price before quoting it; a plausible-looking guess is not a check.**
+
+**Also found and killed:** duplicate recording processes left running after
+a session restart — same PID, same cassette dir, would have corrupted or
+double-spent. Check for orphans (`Get-CimInstance Win32_Process`) before
+restarting a background LLM call.
 
 ### B11 — Streaming [Phase 2]
 Redpanda, consumer, event-driven detection, duplicate/out-of-order handling,
@@ -673,56 +703,47 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — finish B10b (record), then rehearse
+## 7. Next block in detail — rehearse, then B15b's sign-off
 
-### Step 0 — a person, not code: put credit on the OpenAI account
-The key in `.env` is valid but the account returns
-`429 insufficient_quota / credit_balance_exhausted`
-(<https://platform.openai.com/settings/organization/billing/>). **Nothing was
-spent** on 2026-09-26. Everything else in B10b is already built.
+B10b is done (previous entry). **Nothing left before the demo needs new code.**
+The two remaining items are a person watching a screen, not a block to build.
 
-### Step 1 — pilot two incidents and read the cost before scaling
+### Step 1 — the owner looks at the control tower
+Open http://localhost:8010 (or wherever `poe tower` is served — **check what
+already holds port 8000** before assuming it's free, see §3) and say whether
+the B15b redesign is accepted. `git log --oneline` for `feat(ui): redesign the
+control tower` if the diff needs re-reading.
+
+### Step 2 — rehearse `docs/DEMO.md`, cold, twice
 ```bash
-cd /c/dev/axonfde && docker compose ps       # Docker must be up for the gate, not for recording
-AXON_LLM_MODE=record AXON_DAILY_SPEND_LIMIT_USD=0.75 \
-  uv run poe bench --arm rules_llm --scenarios compressor_degradation_pharma_01,door_open_pharma_01
+cd /c/dev/axonfde
+docker compose ps    # if this errors mentioning dockerDesktopLinuxEngine, the
+                      # daemon died — relaunch Docker Desktop and wait for
+                      # `docker info` to succeed before anything else, §0.1 item 1
+docker compose --profile core up -d
+uv run poe migrate && uv run poe seed && uv run poe forge run-all
+uv run poe demo-trace && uv run poe tower
 ```
-(PowerShell: `$env:AXON_LLM_MODE="record"; $env:AXON_DAILY_SPEND_LIMIT_USD="0.75"` first.)
-Read the C12 row and `arm_notes.judge_cost_usd`. Per-incident cost is **unmeasured
-until this runs**; do the arithmetic for 44 before the next step. **The spend ledger
-is per process** — it resets on every invocation, so track the running total by hand
-against the $5 authorisation. Pilot cassettes are reused by the full run (same keys).
+Then run `uv run python -m scripts.demo --json` **without** `--no-llm` at least
+once during rehearsal — the fifth, LLM-showcase section is new (2026-09-27)
+and has never been rehearsed live. Confirm it prints the grounded narrative in
+under ten seconds; if `data/cassettes/` is ever regenerated or the prompt
+version bumps, it will raise `CassetteMissError` instead, and `--no-llm` is
+the fallback for that day.
 
-### Step 2 — the full recording
-```bash
-AXON_LLM_MODE=record AXON_DAILY_SPEND_LIMIT_USD=3.5 uv run poe bench --arm rules_llm
-```
-Then **prove replay is offline**: unset the key and run
-`uv run poe bench --arm rules_llm` with no `AXON_LLM_MODE` (cassette is the default).
-A miss raises `CassetteMissError` naming the key — that is the design.
+### What to say about the LLM, rehearsed once before the room
+`docs/DEMO.md` §5 and "Questions you should expect" now have the script:
+lead with C5 being **refuted** — a measured negative result on a free
+small model is a stronger signal than a cherry-picked win, and say plainly
+that `gpt-oss-20b` is not `gpt-5`.
 
-### Step 3 — in the same commit as the cassettes
-1. Commit `data/cassettes/` (check `.gitignore` does not exclude it).
-2. Add `uv run poe bench --arm rules_llm` to the `benchmark-gate` job in `ci.yml`.
-3. Copy the clean-tree `rules_llm` run into `benchmarks/results/published/`,
-   `uv run poe bench-report`, and fill in the C3/C5/C10/C12 rows of `claims.md` —
-   **including a negative or null C5 if that is what it says.** The register expects it.
-4. `AXON_ENV=ci AXON_REQUIRE_INTEGRATION=1 uv run poe check`, push, then the no-auth
-   curl in §1 to confirm CI.
-
-### What to expect, so the result is not a surprise
-- **C5's action delta is 0 by construction** (the decision engine never reads a hypothesis).
-- **C5's accuracy delta is bounded above by the rule priors** (`confidence = prior × support`,
-  support ≤ 1). The 8 fuel-exhaustion incidents are at the 0.02 floor and cannot be rescued.
-  A model can re-order and drop; it cannot raise. A null result is the architecture working.
-- If the model proposes no link for an incident, that incident scores as *wrong* for the
-  LLM arm (there is no fallback to the rules). That is the shipped behaviour, stated.
-- A reasoning model bills its thinking as output tokens; `LINKS_MAX_TOKENS = 6000` and
-  `effort="low"` are the levers if the pilot costs more than expected.
-
-### Then: rehearse (§0.0 day 3)
-`docs/DEMO.md` end to end, twice, **cold**, including the Docker restart and the port-8000
-check in §3. Do not start a new block.
+### If there is time left after rehearsal (optional, not required)
+- B14 (AxonRed / attack suite) needs no key and unlocks C9 and C13 — the
+  only two claims with no path forward yet.
+- Confirming the risk model (B12) on fresh scenarios before ever making it
+  primary — not needed for the demo, `poe demo` still uses slope
+  extrapolation.
+Do **not** start B11, B13 or B16 before the demo — §0.0.
 
 ## 8. Session log
 
@@ -745,6 +766,6 @@ check in §3. Do not start a new block.
 | 2026-09-26 | **handoff** | Owner set a **four-day deadline** (demo 09-30) and **rejected B15a's visual design** — "more futuristic and impressive". §0.0 added and it overrides the phase plan: B15b (redesign) then B10b (LLM arm), nothing else started. One finding already banked for B15b: the `dataviz` validator **failed** a candidate dark palette on the **lightness band** — dark mode wants OKLCH L 0.48–0.67 and the candidates sat at 0.71–0.84, while passing chroma, CVD and contrast. Same hues, darker steps. Also: that validator is ESM named `.js` and its CLI guard tests the filename, so it only runs from a directory with `{"type":"module"}` — renaming it to `.mjs` makes it exit 0 having done nothing. |
 | 2026-09-26 | **OpenAI port** | Owner chose ChatGPT over Claude. `OpenAIProvider` added behind the existing `LLMProvider` protocol; **nothing outside `backend/app/llm/` changed**, which is the B8 protocol claim tested rather than asserted. Findings: (1) OpenAI's `prompt_tokens` **includes** cached tokens where Anthropic's excludes them, so passing it through double-bills every cached token and makes a well-cached call cost *more* than an uncached one — caught by writing the cost test first, and proven by reintroducing it. (2) `reasoning_effort` is a **400** on non-reasoning models rather than an ignored field, so the model set is explicit; a name-pattern guess would fail on a paid call. (3) **mypy passed while the package failed to import** — `build_provider`'s annotations name TYPE_CHECKING-only types and the module lacked `from __future__ import annotations`; mypy never executes a module, so only importing it catches this. (4) Two config tests were pinned to the literal `claude-opus-5` and `ANTHROPIC_API_KEY`; both were protecting the brand rather than the property, and now assert that the reasoning model is priced and costlier than the judge, and that a refusal names the *selected* vendor's key. **Prices and model ids are unverified — see B10b-prep.** |
 | 2026-09-26 | **B15b + B10b (partial)** | Owner: "complete as much as you can, make no mistakes." **B15b built** (`061e930`), awaiting their look — palette validated, two CVD findings above. **B10b built but not recorded**: OpenAI returned `credit_balance_exhausted`, **$0 spent**. Findings, in order of cost avoided: (1) **`agents/nodes/` and `agents/prompts/` were empty** — §6 called B10b "a recording session only"; the two model nodes had never existed outside scripted test doubles, so the block was a build, not a recording. Same lesson as B10c a third time: re-derive size from the tree, not from the last summary. (2) **Evidence ids are random UUIDs**, so one in a prompt makes every cassette replay a miss; the digest uses stable handles (`E07`). (3) **Reading the prompt before paying for it found a real bug**: the digest showed only the last-sorted source for a type, presenting the ERP's 10 °C as the ceiling and hiding the Bill of Lading's 8 °C from the model. (4) **The rules baseline for C3 is 0.50 — and 0/8 on fuel exhaustion**, because no fuel rule exists and the scorer caps a model at its prior; C5 is structurally bounded and its action delta is 0 by construction. (5) `claims.md` states **no dataset size for C3, C5 or C12**; the harness's 40 is borrowed from C1 and labelled so. (6) **C9 cannot be measured yet for a reason other than the key**: no attack pack, no images until B13, and a weak pack trips the register's own stop condition. (7) Two things I wrote in `claims.md` from memory were wrong (the 6 non-breach incidents are near-miss controls with real faults, not `no_fault`; and "right on every compressor incident" was 14/15) — caught by recomputing from the stored run before committing. (8) Port 8000 was occupied by two unrelated projects; tower served on 8010. Real gate: **903 passed**; CI **run 35 green** on `51b7e2d`. |
-| | **Next** | Step 0 in §7 (billing), then pilot → full recording → CI step in the same commit as the cassettes. Then rehearse. |
 | 2026-09-26 | **B12** | Trained risk model, evaluated leave-one-regime-out with mandatory baselines and a scenario bootstrap. Findings: (1) **LightGBM fails the stop condition decisively**; trees fit regime quirks (12 regimes ~ 60 independent scenarios). (2) A logistic stack wins on ranking and calibration, not provably on lead time; chosen after two looks at the held-out regimes, flagged everywhere. (3) One of my own tests compared a function with itself (train/serve skew) — replaced by serving-path vs training-row equality, then proved by injecting skew. (4) A bad test setup: with no control scenario the false-alarm budget cannot bind. (5) Coefficients are not physical (headroom positive). |
-| | **Next** | B10b recording (billing), or B14 AxonRed / B11 streaming. Confirm the risk model on fresh scenarios before making it primary. |
+| 2026-09-27 | **B10b, done** | Owner: "complete ASAP, make it working in 2 days." OpenAI still had no credit (confirmed again: `429 credit_balance_exhausted`, second attempt). **Switched to Groq's free tier** (`openai/gpt-oss-120b`/`-20b`) rather than wait on a person — `AXON_LLM_VENDOR` now defaults to `groq`, reusing `OpenAIProvider` with a base URL. Recorded all 44 incidents, **$0 spent**, 176 cassettes committed. **C3/C5/C10/C12 all `MEASURED`; C5 is `REFUTED`** (Δtop-1 −0.068, Δaction 0.000 — identical on all 44, confirming I2/decision-engine separation on real output — Δexplanation +1.45/5). Findings: (1) a session restart left **duplicate recording processes** running against the same cassette dir — found and killed via `Get-CimInstance` before they could corrupt or double-spend; always check for orphans after a restart. (2) `gpt-oss` writes negative numbers with a **typographic minus** (en dash), which `[-+]?` didn't match, so correct negative readings (frozen cargo) were flagged as fabricated — a parser bug, fixed and proven red-then-green, not a threshold tuned against the run. (3) **Verified the Groq prices instead of trusting the guess**: `gpt-oss-120b`'s output price was wrong from memory (0.75 vs the real 0.60) — checking is what caught it, guessing plausible-looking numbers is not verification. (4) C10's grounding check has a *documented* strictness this run made visible: whole-dollar rounding against a 0.05 absolute tolerance — left uncorrected to avoid tuning against the benchmark, and written into the register both ways. **Then, unprompted: found the actual demo (`scripts/demo.py`, what `poe demo` runs) still had zero LLM calls** — AxonBench measures a different code path. Added a strictly additive showcase step after the rules-only loop closes: replays the flagship incident through the real graph from the committed cassette and prints hypotheses, narrative and grounding verdict. Cannot touch `run_demo()`'s steps, exit code or trace (C5's baseline), proven by an unchanged `tests/e2e/test_demo.py` plus 6 new tests, two shown red first. Real gate: 937 passed locally. |
+| | **Next** | Owner looks at the control tower (§7 step 1) and rehearses `docs/DEMO.md` cold, including the new §5 (§7 step 2). After the demo: B14 (needs no key, unlocks C9/C13), or confirm the risk model on fresh scenarios before making it primary. |
