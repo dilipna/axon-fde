@@ -127,3 +127,70 @@ def test_the_demo_leaves_no_residue(demo: tuple[int, str]) -> None:
     """
     _, output = demo
     assert "Rolled back" in output
+
+
+class TestTheLLMShowcase:
+    """The additive step after the rules-only loop - answers "where is the
+    model?" without touching the C5 baseline above.
+
+    Uses the same `demo` fixture, deliberately: `main([])` (no `--no-llm`)
+    is what a recruiter watching `poe demo` actually sees, so this proves the
+    showcase runs inside the real CLI path rather than only when called
+    directly.
+    """
+
+    def test_it_prints_after_the_rules_only_loop_closes(self, demo: tuple[int, str]) -> None:
+        _, output = demo
+        loop_end = output.index("Closed loop complete")
+        showcase_start = output.index("[LLM] What the language model produces")
+        assert showcase_start > loop_end
+
+    def test_it_shows_a_real_grounded_narrative_from_the_committed_cassette(
+        self, demo: tuple[int, str]
+    ) -> None:
+        _, output = demo
+        assert "model: openai/gpt-oss-120b via groq" in output
+        assert "narrative:" in output
+        assert "grounding check: grounded" in output
+
+    def test_it_is_clearly_labelled_as_not_the_measured_arm(self, demo: tuple[int, str]) -> None:
+        _, output = demo
+        assert "not part of the rules-only arm above" in output
+
+    def test_the_trace_json_carries_it_without_changing_total_steps(
+        self, app_db_ready: None, legacy_ready: None, tmp_path
+    ) -> None:
+        import json
+
+        recording("compressor_degradation_pharma_01")
+        path = tmp_path / "trace.json"
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            code = main(["--json", str(path)])
+        assert code == 0
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        assert payload["total_steps"] == TOTAL_STEPS
+        assert payload["llm_showcase"]["available"] is True
+        assert payload["llm_showcase"]["narrative_grounded"] is True
+
+    def test_no_llm_flag_suppresses_it_entirely(
+        self, app_db_ready: None, legacy_ready: None
+    ) -> None:
+        recording("compressor_degradation_pharma_01")
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            code = main(["--no-llm"])
+        assert code == 0
+        assert "[LLM]" not in buffer.getvalue()
+
+    async def test_a_missing_cassette_degrades_rather_than_crashes(self) -> None:
+        """No database needed: this exercises only the showcase's own guard."""
+        from unittest.mock import patch
+
+        from scripts.demo import _llm_showcase
+
+        with patch("benchmarks.axonbench.llm_arm.build_cases", return_value=([], [])):
+            result = await _llm_showcase()
+        assert result is not None
+        assert result["available"] is False
+        assert "no predictive incident" in result["reason"]
