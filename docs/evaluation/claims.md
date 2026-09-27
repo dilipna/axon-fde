@@ -166,8 +166,8 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Metric** | Top-1 and top-3 accuracy; contributing-cause F1. |
 | **Baseline** | `rules_only` arm (no LLM). |
 | **Dataset** | AxonBench scenarios with IncidentForge ground truth. **No count is stated**; the harness requires 40 *investigated incidents*, borrowed from C1's forty and not from this register, where an incident is a scenario the predictive detector opened one on (44 of 60: 38 breach scenarios plus 6 non-breach ones — near-miss controls with a real but non-breaching fault — on which the detector also fired). |
-| **Status** | `PLACEHOLDER` for the claim as stated. **The `rules_only` baseline is `MEASURED`**: top-1 **0.50**, top-3 0.70, contributing-cause F1 0.125 over 44 investigated incidents. The `rules_llm` arm is not recorded. |
-| **Run** | `run-c99db2657550` · `git_sha=cdc615d` · `model_id=none` · `prompt_version=none` · `pack_version=1.1.0` · `config_hash=42da15021752172e` |
+| **Status** | `MEASURED` for both arms, over the same 44 investigated incidents. `rules_only`: top-1 **0.50**, top-3 0.70, contributing-cause F1 0.125. `rules_llm` (Groq, `openai/gpt-oss-120b`): top-1 **0.432**, top-3 0.591, contributing-cause F1 0.080 — **worse on all three**, and see C5. |
+| **Run** | rules_only: `run-c99db2657550` · `git_sha=cdc615d`. rules_llm: `run-a48b31474123` · `git_sha=6a32821` · `model_id=openai/gpt-oss-120b (links)` · `prompt_version=v2` · `pack_version=1.1.0` · `config_hash=42da15021752172e` |
 
 > **What the baseline number is made of.** 0.50 top-1 hides a sharp split, by
 > true cause: environmental heat **6/6**, compressor degradation **14/15**,
@@ -224,7 +224,7 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Metric** | Δ root-cause accuracy, Δ correct-action selection, judge-scored explanation quality. |
 | **Baseline** | `rules_only`: rule-derived hypotheses, rule-derived actions, templated narrative. |
 | **Dataset** | Not stated. Same 44 investigated incidents as C3, both arms on each. |
-| **Status** | `PLACEHOLDER` — **may be refuted; publish either way**. Grader, arm and prompts are built and tested against a scripted provider; **no cassettes are recorded** because the OpenAI account had no credit (`429 credit_balance_exhausted`), so there is no number. |
+| **Status** | `REFUTED` — measured, and the answer is no. Δ top-1 **−0.068** (0.432 vs 0.500), Δ top-3 **−0.114**, Δ contributing-cause F1 **−0.045**, Δ correct-action **0.000** (identical on all 44, as predicted below), Δ judge-scored explanation **+1.45** (1.82 → 3.27 of 5, the one place the model helped). Run `run-a48b31474123`, same provenance as C3. |
 
 > **What C5 can and cannot show.** The decision engine ranks actions from the
 > computed breach probability and never reads a hypothesis, so
@@ -234,6 +234,30 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 > by the rule priors (see C3). The judge-scored explanation quality uses a
 > model from the same vendor as the arm it scores, blind to which summary is
 > which; treat it as indicative.
+>
+> **Measured with a free open-weight model (Groq, `gpt-oss-120b`/`-20b`), not a
+> frontier one** — recorded because the OpenAI account had no credit. Root-cause
+> accuracy came out *worse* than the deterministic rules, exactly as the design
+> predicts it can: the scorer computes `confidence = prior × support`, capped
+> at the rule prior, so the model can re-order or drop hypotheses but never
+> raise one above what the rules already permit. The correct-action rate is
+> **identical across arms on all 44 incidents** — not close, identical — which
+> is the I2/decision-engine separation confirmed on real model output rather
+> than only asserted. **32% of narratives failed the deterministic grounding
+> check** (see C10); those incidents escalate rather than reaching a
+> dispatcher, so a fabricated number cannot appear in a shown recommendation,
+> but it does mean the model's prose is not yet reliable enough to ship
+> unescalated. Explanation quality is the one dimension the model wins by a
+> wide margin (1.82 → 3.27 of 5): the rules-only arm's narrative is a fixed
+> template, and the judge consistently preferred prose that named the reading
+> and the reasoning over one that only named a number.
+>
+> **Not a verdict on frontier models.** `gpt-oss-20b` is a small open-weight
+> model chosen for a free key, not for capability. This result says what a
+> deterministic scorer plus a weak model produces; it does not say what the
+> ceiling is with `gpt-5` or `claude-sonnet-5`. Re-recording with either would
+> need cassettes of its own — different vendor, different cassette key — and
+> would answer a different, more interesting question.
 
 > This is the ablation most likely to be attacked in an interview and the one
 > most worth running early. If the LLM contributes little, that is a finding
@@ -335,7 +359,31 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Claim** | The system does not assert anything its evidence does not support. |
 | **Metric** | Unsupported-claim rate. |
 | **Method** | **Deterministic**, not LLM-judged: every cited evidence ID must exist in the context bundle, and every numeric claim in the narrative must match an evidence value within tolerance. |
-| **Status** | `PLACEHOLDER` — the grader exists and takes its verdict from `check_grounding`; it needs the `rules_llm` arm's narratives, which are not recorded. **Known leniency:** a figure is matched against *every* numeric observation in the bundle within 0.05, and a bundle holds over a thousand readings, so a wrong figure can pass by landing near an unrelated one. The stored rate is a lower bound and ships with the count of figures checked. |
+| **Status** | `MEASURED` — unsupported-claim rate **0.318** (14 of 44 narratives), 313 figures checked, over `gpt-oss-20b` narratives written for real incidents (Groq, `run-a48b31474123`). |
+| **Run** | `run-a48b31474123` · `git_sha=6a32821` · `model_id=openai/gpt-oss-20b` · `prompt_version=v2` · `pack_version=1.1.0` · `config_hash=42da15021752172e` |
+
+> **Known leniency and known strictness, both left uncorrected.** Lenient: a
+> figure is matched against *every* numeric observation in the bundle within
+> 0.05, and a bundle holds over a thousand readings, so a wrong figure can
+> pass by landing near an unrelated one — the stored rate is a lower bound in
+> this direction. Strict: `gpt-oss-20b` routinely rounds a dollar figure to
+> the nearest whole dollar ("−7428 USD" for an exact −7428.34), and the same
+> 0.05 *absolute* tolerance that correctly checks a temperature rejects that
+> as unsupported — `NUMERIC_TOLERANCE`'s own docstring already documents this
+> tolerance as "far too tight" for a dollar figure. All 14 failures are this
+> shape. Neither is corrected here: loosening the threshold after seeing this
+> run's count would be tuning the detector against the benchmark that
+> measures it, which this project does not do (see §1, C1's
+> `CONSECUTIVE_READINGS_TO_FIRE`).
+>
+> **One real bug found and fixed before this run, not papered over.**
+> `gpt-oss` writes a negative number with a typographic minus (en dash, minus
+> sign or non-breaking hyphen), which the original `[-+]?` did not match, so a
+> correct negative reading — any frozen-cargo temperature — was extracted as
+> its positive magnitude and flagged as fabricated. That is a parser bug, not
+> a threshold, and fixing it moved the rate from 0.341 to 0.318 (15 → 14
+> failures) on the identical cassettes. `tests/unit/test_agents.py`'s
+> `TestTypographicMinusIsStillAMinus` proves it red on the old regex first.
 
 ### C11 — Outcome verification
 
@@ -352,7 +400,18 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Claim** | An incident is investigated end to end for $X at p95 latency Y seconds. |
 | **Metric** | Cost p50/p95 and latency p50/p95, aggregated from `model_invocation` rows and OTel spans. |
 | **Dataset** | Not stated. Same 44 investigated incidents. |
-| **Status** | `PLACEHOLDER` — grader built; no recording, so no number. Aggregated from each workflow call's recorded invocation (tokens, cost, latency), not from `model_invocation` rows or OTel spans, which nothing writes yet. **Latency will be the recording session's**, replayed from the cassette — network and vendor load on the day — and cost is recomputed from stored token counts at the prices in `pricing.py`. Covers the model calls only; the judge is excluded. |
+| **Status** | `MEASURED` — **$0.00063 p95** ($0.00052 p50) per incident, 2 model calls each, p50 latency **8.5 s** / p95 **11.4 s**, over 44 incidents. Run `run-a48b31474123`. Aggregated from each workflow call's recorded invocation (tokens, cost, latency), not from `model_invocation` rows or OTel spans, which nothing writes yet. Covers the model calls only; the judge (88 calls, $0.0105 total) is excluded, since it is grading infrastructure, not part of an incident's own cost. |
+>
+> **This is a free-tier open-weight model's cost, stated as such.** `gpt-oss`
+> is priced here at what the *paid* tier of the same tokens would cost
+> (`$0` was the actual spend). Prices are checked against
+> `console.groq.com/docs/model/...` — `PRICES_AS_OF` in `pricing.py`, same
+> discipline as the OpenAI rows — and checking them caught a real error:
+> `gpt-oss-120b`'s output price was first recorded at $0.75/Mtok from memory;
+> the page says $0.60/Mtok. This register's number is the corrected one.
+> Latency is Groq's on the day this was recorded, replayed from the cassette —
+> not a live measurement, and not comparable to a frontier model's latency,
+> which was not measured.
 
 ### C13 — Safe degradation
 
