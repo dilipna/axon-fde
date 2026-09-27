@@ -1,0 +1,58 @@
+{
+  "cassette_version": 1,
+  "key": "1a5db76a36066bf703fe43969361b6a8",
+  "request": {
+    "cache_prefix": true,
+    "effort": "low",
+    "max_tokens": 600,
+    "messages": [
+      {
+        "content": "Evidence digest:\nEvidence for one vehicle, covering 288 minutes up to the newest observation.\nCite observations by their handle, e.g. E07. Only these handles exist.\n\nLatest observation of each type, one line per source that reported it:\n[E01] ambient_temp_c = 33.99 (source telemetry, 0 min before the newest)\n[E02] cargo_temp_c = 7.25 (source telemetry, 0 min before the newest)\n[E03] compressor_rpm = 2400.00 (source telemetry, 0 min before the newest)\n[E04] door_state = closed (source telemetry, 0 min before the newest)\n[E05] fault_code = [AL31] (source telemetry, 0 min before the newest)\n[E06] humidity_pct = 56.80 (source telemetry, 0 min before the newest)\n[E07] minutes_to_destination = 12.00 (source telemetry, 0 min before the newest)\n[E08] permitted_temp_max_c = 8.00 (source document_extraction, 288 min before the newest)\n[E09] permitted_temp_min_c = 2.00 (source document_extraction, 288 min before the newest)\n[E10] reefer_fuel_pct = 0.00 (source telemetry, 0 min before the newest)\n[E11] reefer_status = off (source telemetry, 0 min before the newest)\n[E12] route_delay_min = 0.00 (source telemetry, 0 min before the newest)\n[E13] speed_kph = 91.90 (source telemetry, 0 min before the newest)\n[E14] truck_fuel_pct = 72.22 (source telemetry, 0 min before the newest)\n\nTrends over the last 30 minutes:\nambient_temp_c: 33.89 [E15] -> 33.99 over 30 min, slope +0.003 per minute\ncargo_temp_c: 6.40 [E16] -> 7.25 over 30 min, slope +0.028 per minute\ncompressor_rpm: 1856.20 [E17] -> 2400.00 over 30 min, slope +20.329 per minute\nhumidity_pct: 59.10 [E18] -> 56.80 over 30 min, slope -0.098 per minute\nminutes_to_destination: 42.00 [E19] -> 12.00 over 30 min, slope -1.000 per minute\nreefer_fuel_pct: 7.53 [E20] -> 0.00 over 30 min, slope -0.272 per minute\nroute_delay_min: 0.00 [E21] -> 0.00 over 30 min, slope +0.000 per minute\nspeed_kph: 92.00 [E22] -> 91.90 over 30 min, slope +0.009 per minute\ntruck_fuel_pct: 72.82 [E23] -> 72.22 over 30 min, slope -0.020 per minute\n\nFault codes reported in the last 60 minutes:\nfault code AL31 [E24]\n\nCross-source conflicts found by deterministic reconciliation:\n(none)\n\nSummary to grade:\nThe cargo is warming toward the upper limit of 8.00 C; the latest reading is 7.25 C while the ambient is 33.99 C and the compressor is still running at 2400 rpm. A fault code AL31 and the compressor\u2019s rapid rpm rise suggest compressor degradation, and the fuel is already depleted. The probability that the cargo breaches its envelope is 0.90. The system recommends the highest\u2011value action: reroute to cold storage, costing 1800 USD and adding 180 min of delay.",
+        "role": "user"
+      }
+    ],
+    "model": "openai/gpt-oss-20b",
+    "node": "judge",
+    "output_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "score": {
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "score",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "prompt_version": "v2",
+    "system": "You grade incident summaries written for cold-chain dispatchers.\n\nScore the summary from 1 to 5 on whether a dispatcher could act on it:\n5 = states the situation, the likely cause and a specific recommended action, and\n    every claim is tied to something observed;\n3 = correct but thin, or the reasoning is asserted rather than shown;\n1 = generic, missing the action, or not tied to the evidence.\n\nJudge only what is written. You are not told which summary came from which\nsystem and must not guess. Do not reward length."
+  },
+  "response": {
+    "latency_ms": 7831,
+    "model": "openai/gpt-oss-20b",
+    "parsed": {
+      "reason": "The summary accurately states the situation (cargo warming toward limit), identifies likely causes (fault code AL31, rapid rpm rise indicating degradation, fuel depletion) and recommends a specific action (reroute to cold storage). All claims are supported by evidence handles and trends, fulfilling the criteria for a score of 5.",
+      "score": 5
+    },
+    "stop_reason": "stop",
+    "text": "{\"score\":5,\"reason\":\"The summary accurately states the situation (cargo warming toward limit), identifies likely causes (fault code AL31, rapid rpm rise indicating degradation, fuel depletion) and recommends a specific action (reroute to cold storage). All claims are supported by evidence handles and trends, fulfilling the criteria for a score of 5.\"}",
+    "usage": {
+      "cache_read_tokens": 256,
+      "cache_write_tokens": 0,
+      "input_tokens": 779,
+      "output_tokens": 162
+    }
+  }
+}

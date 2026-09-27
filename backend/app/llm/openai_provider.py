@@ -44,7 +44,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from backend.app.config import LLMMode, Settings, get_settings
-from backend.app.llm.cassettes import CassetteLibrary
+from backend.app.llm.cassettes import CassetteLibrary, cassette_key
 from backend.app.llm.provider import LLMRequest, LLMResponse, TokenUsage
 from backend.app.llm.spend import SpendLedger
 
@@ -69,6 +69,9 @@ REASONING_MODELS: frozenset[str] = frozenset(
         "o4-mini",
         "gpt-5",
         "gpt-5-mini",
+        # Open-weight reasoning models served by Groq; they accept the same field.
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
     }
 )
 
@@ -83,7 +86,8 @@ class MissingOpenAIKeyError(RuntimeError):
 
     def __init__(self, mode: LLMMode) -> None:
         super().__init__(
-            f"AXON_LLM_MODE={mode.value} needs OPENAI_API_KEY, which is not set. "
+            f"AXON_LLM_MODE={mode.value} needs the selected vendor's API key "
+            "(OPENAI_API_KEY or GROQ_API_KEY), which is not set. "
             "Leave the mode at `cassette` to run offline."
         )
 
@@ -98,11 +102,15 @@ class OpenAIProvider:
         cassette_dir: Path | None = None,
         ledger: SpendLedger | None = None,
         client: AsyncOpenAI | None = None,
+        base_url: str | None = None,
+        max_retries: int = 2,
     ) -> None:
         self._settings = settings or get_settings()
         self._cassettes = CassetteLibrary(cassette_dir or DEFAULT_CASSETTE_DIR)
         self._ledger = ledger or SpendLedger(self._settings.axon_daily_spend_limit_usd)
         self._client = client
+        self._base_url = base_url
+        self._max_retries = max_retries
 
     @property
     def mode(self) -> str:
@@ -121,6 +129,13 @@ class OpenAIProvider:
             MissingOpenAIKeyError: A live mode without credentials.
         """
         mode = self._settings.axon_llm_mode
+        if mode is LLMMode.RECORD and self._cassettes.path_for(cassette_key(request)).exists():
+            # Recording resumes rather than restarts: a request that already has a
+            # recording is replayed, so an interrupted run (a free tier's daily quota
+            # is the usual cause) does not pay for what it already has. To re-record
+            # one on purpose, delete its file.
+            return self._cassettes.load(request)
+
         if mode is LLMMode.CASSETTE:
             # No ledger check: a replay costs nothing, and charging the budget
             # for it would make a large offline suite refuse to run.
@@ -189,14 +204,19 @@ class OpenAIProvider:
         )
 
     def _build_client(self) -> AsyncOpenAI:
-        if self._settings.openai_api_key is None:
+        key = self._settings.active_api_key
+        if key is None:
             raise MissingOpenAIKeyError(self._settings.axon_llm_mode)
         # Imported here rather than at module scope so the offline path never
         # pays for the import, and a missing optional dependency cannot break a
         # cassette-only run.
         from openai import AsyncOpenAI
 
-        self._client = AsyncOpenAI(api_key=self._settings.openai_api_key.get_secret_value())
+        self._client = AsyncOpenAI(
+            api_key=key.get_secret_value(),
+            base_url=self._base_url,
+            max_retries=self._max_retries,
+        )
         return self._client
 
 

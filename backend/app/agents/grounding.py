@@ -69,7 +69,13 @@ _COUNT_LIKE = re.compile(r"^\d$")
 
 #: Matches integers and decimals, with optional thousands separators, a
 #: leading sign, and a trailing percent sign.
-_NUMBER = re.compile(r"[-+]?\d{1,3}(?:,\d{3})+(?:\.\d+)?|[-+]?\d+(?:\.\d+)?%?")
+#:
+#: The lookbehind refuses digits that belong to an identifier. "AL17" is a fault
+#: code and "E08" is an evidence handle: neither is a quantity, and treating
+#: the "17" as a figure that must match a reading rejected a correct narrative
+#: that merely named the fault it was reporting. Digits are in the lookbehind
+#: too, so the regex cannot skip the letter-adjacent digit and match the next one.
+_NUMBER = re.compile(r"(?<![A-Za-z_\d])(?:[-+]?\d{1,3}(?:,\d{3})+(?:\.\d+)?|[-+]?\d+(?:\.\d+)?%?)")
 
 
 class GroundingFailure(StrEnum):
@@ -207,6 +213,24 @@ def _numeric_values(evidence: Sequence[Evidence]) -> list[float]:
     return values
 
 
+#: Typographic minus/dash characters (U+2212 MINUS SIGN, U+2013 EN DASH,
+#: U+2014 EM DASH, U+2011 NON-BREAKING HYPHEN), normalised to ASCII
+#: hyphen-minus before the number regex runs.
+#:
+#: Found recording real cassettes: gpt-oss writes a negative reading using
+#: an en dash rather than a hyphen-minus, which `[-+]?` does not match, so a
+#: correctly-reported negative temperature on frozen cargo was extracted as
+#: its positive magnitude and rejected as unsupported - a false fabrication
+#: finding on a narrative that was exactly right. The lookbehind in `_NUMBER`
+#: already stops a dash immediately after a digit from being read as a sign
+#: (that is what keeps a written range as two positive numbers rather than
+#: one negative one), so normalising the character here is safe: it changes
+#: which byte represents "minus", never which numbers a range can produce.
+#: Keyed by code point rather than by the literal character, so the source
+#: file itself contains no ambiguous-looking glyph for a linter to flag.
+_MINUS_LIKE = str.maketrans({0x2212: "-", 0x2013: "-", 0x2014: "-", 0x2011: "-"})
+
+
 def _numbers_in(text: str) -> tuple[tuple[float, ...], ...]:
     """Pull the figures out of prose, each as its acceptable readings.
 
@@ -217,7 +241,7 @@ def _numbers_in(text: str) -> tuple[tuple[float, ...], ...]:
     was reported as one supported number and one fabricated one.
     """
     found: list[tuple[float, ...]] = []
-    for raw in _NUMBER.findall(text):
+    for raw in _NUMBER.findall(text.translate(_MINUS_LIKE)):
         cleaned = raw.replace(",", "")
         if cleaned.endswith("%"):
             magnitude = float(cleaned[:-1])

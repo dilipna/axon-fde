@@ -1,0 +1,58 @@
+{
+  "cassette_version": 1,
+  "key": "4b134bfe4035e24d5e3e9d732d80ddfc",
+  "request": {
+    "cache_prefix": true,
+    "effort": "low",
+    "max_tokens": 600,
+    "messages": [
+      {
+        "content": "Evidence digest:\nEvidence for one vehicle, covering 546 minutes up to the newest observation.\nCite observations by their handle, e.g. E07. Only these handles exist.\n\nLatest observation of each type, one line per source that reported it:\n[E01] ambient_temp_c = 30.60 (source telemetry, 0 min before the newest)\n[E02] cargo_temp_c = 3.89 (source telemetry, 0 min before the newest)\n[E03] compressor_rpm = 472.70 (source telemetry, 0 min before the newest)\n[E04] door_state = closed (source telemetry, 0 min before the newest)\n[E05] fault_code = [AL17] (source telemetry, 0 min before the newest)\n[E06] humidity_pct = 58.60 (source telemetry, 0 min before the newest)\n[E07] minutes_to_destination = 354.00 (source telemetry, 0 min before the newest)\n[E08] permitted_temp_max_c = 4.00 (source document_extraction, 546 min before the newest)\n[E09] permitted_temp_min_c = 0.00 (source document_extraction, 546 min before the newest)\n[E10] reefer_fuel_pct = 80.19 (source telemetry, 0 min before the newest)\n[E11] reefer_status = fault (source telemetry, 0 min before the newest)\n[E12] route_delay_min = 0.00 (source telemetry, 0 min before the newest)\n[E13] speed_kph = 89.70 (source telemetry, 0 min before the newest)\n[E14] truck_fuel_pct = 67.06 (source telemetry, 0 min before the newest)\n\nTrends over the last 30 minutes:\nambient_temp_c: 31.32 [E15] -> 30.60 over 30 min, slope -0.024 per minute\ncargo_temp_c: 3.68 [E16] -> 3.89 over 30 min, slope +0.004 per minute\ncompressor_rpm: 455.80 [E17] -> 472.70 over 30 min, slope +0.563 per minute\nhumidity_pct: 57.70 [E18] -> 58.60 over 30 min, slope +0.098 per minute\nminutes_to_destination: 384.00 [E19] -> 354.00 over 30 min, slope -1.000 per minute\nreefer_fuel_pct: 81.69 [E20] -> 80.19 over 30 min, slope -0.050 per minute\nroute_delay_min: 0.00 [E21] -> 0.00 over 30 min, slope +0.000 per minute\nspeed_kph: 92.50 [E22] -> 89.70 over 30 min, slope -0.013 per minute\ntruck_fuel_pct: 67.66 [E23] -> 67.06 over 30 min, slope -0.020 per minute\n\nFault codes reported in the last 60 minutes:\nfault code AL17 [E24]\n\nCross-source conflicts found by deterministic reconciliation:\n(none)\n\nSummary to grade:\nBreach probability is 0.89 against a permitted ceiling of 4.0 C. The leading rule-derived cause is compressor degradation. Recommended action: reroute to cold storage (expected value -5663 USD).",
+        "role": "user"
+      }
+    ],
+    "model": "openai/gpt-oss-20b",
+    "node": "judge",
+    "output_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "score": {
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "score",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "prompt_version": "v2",
+    "system": "You grade incident summaries written for cold-chain dispatchers.\n\nScore the summary from 1 to 5 on whether a dispatcher could act on it:\n5 = states the situation, the likely cause and a specific recommended action, and\n    every claim is tied to something observed;\n3 = correct but thin, or the reasoning is asserted rather than shown;\n1 = generic, missing the action, or not tied to the evidence.\n\nJudge only what is written. You are not told which summary came from which\nsystem and must not guess. Do not reward length."
+  },
+  "response": {
+    "latency_ms": 8614,
+    "model": "openai/gpt-oss-20b",
+    "parsed": {
+      "reason": "The summary lacks specific evidence, does not reference observed data, and provides a generic recommendation without tying it to the observations.",
+      "score": 1
+    },
+    "stop_reason": "stop",
+    "text": "{\"score\":1,\"reason\":\"The summary lacks specific evidence, does not reference observed data, and provides a generic recommendation without tying it to the observations.\"}",
+    "usage": {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 966,
+      "output_tokens": 73
+    }
+  }
+}

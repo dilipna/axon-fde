@@ -82,6 +82,13 @@ PRICES: dict[str, ModelPrice] = {
     "gpt-4.1-mini": ModelPrice(0.40, 1.60, cached_input_per_mtok=0.10),
     "gpt-4o": ModelPrice(2.50, 10.00, cached_input_per_mtok=1.25),
     "gpt-4o-mini": ModelPrice(0.15, 0.60, cached_input_per_mtok=0.075),
+    # Groq, open-weight. **Not yet checked against Groq's pricing page** (unlike
+    # the OpenAI rows): recorded from memory and to be verified before any C12
+    # dollar figure is quoted. Actual spend on the free tier is $0; these price
+    # the tokens at what the same usage would cost on the paid tier, which is
+    # what a cost-per-incident claim should mean.
+    "openai/gpt-oss-120b": ModelPrice(0.15, 0.75, cached_input_per_mtok=0.075),
+    "openai/gpt-oss-20b": ModelPrice(0.075, 0.30, cached_input_per_mtok=0.0375),
 }
 
 

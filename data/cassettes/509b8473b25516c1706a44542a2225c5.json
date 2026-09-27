@@ -1,0 +1,58 @@
+{
+  "cassette_version": 1,
+  "key": "509b8473b25516c1706a44542a2225c5",
+  "request": {
+    "cache_prefix": true,
+    "effort": "low",
+    "max_tokens": 600,
+    "messages": [
+      {
+        "content": "Evidence digest:\nEvidence for one vehicle, covering 175 minutes up to the newest observation.\nCite observations by their handle, e.g. E07. Only these handles exist.\n\nLatest observation of each type, one line per source that reported it:\n[E01] ambient_temp_c = 33.06 (source telemetry, 0 min before the newest)\n[E02] cargo_temp_c = 3.11 (source telemetry, 0 min before the newest)\n[E03] compressor_rpm = 1050.90 (source telemetry, 0 min before the newest)\n[E04] door_state = open (source telemetry, 0 min before the newest)\n[E05] fault_code = [AL02] (source telemetry, 0 min before the newest)\n[E06] humidity_pct = 58.30 (source telemetry, 0 min before the newest)\n[E07] minutes_to_destination = 725.00 (source telemetry, 0 min before the newest)\n[E08] permitted_temp_max_c = 4.00 (source document_extraction, 175 min before the newest)\n[E09] permitted_temp_min_c = 0.00 (source document_extraction, 175 min before the newest)\n[E10] reefer_fuel_pct = 93.66 (source telemetry, 0 min before the newest)\n[E11] reefer_status = cycling (source telemetry, 0 min before the newest)\n[E12] route_delay_min = 0.00 (source telemetry, 0 min before the newest)\n[E13] speed_kph = 93.70 (source telemetry, 0 min before the newest)\n[E14] truck_fuel_pct = 74.48 (source telemetry, 0 min before the newest)\n\nTrends over the last 30 minutes:\nambient_temp_c: 32.57 [E15] -> 33.06 over 30 min, slope +0.016 per minute\ncargo_temp_c: 2.42 [E16] -> 3.11 over 30 min, slope +0.019 per minute\ncompressor_rpm: 537.50 [E17] -> 1050.90 over 30 min, slope +18.715 per minute\nhumidity_pct: 58.70 [E18] -> 58.30 over 30 min, slope -0.005 per minute\nminutes_to_destination: 755.00 [E19] -> 725.00 over 30 min, slope -1.000 per minute\nreefer_fuel_pct: 94.28 [E20] -> 93.66 over 30 min, slope -0.021 per minute\nroute_delay_min: 0.00 [E21] -> 0.00 over 30 min, slope +0.000 per minute\nspeed_kph: 93.00 [E22] -> 93.70 over 30 min, slope -0.100 per minute\ntruck_fuel_pct: 75.08 [E23] -> 74.48 over 30 min, slope -0.020 per minute\n\nFault codes reported in the last 60 minutes:\nfault code AL02 [E24]\n\nCross-source conflicts found by deterministic reconciliation:\n(none)\n\nSummary to grade:\nBreach probability is 0.72 against a permitted ceiling of 4.0 C. The leading rule-derived cause is compressor degradation. Recommended action: reroute to cold storage (expected value -5006 USD).",
+        "role": "user"
+      }
+    ],
+    "model": "openai/gpt-oss-20b",
+    "node": "judge",
+    "output_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "score": {
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "score",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "prompt_version": "v2",
+    "system": "You grade incident summaries written for cold-chain dispatchers.\n\nScore the summary from 1 to 5 on whether a dispatcher could act on it:\n5 = states the situation, the likely cause and a specific recommended action, and\n    every claim is tied to something observed;\n3 = correct but thin, or the reasoning is asserted rather than shown;\n1 = generic, missing the action, or not tied to the evidence.\n\nJudge only what is written. You are not told which summary came from which\nsystem and must not guess. Do not reward length."
+  },
+  "response": {
+    "latency_ms": 6547,
+    "model": "openai/gpt-oss-20b",
+    "parsed": {
+      "reason": "The summary states a breach probability, identifies compressor degradation as the likely cause, and recommends rerouting to cold storage. However, it does not explicitly tie each claim to specific observed evidence or detail the reasoning process, making it correct but thin.",
+      "score": 3
+    },
+    "stop_reason": "stop",
+    "text": "{\"score\":3,\"reason\":\"The summary states a breach probability, identifies compressor degradation as the likely cause, and recommends rerouting to cold storage. However, it does not explicitly tie each claim to specific observed evidence or detail the reasoning process, making it correct but thin.\"}",
+    "usage": {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 968,
+      "output_tokens": 107
+    }
+  }
+}

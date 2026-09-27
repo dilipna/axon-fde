@@ -281,11 +281,19 @@ class GroundingGrader:
     computed value. The verdict is `check_grounding`'s, taken from the run - a
     model is not asked whether a model was grounded.
 
-    **A known leniency, reported rather than hidden.** A figure is matched
-    against *every* numeric observation in the bundle within 0.05, and a bundle
-    holds over a thousand readings, so a wrong figure can pass by landing near
-    an unrelated one. The unsupported-claim rate is therefore a lower bound, and
-    the count of figures checked rides with it so the reader can see how much
+    **A known leniency, and a known strictness, both reported rather than
+    hidden.** Lenient: a figure is matched against *every* numeric observation
+    in the bundle within 0.05, and a bundle holds over a thousand readings, so
+    a wrong figure can pass by landing near an unrelated one. Strict: a dollar
+    figure the model rounds to the nearest whole dollar (recorded models do
+    this routinely) is rejected by the same 0.05 *absolute* tolerance that
+    correctly checks a temperature - `NUMERIC_TOLERANCE`'s own docstring says
+    this tolerance is "far too tight" for a dollar figure, so an "unsupported"
+    number caused by whole-dollar rounding is expected and is not a fabrication.
+    The unsupported-claim rate is therefore a lower bound in one direction and
+    an overcount in the other; neither is corrected here, because loosening the
+    threshold after seeing this run's numbers would be tuning against the
+    benchmark it measures. The count of figures checked rides with it so the reader can see how much
     was tested.
     """
 
@@ -307,8 +315,12 @@ class GroundingGrader:
                 "failure_counts": dict(sorted(counted.items())),
                 "ungrounded": sorted(o.scenario_id for o in failing),
                 "leniency": (
-                    "figures are matched against every numeric observation in the bundle, "
-                    "so this rate is a lower bound"
+                    "figures are matched against every numeric observation in the bundle "
+                    "(lower bound); a dollar figure rounded to the nearest dollar is "
+                    "rejected by the same 0.05 tolerance that suits a temperature "
+                    "(overcount) - NUMERIC_TOLERANCE is documented as too tight for "
+                    "dollar figures, and is not loosened here to avoid tuning against "
+                    "this run"
                 ),
             },
         )
