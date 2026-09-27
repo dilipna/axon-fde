@@ -48,4 +48,11 @@ paths = [
   # Fixture hashes and bounding boxes look like high-entropy secrets and are
   # neither. The contents of these files are asserted by tests.
   '''data/documents/extractions/.*\.json''',
+  # Cassettes carry a `key` field: a truncated SHA256 of the request
+  # (`cassette_key` in llm/cassettes.py), not a credential. The scanner's
+  # generic-api-key rule matches any 32-hex string near the word "key", which
+  # this is. No provider key is ever recorded here - `CassetteLibrary.save`
+  # stores only the request and the response - and this allowlist is by path,
+  # so a real secret pasted into a recording would still fail the scan.
+  '''data/cassettes/.*\.json''',
 ]
