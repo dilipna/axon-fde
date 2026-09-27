@@ -1,0 +1,58 @@
+{
+  "cassette_version": 1,
+  "key": "e88adadb90155ae041aa37c0637571d3",
+  "request": {
+    "cache_prefix": true,
+    "effort": "low",
+    "max_tokens": 600,
+    "messages": [
+      {
+        "content": "Evidence digest:\nEvidence for one vehicle, covering 82 minutes up to the newest observation.\nCite observations by their handle, e.g. E07. Only these handles exist.\n\nLatest observation of each type, one line per source that reported it:\n[E01] ambient_temp_c = 35.48 (source telemetry, 0 min before the newest)\n[E02] cargo_temp_c = 6.97 (source telemetry, 0 min before the newest)\n[E03] compressor_rpm = 1314.70 (source telemetry, 0 min before the newest)\n[E04] door_state = closed (source telemetry, 0 min before the newest)\n[E05] fault_code = [AL17] (source telemetry, 0 min before the newest)\n[E06] humidity_pct = 54.60 (source telemetry, 0 min before the newest)\n[E07] minutes_to_destination = 258.00 (source telemetry, 0 min before the newest)\n[E08] permitted_temp_max_c = 8.00 (source document_extraction, 82 min before the newest)\n[E09] permitted_temp_max_c = 10.00 (source sql_legacy, 82 min before the newest)\n[E10] permitted_temp_min_c = 2.00 (source document_extraction, 82 min before the newest)\n[E11] reefer_fuel_pct = 91.86 (source telemetry, 0 min before the newest)\n[E12] reefer_status = running (source telemetry, 0 min before the newest)\n[E13] route_delay_min = 40.00 (source telemetry, 0 min before the newest)\n[E14] speed_kph = 0.00 (source telemetry, 0 min before the newest)\n[E15] truck_fuel_pct = 76.34 (source telemetry, 0 min before the newest)\n\nTrends over the last 30 minutes:\nambient_temp_c: 34.82 [E16] -> 35.48 over 30 min, slope +0.022 per minute\ncargo_temp_c: 6.36 [E17] -> 6.97 over 30 min, slope +0.019 per minute\ncompressor_rpm: 1684.00 [E18] -> 1314.70 over 30 min, slope -11.100 per minute\nhumidity_pct: 56.60 [E19] -> 54.60 over 30 min, slope -0.021 per minute\nminutes_to_destination: 248.00 [E20] -> 258.00 over 30 min, slope +0.887 per minute\nreefer_fuel_pct: 93.42 [E21] -> 91.86 over 30 min, slope -0.052 per minute\nroute_delay_min: 0.00 [E22] -> 40.00 over 30 min, slope +1.887 per minute\nspeed_kph: 96.40 [E23] -> 0.00 over 30 min, slope -4.327 per minute\ntruck_fuel_pct: 76.94 [E24] -> 76.34 over 30 min, slope -0.020 per minute\n\nFault codes reported in the last 60 minutes:\nfault code AL17 [E25]\n\nCross-source conflicts found by deterministic reconciliation:\npermitted_temp_max_c (safety critical)\n\nSummary to grade:\nBreach probability is 0.60 against a permitted ceiling of 8.0 C. The leading rule-derived cause is compressor degradation. Recommended action: reroute to cold storage (expected value -11024 USD).",
+        "role": "user"
+      }
+    ],
+    "model": "openai/gpt-oss-20b",
+    "node": "judge",
+    "output_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "score": {
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "score",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "prompt_version": "v2",
+    "system": "You grade incident summaries written for cold-chain dispatchers.\n\nScore the summary from 1 to 5 on whether a dispatcher could act on it:\n5 = states the situation, the likely cause and a specific recommended action, and\n    every claim is tied to something observed;\n3 = correct but thin, or the reasoning is asserted rather than shown;\n1 = generic, missing the action, or not tied to the evidence.\n\nJudge only what is written. You are not told which summary came from which\nsystem and must not guess. Do not reward length."
+  },
+  "response": {
+    "latency_ms": 10687,
+    "model": "openai/gpt-oss-20b",
+    "parsed": {
+      "reason": "The summary states a breach probability, an inferred cause, and a recommended action, but does not reference any specific observations or evidence (e.g., compressor rpm trend or fault code) to support the claim. It lacks the required evidence linkage and is too generic to guide dispatcher action.",
+      "score": 1
+    },
+    "stop_reason": "stop",
+    "text": "{\"score\":1,\"reason\":\"The summary states a breach probability, an inferred cause, and a recommended action, but does not reference any specific observations or evidence (e.g., compressor rpm trend or fault code) to support the claim. It lacks the required evidence linkage and is too generic to guide dispatcher action.\"}",
+    "usage": {
+      "cache_read_tokens": 256,
+      "cache_write_tokens": 0,
+      "input_tokens": 745,
+      "output_tokens": 120
+    }
+  }
+}

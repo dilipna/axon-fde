@@ -31,6 +31,7 @@ with no key.
 from __future__ import annotations
 
 import asyncio
+import os
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -79,7 +80,7 @@ CASE_HISTORY_MINUTES = 120
 #: before each call and records after it, so N calls in flight can each pass
 #: the check against the same balance. Four bounds that overshoot to four
 #: calls' worth, which the daily ceiling has headroom for.
-CONCURRENCY = 4
+CONCURRENCY = int(os.environ.get("AXON_BENCH_CONCURRENCY", "4"))
 
 #: The three seeded facilities (`data/seed/legacy/02_seed.sql`), with free slots
 #: as capacity minus in-use and detours as in `scripts/demo.py`'s

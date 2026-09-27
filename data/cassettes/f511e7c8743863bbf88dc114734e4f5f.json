@@ -1,0 +1,58 @@
+{
+  "cassette_version": 1,
+  "key": "f511e7c8743863bbf88dc114734e4f5f",
+  "request": {
+    "cache_prefix": true,
+    "effort": "low",
+    "max_tokens": 600,
+    "messages": [
+      {
+        "content": "Evidence digest:\nEvidence for one vehicle, covering 718 minutes up to the newest observation.\nCite observations by their handle, e.g. E07. Only these handles exist.\n\nLatest observation of each type, one line per source that reported it:\n[E01] ambient_temp_c = 30.50 (source telemetry, 0 min before the newest)\n[E02] cargo_temp_c = 3.99 (source telemetry, 0 min before the newest)\n[E03] compressor_rpm = 1909.70 (source telemetry, 0 min before the newest)\n[E04] door_state = closed (source telemetry, 0 min before the newest)\n[E05] fault_code = [AL31] (source telemetry, 0 min before the newest)\n[E06] humidity_pct = 62.00 (source telemetry, 0 min before the newest)\n[E07] minutes_to_destination = 182.00 (source telemetry, 0 min before the newest)\n[E08] permitted_temp_max_c = 4.00 (source document_extraction, 718 min before the newest)\n[E09] permitted_temp_min_c = 0.00 (source document_extraction, 718 min before the newest)\n[E10] reefer_fuel_pct = 0.00 (source telemetry, 0 min before the newest)\n[E11] reefer_status = off (source telemetry, 0 min before the newest)\n[E12] route_delay_min = 0.00 (source telemetry, 0 min before the newest)\n[E13] speed_kph = 87.80 (source telemetry, 0 min before the newest)\n[E14] truck_fuel_pct = 63.62 (source telemetry, 0 min before the newest)\n\nTrends over the last 30 minutes:\nambient_temp_c: 31.27 [E15] -> 30.50 over 30 min, slope -0.026 per minute\ncargo_temp_c: 3.66 [E16] -> 3.99 over 30 min, slope +0.006 per minute\ncompressor_rpm: 1782.70 [E17] -> 1909.70 over 30 min, slope +4.231 per minute\nhumidity_pct: 61.50 [E18] -> 62.00 over 30 min, slope -0.032 per minute\nminutes_to_destination: 212.00 [E19] -> 182.00 over 30 min, slope -1.000 per minute\nreefer_fuel_pct: 0.00 [E20] -> 0.00 over 30 min, slope +0.000 per minute\nroute_delay_min: 0.00 [E21] -> 0.00 over 30 min, slope +0.000 per minute\nspeed_kph: 89.40 [E22] -> 87.80 over 30 min, slope -0.008 per minute\ntruck_fuel_pct: 64.22 [E23] -> 63.62 over 30 min, slope -0.020 per minute\n\nFault codes reported in the last 60 minutes:\nfault code AL31 [E24]\n\nCross-source conflicts found by deterministic reconciliation:\n(none)\n\nSummary to grade:\nThe cargo is currently at 3.99 C inside an environment that has an ambient temperature of 30.50 C, with a fault code AL31 reported and the permitted temperature envelope set between 0.00 C and 4.00 C. The system believes a sensor malfunction is the most likely cause of the observed discrepancy, indicating that the cargo temperature reading may be unreliable. The calculated breach probability is 0.97, suggesting a high risk of spoilage and a potential loss of the 48000 USD cargo value. The top\u2011ranked intervention is to reroute the vehicle to cold storage, costing 1800 USD with an expected value of \u20135975 USD.",
+        "role": "user"
+      }
+    ],
+    "model": "openai/gpt-oss-20b",
+    "node": "judge",
+    "output_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "score": {
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "score",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "prompt_version": "v2",
+    "system": "You grade incident summaries written for cold-chain dispatchers.\n\nScore the summary from 1 to 5 on whether a dispatcher could act on it:\n5 = states the situation, the likely cause and a specific recommended action, and\n    every claim is tied to something observed;\n3 = correct but thin, or the reasoning is asserted rather than shown;\n1 = generic, missing the action, or not tied to the evidence.\n\nJudge only what is written. You are not told which summary came from which\nsystem and must not guess. Do not reward length."
+  },
+  "response": {
+    "latency_ms": 9949,
+    "model": "openai/gpt-oss-20b",
+    "parsed": {
+      "reason": "The summary correctly identifies the current cargo temperature, ambient temperature, fault code, and permitted envelope. It states a likely cause (sensor malfunction) and proposes a specific action (reroute to cold storage). However, the reasoning for the sensor malfunction claim is not directly supported by the evidence provided, and the summary lacks a clear tie of each claim to an observation (e.g., no link between AL31 and sensor failure). Thus it meets the criteria for a correct but thin explanation, earning a score of 3.",
+      "score": 3
+    },
+    "stop_reason": "stop",
+    "text": "{\"score\":3,\"reason\":\"The summary correctly identifies the current cargo temperature, ambient temperature, fault code, and permitted envelope. It states a likely cause (sensor malfunction) and proposes a specific action (reroute to cold storage). However, the reasoning for the sensor malfunction claim is not directly supported by the evidence provided, and the summary lacks a clear tie of each claim to an observation (e.g., no link between AL31 and sensor failure). Thus it meets the criteria for a correct but thin explanation, earning a score of 3.\"}",
+    "usage": {
+      "cache_read_tokens": 256,
+      "cache_write_tokens": 0,
+      "input_tokens": 807,
+      "output_tokens": 187
+    }
+  }
+}

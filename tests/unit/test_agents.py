@@ -432,3 +432,88 @@ class TestGrounding:
         assert payload["grounded"] is True
         assert payload["checked_citations"] == 1
         assert payload["checked_numbers"] >= 1
+
+
+class TestIdentifiersAreNotFigures:
+    """`AL17` is a fault code and `E08` a handle, not quantities.
+
+    Found when a correct narrative that named the fault code was rejected for
+    an "unsupported figure 17". The fix must not open a hole: a real quantity
+    sitting beside a code is still checked.
+    """
+
+    def test_digits_inside_a_code_are_not_extracted(self) -> None:
+        from backend.app.agents.grounding import _numbers_in
+
+        assert _numbers_in("fault code AL17 (E08) on unit T5") == ()
+
+    def test_a_real_figure_next_to_a_code_is_still_extracted(self) -> None:
+        from backend.app.agents.grounding import _numbers_in
+
+        assert _numbers_in("AL17 is active and the cargo is 9.4 C") == ((9.4,),)
+        assert _numbers_in("about 17 units, code AL17") == ((17.0,),)
+
+    def test_ordinary_numbers_are_unaffected(self) -> None:
+        from backend.app.agents.grounding import _numbers_in
+
+        assert _numbers_in("7.15 C of 8.00, cost 1,800 USD, 78%") == (
+            (7.15,),
+            (8.0,),
+            (1800.0,),
+            (78.0, 0.78),
+        )
+
+
+class TestTypographicMinusIsStillAMinus:
+    """A model writes a negative reading with an en dash, not a hyphen-minus.
+
+    Found recording real Groq cassettes: gpt-oss reports "en-dash 15.29 C"
+    for a frozen-cargo reading, `[-+]?` does not match an en dash, and a
+    correct negative temperature was extracted as its positive magnitude and rejected as
+    unsupported - a false fabrication finding on a narrative that was exactly
+    right. The fix must not break a written range, which already relies on the
+    ordinary hyphen-minus never being read as a sign when it follows a digit.
+    """
+
+    def test_an_en_dash_negative_is_read_as_negative(self) -> None:
+        from backend.app.agents.grounding import _numbers_in
+
+        assert _numbers_in("cargo is at –15.29 C") == ((-15.29,),)  # noqa: RUF001
+
+    def test_a_minus_sign_and_an_em_dash_are_also_read_as_negative(self) -> None:
+        from backend.app.agents.grounding import _numbers_in
+
+        assert _numbers_in("−14754 USD") == ((-14754.0,),)  # noqa: RUF001
+        assert _numbers_in("—14754 USD") == ((-14754.0,),)
+
+    def test_a_written_range_with_a_non_breaking_hyphen_stays_two_positives(self) -> None:
+        from backend.app.agents.grounding import _numbers_in
+
+        assert _numbers_in("permitted range 2.00‑8.00 C") == ((2.0,), (8.0,))  # noqa: RUF001
+
+    def test_a_negative_reading_is_actually_grounded_against_its_evidence(self) -> None:
+        """End to end: the figure the earlier tests exercise in isolation must
+        also pass the real check against a negative observation."""
+        from datetime import UTC, datetime
+
+        from backend.app.agents.grounding import check_grounding
+        from backend.app.domain.enums import EvidenceSource, Modality
+        from backend.app.domain.evidence import EntityRef, Evidence, Provenance
+
+        now = datetime(2026, 1, 1, tzinfo=UTC)
+        reading = Evidence.create(
+            entity_ref=EntityRef(kind="vehicle", id="AX-1"),
+            source=EvidenceSource.TELEMETRY,
+            modality=Modality.TIMESERIES,
+            observation_type="cargo_temp_c",
+            value=-15.29,
+            observed_at=now,
+            ingested_at=now,
+            provenance=Provenance(producer="t", producer_version="1"),
+        )
+        report = check_grounding(
+            "cargo is at –15.29 C",  # noqa: RUF001
+            cited_evidence_ids=[str(reading.id)],
+            evidence=[reading],
+        )
+        assert report.grounded, report.describe()

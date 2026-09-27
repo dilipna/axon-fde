@@ -57,6 +57,9 @@ class LLMVendor(StrEnum):
 
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    #: Groq serves open-weight models behind an OpenAI-compatible API, so it
+    #: reuses `OpenAIProvider` with a different base URL and key.
+    GROQ = "groq"
 
 
 class Settings(BaseSettings):
@@ -126,11 +129,16 @@ class Settings(BaseSettings):
     # nothing and needs neither.
     anthropic_api_key: SecretStr | None = None
     openai_api_key: SecretStr | None = None
-    axon_llm_vendor: LLMVendor = LLMVendor.OPENAI
+    groq_api_key: SecretStr | None = None
+    axon_llm_vendor: LLMVendor = LLMVendor.GROQ
     axon_llm_mode: LLMMode = LLMMode.CASSETTE
-    axon_model_reasoning: str = "gpt-5"
-    axon_model_extraction: str = "gpt-5-mini"
-    axon_model_judge: str = "gpt-4.1-mini"
+    # Defaults are the models the committed cassettes were recorded with. They
+    # are part of every cassette key, so changing one is a re-recording, and CI
+    # (which has no .env) replays against exactly these. The OpenAI and Anthropic
+    # ids remain selectable through the environment.
+    axon_model_reasoning: str = "openai/gpt-oss-120b"
+    axon_model_extraction: str = "openai/gpt-oss-20b"
+    axon_model_judge: str = "openai/gpt-oss-20b"
     # A careless benchmark loop can otherwise burn a month's budget in an hour.
     axon_daily_spend_limit_usd: float = Field(default=5.0, ge=0.0)
 
@@ -311,7 +319,11 @@ class Settings(BaseSettings):
         missing. Telling someone ANTHROPIC_API_KEY is unset while they are
         configured for OpenAI is worse than saying nothing.
         """
-        return "OPENAI_API_KEY" if self.axon_llm_vendor is LLMVendor.OPENAI else "ANTHROPIC_API_KEY"
+        return {
+            LLMVendor.OPENAI: "OPENAI_API_KEY",
+            LLMVendor.GROQ: "GROQ_API_KEY",
+            LLMVendor.ANTHROPIC: "ANTHROPIC_API_KEY",
+        }[self.axon_llm_vendor]
 
     @property
     def active_api_key(self) -> SecretStr | None:
@@ -321,11 +333,11 @@ class Settings(BaseSettings):
         unused vendor's key present must fail as unconfigured, not quietly call
         the vendor nobody selected.
         """
-        return (
-            self.openai_api_key
-            if self.axon_llm_vendor is LLMVendor.OPENAI
-            else self.anthropic_api_key
-        )
+        return {
+            LLMVendor.OPENAI: self.openai_api_key,
+            LLMVendor.GROQ: self.groq_api_key,
+            LLMVendor.ANTHROPIC: self.anthropic_api_key,
+        }[self.axon_llm_vendor]
 
     @model_validator(mode="after")
     def _warn_on_spend_risk(self) -> Self:

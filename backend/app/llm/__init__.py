@@ -30,6 +30,8 @@ from backend.app.llm.spend import SpendLedger, SpendLimitExceededError
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from backend.app.config import Settings
 
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+
 __all__ = [
     "AnthropicProvider",
     "CassetteLibrary",
@@ -64,4 +66,8 @@ def build_provider(settings: Settings | None = None) -> LLMProvider:
     resolved = settings or get_settings()
     if resolved.axon_llm_vendor is LLMVendor.OPENAI:
         return OpenAIProvider(settings=resolved)
+    if resolved.axon_llm_vendor is LLMVendor.GROQ:
+        # Groq's free tier answers a burst with 429 and a retry-after, so the
+        # client is told to wait and retry rather than fail the whole run.
+        return OpenAIProvider(settings=resolved, base_url=GROQ_BASE_URL, max_retries=20)
     return AnthropicProvider(settings=resolved)

@@ -1,0 +1,58 @@
+{
+  "cassette_version": 1,
+  "key": "5391a39134f3b0698b47c1fb78a35b6d",
+  "request": {
+    "cache_prefix": true,
+    "effort": "low",
+    "max_tokens": 600,
+    "messages": [
+      {
+        "content": "Evidence digest:\nEvidence for one vehicle, covering 64 minutes up to the newest observation.\nCite observations by their handle, e.g. E07. Only these handles exist.\n\nLatest observation of each type, one line per source that reported it:\n[E01] ambient_temp_c = 30.85 (source telemetry, 0 min before the newest)\n[E02] cargo_temp_c = 7.63 (source telemetry, 0 min before the newest)\n[E03] compressor_rpm = 2400.00 (source telemetry, 0 min before the newest)\n[E04] door_state = open (source telemetry, 0 min before the newest)\n[E05] fault_code = [AL02] (source telemetry, 0 min before the newest)\n[E06] humidity_pct = 55.80 (source telemetry, 0 min before the newest)\n[E07] minutes_to_destination = 236.00 (source telemetry, 0 min before the newest)\n[E08] permitted_temp_max_c = 8.00 (source document_extraction, 64 min before the newest)\n[E09] permitted_temp_min_c = 2.00 (source document_extraction, 64 min before the newest)\n[E10] reefer_fuel_pct = 92.97 (source telemetry, 0 min before the newest)\n[E11] reefer_status = running (source telemetry, 0 min before the newest)\n[E12] route_delay_min = 0.00 (source telemetry, 0 min before the newest)\n[E13] speed_kph = 86.90 (source telemetry, 0 min before the newest)\n[E14] truck_fuel_pct = 76.70 (source telemetry, 0 min before the newest)\n\nTrends over the last 30 minutes:\nambient_temp_c: 30.09 [E15] -> 30.85 over 30 min, slope +0.025 per minute\ncargo_temp_c: 6.06 [E16] -> 7.63 over 30 min, slope +0.031 per minute\ncompressor_rpm: 1449.50 [E17] -> 2400.00 over 30 min, slope +21.344 per minute\nhumidity_pct: 58.30 [E18] -> 55.80 over 30 min, slope -0.056 per minute\nminutes_to_destination: 266.00 [E19] -> 236.00 over 30 min, slope -1.000 per minute\nreefer_fuel_pct: 94.18 [E20] -> 92.97 over 30 min, slope -0.039 per minute\nroute_delay_min: 0.00 [E21] -> 0.00 over 30 min, slope +0.000 per minute\nspeed_kph: 92.50 [E22] -> 86.90 over 30 min, slope +0.059 per minute\ntruck_fuel_pct: 77.30 [E23] -> 76.70 over 30 min, slope -0.020 per minute\n\nFault codes reported in the last 60 minutes:\nfault code AL02 [E24]\n\nCross-source conflicts found by deterministic reconciliation:\n(none)\n\nSummary to grade:\nThe cargo is approaching the upper limit of its permitted temperature envelope, with the current cargo_temp_c of 7.63 C close to the maximum of 8.00 C (E08). A door_state of open (E04) and the fault code AL02 (E05) indicate that the system believes a door left open is degrading the compressor performance (E03). The probability that the cargo breaches its envelope is 0.96, which triggers a recommendation to reroute the vehicle to a cold storage facility. The expected cost of this intervention is 1800 USD with a delay of 180 minutes, and the intervention has the highest expected value among options.\n",
+        "role": "user"
+      }
+    ],
+    "model": "openai/gpt-oss-20b",
+    "node": "judge",
+    "output_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "score": {
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "score",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "prompt_version": "v2",
+    "system": "You grade incident summaries written for cold-chain dispatchers.\n\nScore the summary from 1 to 5 on whether a dispatcher could act on it:\n5 = states the situation, the likely cause and a specific recommended action, and\n    every claim is tied to something observed;\n3 = correct but thin, or the reasoning is asserted rather than shown;\n1 = generic, missing the action, or not tied to the evidence.\n\nJudge only what is written. You are not told which summary came from which\nsystem and must not guess. Do not reward length."
+  },
+  "response": {
+    "latency_ms": 5975,
+    "model": "openai/gpt-oss-20b",
+    "parsed": {
+      "reason": "The summary correctly states the cargo temperature is near the upper limit and notes the door is open and a fault code is present, which are all tied to observable evidence. It also provides a specific recommendation to reroute to a cold storage facility. However, the justification for the probability estimate and the decision to reroute is not fully reasoned from the data; it is asserted rather than shown, and the recommendation lacks supporting evidence beyond the stated facts. This makes the summary correct but somewhat thin, fitting a score of 3.",
+      "score": 3
+    },
+    "stop_reason": "stop",
+    "text": "{\"score\":3,\"reason\":\"The summary correctly states the cargo temperature is near the upper limit and notes the door is open and a fault code is present, which are all tied to observable evidence. It also provides a specific recommendation to reroute to a cold storage facility. However, the justification for the probability estimate and the decision to reroute is not fully reasoned from the data; it is asserted rather than shown, and the recommendation lacks supporting evidence beyond the stated facts. This makes the summary correct but somewhat thin, fitting a score of 3.\"}",
+    "usage": {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 1060,
+      "output_tokens": 220
+    }
+  }
+}

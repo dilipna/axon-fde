@@ -1,0 +1,58 @@
+{
+  "cassette_version": 1,
+  "key": "44cbbce93a8cdca86cbfd92ebda26398",
+  "request": {
+    "cache_prefix": true,
+    "effort": "low",
+    "max_tokens": 600,
+    "messages": [
+      {
+        "content": "Evidence digest:\nEvidence for one vehicle, covering 134 minutes up to the newest observation.\nCite observations by their handle, e.g. E07. Only these handles exist.\n\nLatest observation of each type, one line per source that reported it:\n[E01] ambient_temp_c = 32.37 (source telemetry, 0 min before the newest)\n[E02] cargo_temp_c = -16.03 (source telemetry, 0 min before the newest)\n[E03] compressor_rpm = 1434.50 (source telemetry, 0 min before the newest)\n[E04] door_state = open (source telemetry, 0 min before the newest)\n[E05] fault_code = [AL02] (source telemetry, 0 min before the newest)\n[E06] humidity_pct = 58.10 (source telemetry, 0 min before the newest)\n[E07] minutes_to_destination = 766.00 (source telemetry, 0 min before the newest)\n[E08] permitted_temp_max_c = -15.00 (source document_extraction, 134 min before the newest)\n[E09] permitted_temp_min_c = -20.00 (source document_extraction, 134 min before the newest)\n[E10] reefer_fuel_pct = 93.02 (source telemetry, 0 min before the newest)\n[E11] reefer_status = cycling (source telemetry, 0 min before the newest)\n[E12] route_delay_min = 0.00 (source telemetry, 0 min before the newest)\n[E13] speed_kph = 92.20 (source telemetry, 0 min before the newest)\n[E14] truck_fuel_pct = 75.30 (source telemetry, 0 min before the newest)\n\nTrends over the last 30 minutes:\nambient_temp_c: 31.76 [E15] -> 32.37 over 30 min, slope +0.020 per minute\ncargo_temp_c: -16.81 [E16] -> -16.03 over 30 min, slope +0.026 per minute\ncompressor_rpm: 791.00 [E17] -> 1434.50 over 30 min, slope +21.090 per minute\nhumidity_pct: 61.80 [E18] -> 58.10 over 30 min, slope +0.002 per minute\nminutes_to_destination: 796.00 [E19] -> 766.00 over 30 min, slope -1.000 per minute\nreefer_fuel_pct: 93.99 [E20] -> 93.02 over 30 min, slope -0.031 per minute\nroute_delay_min: 0.00 [E21] -> 0.00 over 30 min, slope +0.000 per minute\nspeed_kph: 90.90 [E22] -> 92.20 over 30 min, slope -0.012 per minute\ntruck_fuel_pct: 75.90 [E23] -> 75.30 over 30 min, slope -0.020 per minute\n\nFault codes reported in the last 60 minutes:\nfault code AL02 [E24]\n\nCross-source conflicts found by deterministic reconciliation:\n(none)\n\nSummary to grade:\nThe cargo temperature is now \u201316.03\u202fC, above the permitted maximum of \u201315.00\u202fC, and the door is open, so the system flags a high breach probability of 0.79. The fault code AL02 and the rapid rise in compressor rpm support the hypothesis that the door is open and the compressor is degrading. The recommended intervention is to reroute the vehicle to cold storage, costing 1800\u202fUSD and adding 180\u202fmin of delay, which gives the best expected value.",
+        "role": "user"
+      }
+    ],
+    "model": "openai/gpt-oss-20b",
+    "node": "judge",
+    "output_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "score": {
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "score",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "prompt_version": "v2",
+    "system": "You grade incident summaries written for cold-chain dispatchers.\n\nScore the summary from 1 to 5 on whether a dispatcher could act on it:\n5 = states the situation, the likely cause and a specific recommended action, and\n    every claim is tied to something observed;\n3 = correct but thin, or the reasoning is asserted rather than shown;\n1 = generic, missing the action, or not tied to the evidence.\n\nJudge only what is written. You are not told which summary came from which\nsystem and must not guess. Do not reward length."
+  },
+  "response": {
+    "latency_ms": 9958,
+    "model": "openai/gpt-oss-20b",
+    "parsed": {
+      "reason": "The summary correctly states the current situation (cargo temperature above the permitted maximum and door open) and offers a specific action (reroute to cold storage). It references the fault code AL02 and the rapid rise in compressor RPM as evidence, but it does not fully explain why the compressor is degrading or how the cost and delay were derived. The reasoning is asserted rather than fully demonstrated, so it scores a 3.",
+      "score": 3
+    },
+    "stop_reason": "stop",
+    "text": "{\"score\":3,\"reason\":\"The summary correctly states the current situation (cargo temperature above the permitted maximum and door open) and offers a specific action (reroute to cold storage). It references the fault code AL02 and the rapid rise in compressor RPM as evidence, but it does not fully explain why the compressor is degrading or how the cost and delay were derived. The reasoning is asserted rather than fully demonstrated, so it scores a 3.\"}",
+    "usage": {
+      "cache_read_tokens": 256,
+      "cache_write_tokens": 0,
+      "input_tokens": 773,
+      "output_tokens": 200
+    }
+  }
+}

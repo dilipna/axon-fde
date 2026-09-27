@@ -1,0 +1,58 @@
+{
+  "cassette_version": 1,
+  "key": "80d6a1c1e7de90379ecb5ca4a47fcdda",
+  "request": {
+    "cache_prefix": true,
+    "effort": "low",
+    "max_tokens": 600,
+    "messages": [
+      {
+        "content": "Evidence digest:\nEvidence for one vehicle, covering 102 minutes up to the newest observation.\nCite observations by their handle, e.g. E07. Only these handles exist.\n\nLatest observation of each type, one line per source that reported it:\n[E01] ambient_temp_c = 37.72 (source telemetry, 0 min before the newest)\n[E02] cargo_temp_c = 7.15 (source telemetry, 0 min before the newest)\n[E03] compressor_rpm = 1488.00 (source telemetry, 0 min before the newest)\n[E04] door_state = closed (source telemetry, 0 min before the newest)\n[E05] fault_code = [AL17] (source telemetry, 0 min before the newest)\n[E06] humidity_pct = 58.00 (source telemetry, 0 min before the newest)\n[E07] minutes_to_destination = 173.00 (source telemetry, 0 min before the newest)\n[E08] permitted_temp_max_c = 8.00 (source document_extraction, 102 min before the newest)\n[E09] permitted_temp_max_c = 10.00 (source sql_legacy, 102 min before the newest)\n[E10] permitted_temp_min_c = 2.00 (source document_extraction, 102 min before the newest)\n[E11] reefer_fuel_pct = 90.88 (source telemetry, 0 min before the newest)\n[E12] reefer_status = running (source telemetry, 0 min before the newest)\n[E13] route_delay_min = 35.00 (source telemetry, 0 min before the newest)\n[E14] speed_kph = 0.00 (source telemetry, 0 min before the newest)\n[E15] truck_fuel_pct = 75.94 (source telemetry, 0 min before the newest)\n\nTrends over the last 30 minutes:\nambient_temp_c: 37.04 [E16] -> 37.72 over 30 min, slope +0.023 per minute\ncargo_temp_c: 6.57 [E17] -> 7.15 over 30 min, slope +0.016 per minute\ncompressor_rpm: 1779.60 [E18] -> 1488.00 over 30 min, slope -10.225 per minute\nhumidity_pct: 56.30 [E19] -> 58.00 over 30 min, slope -0.042 per minute\nminutes_to_destination: 203.00 [E20] -> 173.00 over 30 min, slope -1.000 per minute\nreefer_fuel_pct: 92.59 [E21] -> 90.88 over 30 min, slope -0.058 per minute\nroute_delay_min: 35.00 [E22] -> 35.00 over 30 min, slope +0.000 per minute\nspeed_kph: 0.00 [E23] -> 0.00 over 30 min, slope +0.000 per minute\ntruck_fuel_pct: 76.54 [E24] -> 75.94 over 30 min, slope -0.020 per minute\n\nFault codes reported in the last 60 minutes:\nfault code AL17 [E25]\n\nCross-source conflicts found by deterministic reconciliation:\npermitted_temp_max_c (safety critical)\n\nSummary to grade:\nThe cargo is currently 7.15\u202fC inside a refrigerated unit that has a permitted maximum of 8.00\u202fC, but the system estimates a 0.62 probability that the temperature will breach that envelope.  The compressor is running at 1488\u202fRPM, a drop from 1779.60\u202fRPM in 30\u202fminutes, and a fault code [AL17] has been recorded, pointing to potential compressor degradation.  With a remaining 173\u202fminutes to destination and a 35\u2011minute route delay, the risk of damage is high.  The recommended action is to reroute the vehicle to cold storage, costing 1800\u202fUSD and adding 180\u202fminutes of delay, which offers the highest expected value.\n",
+        "role": "user"
+      }
+    ],
+    "model": "openai/gpt-oss-20b",
+    "node": "judge",
+    "output_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "score": {
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "score",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "prompt_version": "v2",
+    "system": "You grade incident summaries written for cold-chain dispatchers.\n\nScore the summary from 1 to 5 on whether a dispatcher could act on it:\n5 = states the situation, the likely cause and a specific recommended action, and\n    every claim is tied to something observed;\n3 = correct but thin, or the reasoning is asserted rather than shown;\n1 = generic, missing the action, or not tied to the evidence.\n\nJudge only what is written. You are not told which summary came from which\nsystem and must not guess. Do not reward length."
+  },
+  "response": {
+    "latency_ms": 8730,
+    "model": "openai/gpt-oss-20b",
+    "parsed": {
+      "reason": "The summary clearly states the current situation (cargo temp 7.15\u202fC, permitted max 8.00\u202fC, compressor running at 1488\u202fRPM), identifies a likely cause (fault code AL17 indicating compressor degradation and a drop in RPM), and gives a specific recommended action (reroute to cold storage). All claims are supported by observations or trends cited in the evidence.",
+      "score": 5
+    },
+    "stop_reason": "stop",
+    "text": "{\"score\":5,\"reason\":\"The summary clearly states the current situation (cargo temp 7.15\u202fC, permitted max 8.00\u202fC, compressor running at 1488\u202fRPM), identifies a likely cause (fault code AL17 indicating compressor degradation and a drop in RPM), and gives a specific recommended action (reroute to cold storage). All claims are supported by observations or trends cited in the evidence.\"}",
+    "usage": {
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 1110,
+      "output_tokens": 194
+    }
+  }
+}
