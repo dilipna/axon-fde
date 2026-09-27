@@ -850,6 +850,123 @@ async def _persist_recommendation(
     return candidates[action], recommendation
 
 
+# ---------------------------------------------------------------------------
+# The LLM showcase - additive, and not part of the loop above
+# ---------------------------------------------------------------------------
+#
+# `run_demo` above is deliberately model-free: it is the `rules_only` arm C5
+# is measured against, and that measurement is only meaningful if this script
+# stays exactly what it was when the arm was recorded. So this function does
+# not touch it, is not one of its thirteen steps, and cannot change its exit
+# code or its trace. It runs *after* the loop above has already finished,
+# purely to answer the question a recruiter asks first: "where is the model?"
+#
+# It replays the same flagship incident through the real two-model-node graph
+# (`backend.app.agents.graph`) - the one AxonBench's `rules_llm` arm measures
+# as C3/C5/C10/C12 - from the cassette committed in B10b. Cassette mode is the
+# default, so this needs no key and spends nothing; a missing cassette (the
+# recording never happened, or a prompt changed since) is caught and reported
+# rather than left to crash the whole demo.
+
+
+async def _llm_showcase() -> dict[str, Any] | None:
+    """What a real (recorded) model investigation produces for the flagship.
+
+    Returns a payload with ``available: False`` rather than raising when it
+    cannot run - a demo is worse for crashing on its bonus feature than for
+    one section reporting it is unavailable and saying why.
+    """
+    try:
+        from backend.app.agents.digest import build_digest
+        from backend.app.agents.nodes.model_nodes import make_model_nodes
+        from backend.app.config import get_settings
+        from backend.app.llm import build_provider
+        from backend.app.llm.cassettes import CassetteMissError
+        from benchmarks.axonbench.llm_arm import _run_graph, build_cases
+    except ImportError as exc:  # pragma: no cover - environment, not logic
+        return {"available": False, "reason": f"benchmark modules not importable: {exc}"}
+
+    settings = get_settings()
+    provider = build_provider(settings)
+    cases, _ = build_cases(only=frozenset({SCENARIO}))
+    if not cases:
+        return {"available": False, "reason": f"{SCENARIO} opens no predictive incident"}
+    case = cases[0]
+
+    propose, narrate = make_model_nodes(
+        provider,
+        links_model=settings.axon_model_reasoning,
+        narrate_model=settings.axon_model_extraction,
+    )
+    try:
+        state = await _run_graph(case, propose=propose, narrate=narrate)
+    except CassetteMissError:
+        return {
+            "available": False,
+            "reason": (
+                "no cassette for this incident - AXON_LLM_MODE=record would call "
+                f"the real API ({settings.axon_llm_vendor.value})"
+            ),
+        }
+
+    digest = build_digest(case.evidence, conflicts=state.get("conflicts", []))
+    handle_of = {v: k for k, v in digest.handles.items()}  # evidence id -> E07, for readability
+    grounding = state.get("grounding")
+    notes = state.get("notes", {})
+
+    return {
+        "available": True,
+        "vendor": settings.axon_llm_vendor.value,
+        "models": {
+            "propose_links": settings.axon_model_reasoning,
+            "narrate": settings.axon_model_extraction,
+        },
+        "decision_minute": case.decision_minute,
+        "hypotheses": [
+            {
+                "root_cause": h.root_cause.value,
+                "confidence": round(h.confidence, 3),
+                "prior": round(h.prior, 3),
+                "cited": [handle_of.get(i, i) for i in h.supporting_evidence_ids],
+            }
+            for h in state.get("hypotheses", [])
+        ],
+        "narrative": state.get("narrative", ""),
+        "narrative_grounded": None if grounding is None else grounding.grounded,
+        "grounding_detail": None if grounding is None else grounding.describe(),
+        "escalated": bool(state.get("escalation_reason")),
+        "escalation_reason": state.get("escalation_reason", ""),
+        "invocations": notes.get("invocations", []),
+        "measured_elsewhere": (
+            "this one incident is illustrative, not a claim - C3/C5/C10/C12 in "
+            "claims.md are measured over all 44 investigated incidents"
+        ),
+    }
+
+
+def _print_llm_showcase(showcase: dict[str, Any] | None) -> None:
+    print("\n\033[1m[LLM] What the language model produces for this same incident\033[0m")
+    print("\033[2m(not part of the rules-only arm above - see claims.md C3/C5/C10/C12)\033[0m")
+    if showcase is None or not showcase.get("available"):
+        reason = (showcase or {}).get("reason", "unavailable")
+        print(f"  not shown: {reason}")
+        return
+    print(f"  model: {showcase['models']['propose_links']} via {showcase['vendor']}")
+    for h in showcase["hypotheses"][:3]:
+        cited = ", ".join(h["cited"]) or "(none)"
+        print(
+            f"  hypothesis: {h['root_cause']}  confidence={h['confidence']:.2f} "
+            f"(rule prior {h['prior']:.2f})  cites {cited}"
+        )
+    print(f"  narrative: {showcase['narrative']}")
+    if showcase["narrative_grounded"] is False:
+        print(f"  \033[33mgrounding check: {showcase['grounding_detail']}\033[0m")
+    elif showcase["narrative_grounded"] is True:
+        print(f"  grounding check: {showcase['grounding_detail']}")
+    if showcase["escalated"]:
+        print(f"  \033[33mescalated: {showcase['escalation_reason']}\033[0m")
+
+
 def main(argv: list[str] | None = None) -> int:
     # Windows consoles default to cp1252, and a demo that dies printing its own
     # output is a bad demo. The body is ASCII, but scenario text and exception
@@ -886,6 +1003,20 @@ def main(argv: list[str] | None = None) -> int:
             encoding="utf-8",
         )
         print(f"\n\033[2mTrace written to {trace_path}\033[0m")
+
+    if "--no-llm" not in args:
+        showcase = asyncio.run(_llm_showcase())
+        _print_llm_showcase(showcase)
+        if trace_path is not None and isinstance(narrator, Recorder):
+            # Appended to the already-written trace, not merged into `payload`
+            # above: the rules-only steps are written first and unconditionally,
+            # so a showcase failure can never make the loop's own trace missing.
+            merged = json.loads(trace_path.read_text(encoding="utf-8"))
+            merged["llm_showcase"] = showcase
+            trace_path.write_text(
+                json.dumps(merged, indent=2, sort_keys=True, default=str) + "\n",
+                encoding="utf-8",
+            )
 
     print(f"\n\033[2mElapsed {elapsed:.1f}s\033[0m")
     return code
