@@ -8,9 +8,11 @@ to predict incidents *before* a threshold is breached, investigate root causes, 
 options, recommend an evidence-backed action, execute it only under human approval, and then verify
 whether the intervention actually worked.
 
-> **Status: Phase 0 complete — discovery, design and foundations.** Phase 1 (the end-to-end
-> vertical slice) is next. No performance claim appears in this README until it is produced by a
-> stored benchmark run. Anything not yet measured is explicitly marked `PLACEHOLDER`.
+> **Status: Phase 1 (the end-to-end vertical slice) complete, plus the Phase 3 risk model.**
+> The closed loop runs end to end against real Postgres and SQL Server, and eight of fifteen
+> registered claims are measured — six cleanly, two (C5, C10) measured with an honest caveat
+> attached. No performance claim appears in this README until it is produced by a stored
+> benchmark run. Anything not yet measured is explicitly marked `PLACEHOLDER`.
 
 **Resuming work?** Read [CONTINUE.md](CONTINUE.md) first.
 
@@ -81,7 +83,7 @@ See [`docs/architecture/`](docs/architecture/) for the full design and
 [`docs/adr/`](docs/adr/) for the decision records.
 
 ```
-Next.js control tower
+Control tower (static page, no build step)
         │
 FastAPI (authn/authz) ── PolicyEngine (deterministic, outside the LLM)
         │
@@ -101,8 +103,8 @@ IncidentForge simulator ──► AxonBench evaluation harness
 | Legacy system | SQL Server 2022 | A genuinely different engine is what makes dialect handling, ODBC integration, view-scoped least-privilege reads and AST validation real rather than decorative. |
 | Application DB | PostgreSQL 16 + pgvector | One store for relational data, JSONB, full-text, vectors and agent checkpoints. |
 | Agent | LangGraph | Chosen for durable checkpointing and interrupt/resume — which is exactly what human approval needs. Not for "multi-agent". |
-| Risk | LightGBM + isotonic calibration | Safety-critical probability stays out of the LLM. Always reported against a non-ML baseline. |
-| LLM | Anthropic (`claude-opus-5`) | Structured outputs enforce typed extraction; prompt caching and the Batch API keep cost per incident bounded. |
+| Risk | Logistic regression over engineered features + the two baselines' own scores | Safety-critical probability stays out of the LLM, always reported against a non-ML baseline. LightGBM + isotonic was tried first and **failed its pre-registered stop condition** out of regime — published as a negative result, [ADR-008](docs/adr/008-risk-model-choice.md). |
+| LLM | Groq (`openai/gpt-oss-120b`/`-20b`), free-tier default; OpenAI and Anthropic selectable | One `LLMProvider` protocol, three vendors behind it, swapped by config. Structured outputs enforce typed extraction; cassettes make every arm replayable for $0. |
 | SQL safety | SQLGlot | Real AST allowlisting. Regex-based SQL guards are security theatre. |
 
 ---
@@ -173,14 +175,18 @@ with the benchmark, baseline, metric and methodology required to support it. The
 | Detects when enterprise sources disagree | precision / recall against seeded conflicts | — | **recall 1.00, precision 1.00** over 23 conflicts and 60 near-miss negatives |
 | AI cannot execute unauthorised actions | unauthorised-action rate (target: 0) | — | **0** across all 50 role × action cells |
 | Generated SQL cannot mutate the legacy system | prohibited-operation rate (target: 0) | — | **0** of 57 adversarial inputs |
-| Calibrated excursion probability | Brier, ECE, reliability diagram | slope extrapolation, logistic regression | `PLACEHOLDER` |
-| Accurate root-cause identification | top-1 / top-3 accuracy | rules-only arm | `PLACEHOLDER` |
+| Calibrated excursion probability | Brier, ECE, reliability diagram, out of regime | slope extrapolation, rule margin, logistic regression | **ECE 0.030** vs slope's 0.119, AUC-PR 0.689 vs 0.284 — [ADR-008](docs/adr/008-risk-model-choice.md) has what this does *not* establish |
+| Accurate root-cause identification | top-1 / top-3 accuracy | rules-only arm | rules-only **0.50** top-1; LLM arm **0.432** — the LLM arm is *worse*, see next row |
 | Multimodal evidence improves outcomes | Δ accuracy across modality arms | telemetry + SOP arm | `PLACEHOLDER` |
-| The LLM adds value over rules alone | Δ accuracy, Δ action selection | rules-only arm | `PLACEHOLDER` |
+| The LLM adds value over rules alone | Δ accuracy, Δ action selection, judged explanation | rules-only arm | **`REFUTED`** — Δtop-1 **−0.068**, Δaction **0.000** (identical on every incident, by construction), Δexplanation **+1.45**/5 |
 
-All four measured figures come from run `run-9d16820ec3b3`, committed under
+Also measured: unsupported-claim rate in generated narratives (**0.318**, mostly a
+documented tolerance-vs-dollar-figure tradeoff, not fabrication) and per-incident model
+cost (**$0.0006** p95 — a free-tier open-weight model, not a frontier one). Every figure
+above is a **stored, reproducible run**, committed under
 [`benchmarks/results/published/`](benchmarks/results/published/). The full table, with every
-companion metric, is [`docs/evaluation/results.md`](docs/evaluation/results.md).
+companion metric and every caveat, is [`docs/evaluation/results.md`](docs/evaluation/results.md)
+and [`docs/evaluation/claims.md`](docs/evaluation/claims.md).
 
 > **The lead-time figure is not quotable on its own.** A detector that alerts constantly has
 > unbounded lead time and no value, so 49 minutes means nothing without the 0.30 false-alarm rate
@@ -211,10 +217,12 @@ positive.
 |---|---|
 | `backend/app/` | FastAPI application (modular monolith) |
 | `simulator/incidentforge/` | Seeded fleet simulator, thermal physics, fault injection |
-| `benchmarks/axonbench/` | Evaluation harness, graders, scenario packs |
-| `benchmarks/axonred/` | Adversarial / prompt-injection attack pack |
-| `ml/` | Risk model training, calibration, evaluation |
-| `apps/web/` | Next.js operations control tower |
+| `benchmarks/axonbench/` | Evaluation harness, graders, scenario packs — built, in CI |
+| `benchmarks/riskmodel/` | Risk model training, calibration, out-of-regime evaluation — built |
+| `benchmarks/axonred/` | Adversarial / prompt-injection attack pack — **scaffolding only, not built** |
+| `data/models/` | The trained risk model artifact (versioned, refuses a mismatched build) |
+| `apps/control_tower/` | The control tower — static page, no build step, three read-only endpoints, **built** |
+| `apps/web/` | Reserved for a richer operations UI — **empty, not built** |
 | `data/` | Seed data, observation taxonomy, knowledge corpus, scenarios |
 | `docs/` | Architecture, ADRs, threat model, evaluation, case study |
 | `infra/terraform/` | Ephemeral AWS demo environment |

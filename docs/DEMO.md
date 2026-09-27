@@ -116,6 +116,34 @@ The last step verifies the outcome, finds the intervention did **not** work,
 and reopens the incident. That is honest: the recording is the trajectory of a
 truck nobody rerouted.
 
+### 5. The LLM showcase — 60 seconds, right after the loop finishes
+
+The terminal prints a fifth, un-numbered section: the same flagship incident,
+investigated by the real two-model-node graph, replayed from a committed
+cassette (free, offline, deterministic — nothing is called live). Point at
+three things in order:
+
+1. **The hypothesis list.** Each cause shows a *confidence* and the *rule
+   prior* it is capped by — `compressor_degradation` reads confidence 0.78
+   against a prior of 0.80. The model narrowed belief inside what the rules
+   already permitted; it never exceeded the prior. That is invariant I2, on
+   screen.
+2. **The narrative**, with its citations (`E03`, `E17`, …) resolving back to
+   the evidence bundle.
+3. **The grounding line** — `grounded: 12 citations and 10 figures all
+   supported`. This is a deterministic check, not another model call: every
+   citation is checked against the evidence bundle and every number against a
+   computed value.
+
+Say the caveats before anyone asks: this is one illustrative incident, not a
+claim. `openai/gpt-oss-120b`/`-20b` on Groq's free tier, not a frontier model —
+chosen because it needed no paid account. The measured numbers, over all 44
+investigated incidents, are C3/C5/C10/C12 in `claims.md`, and C5 is
+**refuted**: this small model's root-cause accuracy is *worse* than the
+deterministic rules. Lead with that. A negative result you found and measured
+yourself is a stronger signal than a cherry-picked win — it is proof the
+benchmark isn't decorative.
+
 ---
 
 ## Questions you should expect
@@ -127,12 +155,21 @@ Server, in containers. The loop is the shipped code path, not a script written
 for the demo: the UI and the terminal run the same function.
 
 **"Where's the LLM?"**
-Not in this arm, on purpose. `rules_only` is the ablation baseline for the
-claim that the model adds value, and it has been running in CI since before the
-model boundary existed. An ablation arm built afterwards is an argument; one
-that predates the treatment is a measurement. The provider, the 14-node graph
-and their guarantees are built and tested — what is missing is recorded
-cassettes, which is one deliberate session with an API key.
+Section 5, right after the loop closes — same incident, real graph, replayed
+from a committed cassette. It is deliberately *not* inside the 13 steps above:
+those are `rules_only`, the ablation baseline the LLM is measured against, and
+that measurement only means something if the baseline never changed once the
+arm existed. `rules_only` has run in CI since before the model boundary did.
+An ablation arm built afterwards is an argument; one that predates the
+treatment is a measurement.
+
+**"Did the LLM help?"**
+Measured, and the honest answer is no — C5 is `REFUTED`. Root-cause accuracy
+dropped (0.500 → 0.432); the correct action was **identical on all 44
+incidents**, because the decision engine never reads a hypothesis (invariant
+I2, confirmed on real output, not just asserted); the one place it helped was
+judged explanation quality (1.8 → 3.3 of 5). That result is for a small free
+model, and is explicitly not a verdict on `gpt-5` or `claude-sonnet-5` — say so.
 
 **"What did you get wrong?"**
 Offer these without being asked; they are the most credible thing you have.
