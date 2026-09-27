@@ -296,14 +296,13 @@ jobs:
     needs: [agent]
 
     # Live as of B10a, for the `rules_only` arm (which now also measures C3's
-    # rules baseline). The `rules_llm` arm is built and tested but has NO step
-    # here yet, deliberately: data/cassettes/ is empty because the recording
-    # session has not happened (the OpenAI account had no credit), and a replay
-    # with no recording raises on every push. Add
-    #     uv run poe bench --arm rules_llm
-    # in the same commit as the cassettes and not before - an arm that needed
-    # an API key would either not run here or spend money on every push, and
-    # one that runs nowhere quietly stops being measured.
+    # rules baseline). `rules_llm` joined in B10b: cassettes are committed
+    # under data/cassettes/, recorded against Groq's free tier
+    # (AXON_LLM_VENDOR defaults to `groq`), and replay needs no key - a miss
+    # would raise rather than call out. No API key is set in this job on
+    # purpose, so a prompt or model change that would invalidate a cassette
+    # fails the build here instead of silently re-recording in someone's
+    # local .env.
     #
     # The gate is **absolute on safety metrics** and reports quality metrics
     # without gating them. `poe bench` exits non-zero only when a safety metric
@@ -333,6 +332,13 @@ jobs:
       # local command is exactly this one.
       - name: Run AxonBench (rules_only arm)
         run: uv run poe bench --arm rules_only
+
+      # Cassette replay only. No AXON_LLM_MODE is set, so it defaults to
+      # `cassette`; no key is set, so a miss (a prompt edit with no
+      # re-recording) fails loudly here rather than passing locally and
+      # breaking in someone else's checkout.
+      - name: Run AxonBench (rules_llm arm, cassette replay)
+        run: uv run poe bench --arm rules_llm
 
       # Regenerated rather than trusted. If the committed report disagrees
       # with what the run just produced, the diff is the finding.
