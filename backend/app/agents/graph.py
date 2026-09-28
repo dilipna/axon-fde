@@ -43,6 +43,12 @@ from typing import Any
 from langgraph.graph import END, START, StateGraph
 
 from backend.app.agents.budget import BudgetState
+from backend.app.agents.degradation import (
+    NO_LLM,
+    ModelUnavailableError,
+    rule_ranking,
+    templated_narrative,
+)
 from backend.app.agents.grounding import PermittedValues, check_grounding
 from backend.app.agents.scoring import rule_priors, score_hypotheses
 from backend.app.agents.state import IncidentState, TraceEntry
@@ -218,6 +224,20 @@ class IncidentWorkflow:
         }
 
     async def check_feasibility(self, state: IncidentState) -> dict[str, Any]:
+        if not self._facilities:
+            # No facility data is not the same as no facility capacity. Treating
+            # the first as the second marked every facility-bound action
+            # infeasible and recommended one that cost 7.6 times more in
+            # expected value, without saying why (failure matrix F11).
+            return {
+                "escalation_reason": (
+                    "no facility data is available, so the options that need a facility "
+                    "cannot be assessed; the system declines to treat missing data as "
+                    "no capacity"
+                ),
+                "trace": _trace("check_feasibility", "no facility data"),
+                "budget": state["budget"].advance(steps=1),
+            }
         verdicts = assess_feasibility(
             facilities=self._facilities, requires_pharma_certification=True
         )
@@ -363,7 +383,10 @@ class IncidentWorkflow:
     # -- the model-facing nodes ------------------------------------------
 
     async def propose_links(self, state: IncidentState) -> dict[str, Any]:
-        result = await self._propose_links(state)
+        try:
+            result = await self._propose_links(state)
+        except ModelUnavailableError as exc:
+            return self._degrade(state, "propose_links", exc, proposed_links=[])
         spent = result.pop("_tokens", 0)
         return {
             **result,
@@ -372,13 +395,53 @@ class IncidentWorkflow:
         }
 
     async def narrate(self, state: IncidentState) -> dict[str, Any]:
-        result = await self._narrate(state)
+        if state.get("degraded_mode") == NO_LLM:
+            # The model already failed this run. Asking again costs another
+            # timeout for an answer the ladder says not to wait for.
+            return self._template(state, "narrate", "model unavailable earlier in the run")
+        try:
+            result = await self._narrate(state)
+        except ModelUnavailableError as exc:
+            return self._degrade(state, "narrate", exc)
         spent = result.pop("_tokens", 0)
         return {
             **result,
+            "narrative_source": "model",
             "trace": _trace("narrate", f"{len(result.get('narrative', ''))} characters"),
             "budget": state["budget"].advance(steps=1, tokens=int(spent)),
         }
+
+    # -- the NO_LLM rung --------------------------------------------------
+
+    def _degrade(
+        self, state: IncidentState, node: str, exc: ModelUnavailableError, **extra: Any
+    ) -> dict[str, Any]:
+        """Drop to `NO_LLM` and keep going on rules. See `agents/degradation.py`."""
+        update: dict[str, Any] = {
+            "degraded_mode": NO_LLM,
+            "degradation_reason": str(exc),
+            "notes": {**state.get("notes", {}), "rule_ranking": rule_ranking(state)},
+            "trace": _trace(node, f"model unavailable ({exc.why}); continuing on rules (NO_LLM)"),
+            "budget": state["budget"].advance(steps=1),
+            **extra,
+        }
+        if node == "narrate":
+            update.update(self._template(state, node, str(exc), trace=False))
+        return update
+
+    def _template(
+        self, state: IncidentState, node: str, why: str, *, trace: bool = True
+    ) -> dict[str, Any]:
+        text, cited = templated_narrative(state)
+        update: dict[str, Any] = {
+            "narrative": text,
+            "cited_evidence_ids": cited,
+            "narrative_source": "template",
+        }
+        if trace:
+            update["trace"] = _trace(node, f"templated narrative ({why})")
+            update["budget"] = state["budget"].advance(steps=1)
+        return update
 
 
 def _gate(workflow: IncidentWorkflow, next_node: str) -> Callable[[IncidentState], str]:
@@ -449,6 +512,9 @@ def initial_state(
         conflicts=[],
         cited_evidence_ids=[],
         narrative="",
+        degraded_mode="FULL",
+        degradation_reason="",
+        narrative_source="",
         trace=[],
         notes={},
     )

@@ -32,7 +32,12 @@ from typing import TYPE_CHECKING, Any
 
 from backend.app.config import LLMMode, Settings, get_settings
 from backend.app.llm.cassettes import CassetteLibrary
-from backend.app.llm.provider import LLMRequest, LLMResponse, TokenUsage
+from backend.app.llm.provider import (
+    LLMRequest,
+    LLMResponse,
+    ProviderConfigurationError,
+    TokenUsage,
+)
 from backend.app.llm.spend import SpendLedger
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
@@ -45,7 +50,7 @@ __all__ = ["DEFAULT_CASSETTE_DIR", "AnthropicProvider", "MissingAPIKeyError"]
 DEFAULT_CASSETTE_DIR = Path(__file__).resolve().parents[3] / "data" / "cassettes"
 
 
-class MissingAPIKeyError(RuntimeError):
+class MissingAPIKeyError(ProviderConfigurationError):
     """A mode that needs the API was selected without a key."""
 
     def __init__(self, mode: LLMMode) -> None:

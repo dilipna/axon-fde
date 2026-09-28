@@ -24,6 +24,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from backend.app.agents.degradation import MUST_NOT_DEGRADE, ModelUnavailableError
 from backend.app.agents.digest import EvidenceDigest, build_digest
 from backend.app.agents.prompts import (
     LINKS_SCHEMA,
@@ -84,13 +85,27 @@ class ModelNodes:
         self._narrate_model = narrate_model
         self._effort = effort
 
+    async def _complete(self, request: LLMRequest) -> LLMResponse:
+        """Call the provider, turning an outage into something the graph degrades on.
+
+        Only the provider call is wrapped. A bug in this module's own parsing
+        is still a bug and still raises; widening the net to it would turn a
+        defect into a quiet `NO_LLM` run.
+        """
+        try:
+            return await self._provider.complete(request)
+        except MUST_NOT_DEGRADE:
+            raise
+        except Exception as exc:
+            raise ModelUnavailableError(request.node, f"{type(exc).__name__}: {exc}") from exc
+
     @staticmethod
     def _digest(state: IncidentState) -> EvidenceDigest:
         return build_digest(state.get("evidence", []), conflicts=state.get("conflicts", []))
 
     async def propose_links(self, state: IncidentState) -> dict[str, Any]:
         digest = self._digest(state)
-        response = await self._provider.complete(
+        response = await self._complete(
             LLMRequest(
                 model=self._links_model,
                 system=LINKS_SYSTEM,
@@ -103,9 +118,14 @@ class ModelNodes:
             )
         )
 
+        if response.parsed is None:
+            # No structure at all is a failure to answer, not an answer of "no
+            # links". Treating it as the latter ran the incident on nothing and
+            # reported FULL (failure matrix F4).
+            raise ModelUnavailableError("propose_links", "the answer had no usable structure")
         links: list[ProposedLink] = []
         dropped_handles: list[str] = []
-        raw_links = (response.parsed or {}).get("links", [])
+        raw_links = response.parsed.get("links", [])
         for raw in raw_links:
             valid = [h for h in raw.get("evidence_handles", []) if h in digest.handles]
             dropped_handles.extend(
@@ -141,7 +161,7 @@ class ModelNodes:
 
     async def narrate(self, state: IncidentState) -> dict[str, Any]:
         digest = self._digest(state)
-        response = await self._provider.complete(
+        response = await self._complete(
             LLMRequest(
                 model=self._narrate_model,
                 system=NARRATE_SYSTEM,
@@ -154,6 +174,8 @@ class ModelNodes:
             )
         )
         parsed = response.parsed or {}
+        if not str(parsed.get("narrative", "")).strip():
+            raise ModelUnavailableError("narrate", "the answer contained no narrative")
         cited = [str(h) for h in parsed.get("cited_handles", [])]
         # An unknown handle is not dropped: it is passed through as an id that
         # is not in the bundle, so the grounding check sees the fabrication and

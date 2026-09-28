@@ -32,6 +32,7 @@ from typing import Any
 
 from benchmarks.axonbench.claims import CLAIMS, ClaimStatus
 from benchmarks.axonbench.graders.base import GraderResult, Measurement
+from benchmarks.axonbench.graders.degradation import DegradationGrader
 from benchmarks.axonbench.graders.detection import (
     DEFAULT_PACK_DIR,
     ConflictGrader,
@@ -224,6 +225,11 @@ def run_arm(arm: str = "rules_only", *, scenarios: frozenset[str] | None = None)
         RiskCalibrationGrader(),
     )
     results = [grader.grade() for grader in graders]
+    # C13 runs the real workflow with failures injected at the provider
+    # boundary. Arm-independent, deterministic, no key and no database.
+    from benchmarks.axonbench.failure_injection import run_all
+
+    results.append(DegradationGrader(tuple(run_all())).grade())
 
     if arm == "rules_only":
         outcomes, meta = run_rules_arm(only=scenarios)

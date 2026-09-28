@@ -59,3 +59,21 @@ fittable trajectory (F8), no priceable options (F11).
 number derived from nothing written down; it becomes 11, the row count of this
 matrix. Each row is graded pass/fail; F1 is run once per injected error kind
 and passes only if every kind passes.
+
+## Amendments
+
+**2026-09-28, after the first run of the suite.** Facility data comes from the
+legacy ERP (`scripts/demo.py`, `_facilities`), so a *total* ERP outage removes
+the facility list too. F10 as written - ERP evidence absent, facilities still
+known - models a partial outage (the shipment record unavailable, the facility
+view still answering), and its expected outcome is unchanged. The total outage
+is added as a second variant of **F11**, where it belongs: document-only
+evidence and no facility data, expected to escalate. Found by checking where
+facilities come from after F11 failed, not by moving a row to fit a result.
+
+**First-run result, before any fix (recorded so the fix has a baseline):**
+6 of 11 rows correct, 0 fabrications. F1-F3 crashed out of the workflow on
+every injected outage kind; F4 either ran silently on no links while reporting
+`FULL` or escalated instead of degrading; F11 recommended `escalate_maintenance`
+at -$125.5k expected value over an unassessed reroute at -$16.5k. The system
+failed *safe* - nothing was fabricated - but not *gracefully*.
