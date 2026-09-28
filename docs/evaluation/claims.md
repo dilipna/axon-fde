@@ -420,7 +420,16 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Claim** | The system degrades safely when dependencies fail, and never fabricates a missing observation. |
 | **Metric** | Correct-degradation rate per failure mode; **fabrication rate, target exactly 0**. |
 | **Method** | Failure-injection suite covering every row of the failure matrix. |
-| **Status** | `PLACEHOLDER` |
+| **Dataset** | The 11 graded rows of [`failure_matrix.md`](failure_matrix.md), pre-registered and committed (`0013f12`) before the suite existed. |
+| **Status** | `MEASURED` — **fabrication rate 0** over **11/11** failure-matrix rows, **correct-degradation rate 1.00** (every row, every injected variant). Before the fix the same suite measured **6/11 correct, 0 fabricated**: an LLM outage of any kind crashed the workflow (F1-F3), an unusable answer ran silently as `FULL` (F4), and missing facility data produced a recommendation 7.6x worse in expected value (F11). The system failed safe but not gracefully; the `NO_LLM` rung that fixed it is in `backend/app/agents/degradation.py`. |
+| **Run** | rules_llm: `run-3bf20da5bf32` · rules_only: `run-e5395fd01838` · both `git_sha=fe1a050`, `pack_version=1.1.0` |
+
+> **Read the scope before quoting it.** The suite runs the real workflow with
+> failures injected at the provider boundary and in the evidence bundle; it
+> does not kill real containers. Database and network failures below the
+> workflow (Postgres down during execution, a dropped SQL Server connection)
+> are covered by the integration and execution-gate suites, not by this
+> number. `NO_VLM` is registered and not graded: there is no vision model yet.
 
 ### C14 — Workflow improvement over the legacy process
 

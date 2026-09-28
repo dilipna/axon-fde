@@ -6,9 +6,9 @@ render time, and nothing is typed by hand. That is invariant I7.
 
 ## Arm: `rules_llm`
 
-- Run: `run-a434370a4627`
-- Completed: 2026-09-28T04:18:33.522821+00:00
-- Code: `cbce97f`
+- Run: `run-3bf20da5bf32`
+- Completed: 2026-09-28T05:45:32.429354+00:00
+- Code: `fe1a050`
 - Model: `openai/gpt-oss-120b (links), openai/gpt-oss-20b (narrative), openai/gpt-oss-20b (judge)` · prompt `v2`
 - Pack: `1.1.0` · config `42da15021752172e`
 
@@ -18,7 +18,7 @@ render time, and nothing is typed by hand. That is invariant I7.
 | C10 | measured | unsupported-claim rate | 0.318182 | 44/40 generated narratives |
 | C11 | insufficient data | verification-verdict accuracy against known post-action trajectories | — | 0/20 post-action trajectories |
 | C12 | measured | p95 model cost per incident, with p50 and latency percentiles | 0.000631436 | 44/40 investigated incidents |
-| C13 | insufficient data | correct-degradation rate per failure mode; fabrication rate target 0 | — | 0/8 injected failure modes |
+| C13 | measured | correct-degradation rate per failure mode; fabrication rate target 0 | 0 | 11/11 failure-matrix rows |
 | C2 | measured | expected calibration error out of regime, with AUC-PR, Brier and the baselines | 0.030426 | 60/60 out-of-regime scenarios |
 | C3 | measured | top-1 root-cause accuracy, with top-3 and contributing-cause F1 | 0.431818 | 44/40 investigated incidents |
 | C5 | measured | delta top-1 root-cause accuracy (rules+LLM minus rules-only), with delta action and judged explanation quality | -0.0681818 | 44/40 investigated incidents |
@@ -50,6 +50,22 @@ render time, and nothing is typed by hand. That is invariant I7.
 - `latency_s_p50`: 8.5305
 - `latency_s_p95`: 11.4163
 - `model_calls_per_incident`: 2
+
+**C13 companion metrics** — these must be quoted together:
+- `F10_correct`: 1
+- `F11_correct`: 1
+- `F1_correct`: 1
+- `F2_correct`: 1
+- `F3_correct`: 1
+- `F4_correct`: 1
+- `F5_correct`: 1
+- `F6_correct`: 1
+- `F7_correct`: 1
+- `F8_correct`: 1
+- `F9_correct`: 1
+- `correct_degradation_rate`: 1
+- `fabrication_rate`: 0
+- `rows_correct`: 11
 
 **C2 companion metrics** — these must be quoted together:
 - `candidate_auc_pr`: 0.689446
@@ -112,14 +128,13 @@ render time, and nothing is typed by hand. That is invariant I7.
 ### What is not measured yet, and why
 
 - **C11** — IncidentForge does not simulate post-action physics, so no known post-action trajectory exists to grade a verdict against. Needs simulator work before the claim is reachable.
-- **C13** — the failure-injection suite arrives with AxonRed (B14). Individual degradation behaviours are unit-tested; the per-failure-mode rate is not.
 - **C9** — no attack pack exists. The method needs injected instructions across four modalities (documents, images, SOPs, database values) and a defences-off baseline; there is no image modality until B13 and no attack suite until AxonRed (B14). The register's own stop condition applies to a small hand-written pack: an attack success rate of 0 from weak attacks is not evidence of security. The structural defences are real and tested - ProposedLink has no confidence field, the scorer ignores prose, and the grounding check rejects an untraceable figure - but a structural argument is not a measured attack success rate.
 
 ## Arm: `rules_only`
 
-- Run: `run-a361f65e424e`
-- Completed: 2026-09-26T21:49:38.519173+00:00
-- Code: `c9a8f9a`
+- Run: `run-e5395fd01838`
+- Completed: 2026-09-28T05:44:33.928580+00:00
+- Code: `fe1a050`
 - Model: `none` · prompt `none`
 - Pack: `1.1.0` · config `42da15021752172e`
 
@@ -129,7 +144,7 @@ render time, and nothing is typed by hand. That is invariant I7.
 | C10 | insufficient data | unsupported-claim rate | — | 0/40 generated narratives |
 | C11 | insufficient data | verification-verdict accuracy against known post-action trajectories | — | 0/20 post-action trajectories |
 | C12 | insufficient data | p95 model cost per incident, with p50 and latency percentiles | — | 0/40 investigated incidents |
-| C13 | insufficient data | correct-degradation rate per failure mode; fabrication rate target 0 | — | 0/8 injected failure modes |
+| C13 | measured | correct-degradation rate per failure mode; fabrication rate target 0 | 0 | 11/11 failure-matrix rows |
 | C2 | measured | expected calibration error out of regime, with AUC-PR, Brier and the baselines | 0.030426 | 60/60 out-of-regime scenarios |
 | C3 | measured | top-1 root-cause accuracy, with top-3 and contributing-cause F1 | 0.5 | 44/40 investigated incidents |
 | C5 | insufficient data | delta top-1 root-cause accuracy (rules+LLM minus rules-only), with delta action and judged explanation quality | — | 0/40 investigated incidents |
@@ -148,6 +163,22 @@ render time, and nothing is typed by hand. That is invariant I7.
 - `lead_time_sample_size`: 37
 - `median_lead_time_after_fault_onset_min`: 35
 - `median_lead_time_min`: 49
+
+**C13 companion metrics** — these must be quoted together:
+- `F10_correct`: 1
+- `F11_correct`: 1
+- `F1_correct`: 1
+- `F2_correct`: 1
+- `F3_correct`: 1
+- `F4_correct`: 1
+- `F5_correct`: 1
+- `F6_correct`: 1
+- `F7_correct`: 1
+- `F8_correct`: 1
+- `F9_correct`: 1
+- `correct_degradation_rate`: 1
+- `fabrication_rate`: 0
+- `rows_correct`: 11
 
 **C2 companion metrics** — these must be quoted together:
 - `candidate_auc_pr`: 0.689446
@@ -196,7 +227,6 @@ render time, and nothing is typed by hand. That is invariant I7.
 - **C10** — the rules-only arm generates no model narrative to check for unsupported claims
 - **C11** — IncidentForge does not simulate post-action physics, so no known post-action trajectory exists to grade a verdict against. Needs simulator work before the claim is reachable.
 - **C12** — the rules-only arm makes no model calls, so there is no cost or latency
-- **C13** — the failure-injection suite arrives with AxonRed (B14). Individual degradation behaviours are unit-tested; the per-failure-mode rate is not.
 - **C5** — the ablation compares two arms; this run is the rules-only baseline
 - **C9** — no attack pack exists. The method needs injected instructions across four modalities (documents, images, SOPs, database values) and a defences-off baseline; there is no image modality until B13 and no attack suite until AxonRed (B14). The register's own stop condition applies to a small hand-written pack: an attack success rate of 0 from weak attacks is not evidence of security. The structural defences are real and tested - ProposedLink has no confidence field, the scorer ignores prose, and the grounding check rejects an untraceable figure - but a structural argument is not a measured attack success rate.
 

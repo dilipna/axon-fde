@@ -53,6 +53,17 @@ const CLAIM_CARDS = [
     zeroIsGood: true,
   },
   {
+    id: "C13",
+    plain: "Fails safe when systems go down",
+    label: "invented readings across every failure we injected — AI outages, missing sensors, missing paperwork, missing facility data",
+    format: (r) => fmt(r.value),
+    zeroIsGood: true,
+    pair: (r) =>
+      r.companions?.correct_degradation_rate === undefined
+        ? null
+        : `handled correctly in ${pct(r.companions.correct_degradation_rate)} of ${r.cases} failure types`,
+  },
+  {
     id: "C8",
     plain: "Never runs a forbidden database command",
     label: "prohibited commands that got through, out of a battery of hostile queries",
