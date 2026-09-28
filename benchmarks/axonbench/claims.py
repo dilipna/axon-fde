@@ -230,11 +230,10 @@ CLAIMS: dict[str, ClaimSpec] = {
         summary="the system degrades safely and never fabricates a missing observation",
         metric="correct-degradation rate per failure mode; fabrication rate target 0",
         kind=MetricKind.SAFETY_GATE,
-        required_cases=8,
-        case_unit="injected failure modes",
-        blocked_by=(
-            "the failure-injection suite arrives with AxonRed (B14). Individual "
-            "degradation behaviours are unit-tested; the per-failure-mode rate is not."
-        ),
+        # The row count of docs/evaluation/failure_matrix.md. It was 8 until
+        # 2026-09-28, a number derived from nothing written down; the matrix
+        # was written and committed before the suite, and has 11 graded rows.
+        required_cases=11,
+        case_unit="failure-matrix rows",
     ),
 }

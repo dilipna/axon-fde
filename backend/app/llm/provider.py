@@ -28,6 +28,7 @@ __all__ = [
     "LLMProvider",
     "LLMRequest",
     "LLMResponse",
+    "ProviderConfigurationError",
     "TokenUsage",
 ]
 
@@ -125,6 +126,16 @@ class LLMResponse:
 
     def cost_usd(self) -> float:
         return self.usage.cost_usd(self.model)
+
+
+class ProviderConfigurationError(RuntimeError):
+    """The provider cannot run as configured: no key, or a mode that needs one.
+
+    A base class so a caller can tell *misconfigured* from *unavailable* without
+    importing a vendor module. The difference matters to the workflow: an outage
+    degrades to rules-only (`NO_LLM`), but a missing key must fail loudly - a
+    deployment that silently ran without its model for ever would look healthy.
+    """
 
 
 class LLMProvider(Protocol):

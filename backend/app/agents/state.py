@@ -78,6 +78,16 @@ class IncidentState(TypedDict, total=False):
     cited_evidence_ids: list[str]
     grounding: GroundingReport | None
 
+    # -- degradation ------------------------------------------------------
+    #: The rung of the degradation ladder the run is on: ``FULL`` or
+    #: ``NO_LLM``. Set once, when a model node fails, and never set back - a
+    #: run that lost its model half way is a degraded run, not a healthy one.
+    degraded_mode: str
+    degradation_reason: str
+    #: ``model`` or ``template``. Carried so nothing downstream can present a
+    #: templated summary as the model's, or the model's as a template.
+    narrative_source: str
+
     # -- control ----------------------------------------------------------
     budget: BudgetState
     #: Set when a budget ran out or a node could not proceed. Its presence is
