@@ -167,7 +167,7 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Baseline** | `rules_only` arm (no LLM). |
 | **Dataset** | AxonBench scenarios with IncidentForge ground truth. **No count is stated**; the harness requires 40 *investigated incidents*, borrowed from C1's forty and not from this register, where an incident is a scenario the predictive detector opened one on (44 of 60: 38 breach scenarios plus 6 non-breach ones — near-miss controls with a real but non-breaching fault — on which the detector also fired). |
 | **Status** | `MEASURED` for both arms, over the same 44 investigated incidents. `rules_only`: top-1 **0.50**, top-3 0.70, contributing-cause F1 0.125. `rules_llm` (Groq, `openai/gpt-oss-120b`): top-1 **0.432**, top-3 0.591, contributing-cause F1 0.080 — **worse on all three**, and see C5. |
-| **Run** | rules_only: `run-c99db2657550` · `git_sha=cdc615d`. rules_llm: `run-a48b31474123` · `git_sha=6a32821` · `model_id=openai/gpt-oss-120b (links)` · `prompt_version=v2` · `pack_version=1.1.0` · `config_hash=42da15021752172e` |
+| **Run** | rules_only: `run-c99db2657550` · `git_sha=cdc615d`. rules_llm: `run-a434370a4627` · `git_sha=cbce97f` · `model_id=openai/gpt-oss-120b (links)` · `prompt_version=v2` · `pack_version=1.1.0` · `config_hash=42da15021752172e` |
 
 > **What the baseline number is made of.** 0.50 top-1 hides a sharp split, by
 > true cause: environmental heat **6/6**, compressor degradation **14/15**,
@@ -224,7 +224,7 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Metric** | Δ root-cause accuracy, Δ correct-action selection, judge-scored explanation quality. |
 | **Baseline** | `rules_only`: rule-derived hypotheses, rule-derived actions, templated narrative. |
 | **Dataset** | Not stated. Same 44 investigated incidents as C3, both arms on each. |
-| **Status** | `REFUTED` — measured, and the answer is no. Δ top-1 **−0.068** (0.432 vs 0.500), Δ top-3 **−0.114**, Δ contributing-cause F1 **−0.045**, Δ correct-action **0.000** (identical on all 44, as predicted below), Δ judge-scored explanation **+1.45** (1.82 → 3.27 of 5, the one place the model helped). Run `run-a48b31474123`, same provenance as C3. |
+| **Status** | `REFUTED` — measured, and the answer is no. Δ top-1 **−0.068** (0.432 vs 0.500), Δ top-3 **−0.114**, Δ contributing-cause F1 **−0.045**, Δ correct-action **0.000** (identical on all 44, as predicted below), Δ judge-scored explanation **+1.45** (1.82 → 3.27 of 5, the one place the model helped). Run `run-a434370a4627`, same provenance as C3. |
 
 > **What C5 can and cannot show.** The decision engine ranks actions from the
 > computed breach probability and never reads a hypothesis, so
@@ -359,8 +359,8 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Claim** | The system does not assert anything its evidence does not support. |
 | **Metric** | Unsupported-claim rate. |
 | **Method** | **Deterministic**, not LLM-judged: every cited evidence ID must exist in the context bundle, and every numeric claim in the narrative must match an evidence value within tolerance. |
-| **Status** | `MEASURED` — unsupported-claim rate **0.318** (14 of 44 narratives), 313 figures checked, over `gpt-oss-20b` narratives written for real incidents (Groq, `run-a48b31474123`). |
-| **Run** | `run-a48b31474123` · `git_sha=6a32821` · `model_id=openai/gpt-oss-20b` · `prompt_version=v2` · `pack_version=1.1.0` · `config_hash=42da15021752172e` |
+| **Status** | `MEASURED` — unsupported-claim rate **0.318** (14 of 44 narratives), 313 figures checked, over `gpt-oss-20b` narratives written for real incidents (Groq, `run-a434370a4627`). |
+| **Run** | `run-a434370a4627` · `git_sha=cbce97f` · `model_id=openai/gpt-oss-20b` · `prompt_version=v2` · `pack_version=1.1.0` · `config_hash=42da15021752172e` |
 
 > **Known leniency and known strictness, both left uncorrected.** Lenient: a
 > figure is matched against *every* numeric observation in the bundle within
@@ -400,7 +400,7 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Claim** | An incident is investigated end to end for $X at p95 latency Y seconds. |
 | **Metric** | Cost p50/p95 and latency p50/p95, aggregated from `model_invocation` rows and OTel spans. |
 | **Dataset** | Not stated. Same 44 investigated incidents. |
-| **Status** | `MEASURED` — **$0.00063 p95** ($0.00052 p50) per incident, 2 model calls each, p50 latency **8.5 s** / p95 **11.4 s**, over 44 incidents. Run `run-a48b31474123`. Aggregated from each workflow call's recorded invocation (tokens, cost, latency), not from `model_invocation` rows or OTel spans, which nothing writes yet. Covers the model calls only; the judge (88 calls, $0.0105 total) is excluded, since it is grading infrastructure, not part of an incident's own cost. |
+| **Status** | `MEASURED` — **$0.00063 p95** ($0.00052 p50) per incident, 2 model calls each, p50 latency **8.5 s** / p95 **11.4 s**, over 44 incidents. Run `run-a434370a4627`. Aggregated from each workflow call's recorded invocation (tokens, cost, latency), not from `model_invocation` rows or OTel spans, which nothing writes yet. Covers the model calls only; the judge (88 calls, $0.0105 total) is excluded, since it is grading infrastructure, not part of an incident's own cost. |
 >
 > **This is a free-tier open-weight model's cost, stated as such.** `gpt-oss`
 > is priced here at what the *paid* tier of the same tokens would cost

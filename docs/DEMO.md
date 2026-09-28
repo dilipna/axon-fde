@@ -26,8 +26,11 @@ uv run poe forge run-all
 # 4. Run the loop and record its trace. This is what the UI displays.
 uv run poe demo-trace
 
-# 5. Serve it.
+# 5. Serve it. Check port 8000 first (see "If something is broken" below) -
+#    on this machine it has been taken by other projects in every session
+#    since 2026-09-26. If it is, pick another port:
 uv run poe tower          # http://localhost:8000
+uv run poe tower --port 8012   # when 8000 is taken
 ```
 
 **Check before you present:** the terminal from step 4 must end with
@@ -44,9 +47,11 @@ of times. Run it once more right before the room if anything has been touched.
 
 ### 1. The chart — 30 seconds
 
-Two vertical lines. The green one at **minute 102** is AxonFDE. The red one at
-**minute 137** is where the cargo first leaves the 2–8 °C envelope, which is
-where the customer's existing threshold alarm fires.
+Two vertical lines. The solid cyan one at **minute 102** is AxonFDE. The dashed
+red one at **minute 137** is where the cargo first leaves the 2–8 °C envelope,
+which is where the customer's existing threshold alarm fires. (Cyan and red,
+not green and red: those two collapse under colour-vision deficiency, which is
+why the redesign never pairs them.)
 
 > "Thirty-five minutes of warning on this shipment. Every reading before 137 is
 > in spec, so a threshold alarm shows green the whole way."
@@ -69,7 +74,8 @@ unpaired lead time is a misuse of the claim.
 
 Then the caveat under the cards, which is the strongest thing on the page:
 
-> "On 22.5% of those scenarios the detector fired *before the fault started*.
+> "On 23% of those scenarios — nine of forty — the detector fired *before the
+> fault started*.
 > In hot ambient the cargo genuinely climbs while the unit settles, and linear
 > extrapolation can't tell that curve from an excursion. The honest median over
 > alerts that followed their fault is 35 minutes. We found that by widening the
@@ -128,8 +134,12 @@ three things in order:
    against a prior of 0.80. The model narrowed belief inside what the rules
    already permitted; it never exceeded the prior. That is invariant I2, on
    screen.
-2. **The narrative**, with its citations (`E03`, `E17`, …) resolving back to
-   the evidence bundle.
+2. **The citations** — on the hypothesis lines (`cites E03, E17, E18`), not in
+   the narrative. The narrative prints as plain prose with no `E` codes in it,
+   so do not point at it for citations; every handle on the hypothesis lines
+   resolves back to the evidence bundle. Then read one sentence of the
+   narrative aloud — its figures (7.15 C, 1488 RPM, 1800 USD) are what the
+   next line checks.
 3. **The grounding line** — `grounded: 12 citations and 10 figures all
    supported`. This is a deterministic check, not another model call: every
    citation is checked against the evidence bundle and every number against a
@@ -198,7 +208,7 @@ watching them go red.
 | `LegacyConnectionError … 1433` | Docker Desktop died | restart it, then `docker compose --profile core up -d` |
 | Claim cards empty | no published benchmark run | `uv run poe bench --arm rules_only`, then copy into `benchmarks/results/published/` |
 | Demo step 1 fails on the ERP | not seeded | `uv run poe seed` |
-| Page loads but every panel is empty, and `/docs` works | **something else is already on port 8000.** uvicorn logs `error while attempting to bind` and keeps running, so the browser is talking to the *other* process — which is why the page renders and the data does not | `uv run poe tower --port 8001`, or free the port (below) |
+| `localhost:8000` shows `{"detail":"Not Found"}` (or a page that isn't AxonFDE), yet `/docs` works | **something else is already on port 8000.** uvicorn logs `error while attempting to bind`, shuts down and `poe tower` exits with code 3 — easy to miss if the terminal is behind the browser. The browser is talking to the *other* process, whose own `/docs` answers 200 | `uv run poe tower --port 8012`, or free the port (below) |
 
 Finding what has port 8000, on Windows:
 
@@ -208,8 +218,11 @@ Get-NetTCPConnection -LocalPort 8000 -State Listen |
   Select-Object Id, ProcessName, StartTime
 ```
 
-A stale `python` from an earlier session is the usual answer. This has already
-happened once: `poe tower` failed to bind, an older server answered `/` and
+A stale `python` from an earlier session is the usual answer; on 2026-09-28 it
+was a `job-hunt-os` uvicorn **and** a `wc26-mlops-serving` container that
+Docker Desktop restarts on launch, so also check
+`docker ps --format "{{.Names}} {{.Ports}}"`. This has already
+happened once before: `poe tower` failed to bind, an older server answered `/` and
 `/docs` with 200, and the control endpoints returned `{"detail":"Not Found"}`
 — which reads exactly like a broken router rather than a busy port.
 

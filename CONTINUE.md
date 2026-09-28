@@ -28,9 +28,9 @@ nothing else gets started.
 
 | Day | Do | Why it and not something else |
 |---|---|---|
-| 1 ✅ built, **awaiting the owner's look** | **B15b — redesign the control tower** | The owner has seen B15a and **rejected the look**: "more futuristic and impressive". It is the only artifact a recruiter actually looks at. |
+| 1 ✅ built, **still awaiting the owner's look** (served for them on 2026-09-28, not yet answered) | **B15b — redesign the control tower** | The owner has seen B15a and **rejected the look**: "more futuristic and impressive". It is the only artifact a recruiter actually looks at. |
 | 2 ✅ **done, on Groq not OpenAI** | **B10b — record cassettes** | The demo now **shows a real model investigation** (§7 below and `docs/DEMO.md` §5). OpenAI never got credit; recorded on Groq's free tier instead, $0 spent. C5 came back `REFUTED` — say so, it's a stronger signal than a win. |
-| 3 | Rehearse `docs/DEMO.md` end to end, twice, on a cold machine | **Docker Desktop has now died mid-session six times**, twice in this one — the daemon, not the containers. It is the single largest time sink in the project and the most likely thing to break the demo. Rehearse the restart, not just the demo. |
+| 3 ✅ **rehearsed twice** (2026-09-28) | Rehearse `docs/DEMO.md` end to end, twice, on a cold machine | Both rehearsals green, LLM showcase byte-identical across them, `--no-llm` fallback works. Found and fixed **a "do not quote" chip on the tower's header** (dirty-tree published run) and three stale lines in DEMO.md — see §8. The *fully* cold path (quit Docker Desktop, delete `data/generated/`) was not rehearsed by the agent: its permission classifier refused the teardown. Docker cold-start itself was exercised at session start (down → `docker info` OK in 5 s). **The owner should do one fully cold run themselves.** |
 | 4 | Buffer. **Do not start a new block.** | |
 
 **Explicitly NOT in scope before the demo.** B11 streaming, B13 multimodal,
@@ -271,7 +271,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**62 commits · 943 tests · mypy --strict clean · 11 module contracts · CI green (run 38, `4d9fc46`) · pushed to
+**63 commits · 943 tests (real gate, 2026-09-28) · mypy --strict clean · 11 module contracts · CI green (run 38, `4d9fc46`; check the badge for the 09-28 push) · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -390,7 +390,7 @@ B10b in §6 and `docs/DEMO.md` §5.
 | Docker | Desktop; **it shuts down between sessions — start it first.** Volumes persist, so no reseed needed. |
 | ODBC | Only the legacy `SQL Server` driver is installed, not msodbcsql18. `resolve_driver()` handles this; CI installs 18. |
 | RAM | 15.7 GB, ~8 GB to the Docker VM. Never run more than the `core` profile locally. |
-| Port 8000 | **Was held by two unrelated projects on 2026-09-26** (a `jhos` uvicorn and a `wc26-mlops` container), so `poe tower` could not bind. Check `docker ps` and `Get-NetTCPConnection -LocalPort 8000` before a demo; the tower was served with `uv run uvicorn backend.app.main:app --port 8010` instead. |
+| Port 8000 | **Was held by two unrelated projects on 2026-09-26** (a `jhos` uvicorn and a `wc26-mlops` container), so `poe tower` could not bind. Check `docker ps` and `Get-NetTCPConnection -LocalPort 8000` before a demo; the tower was served with `uv run uvicorn backend.app.main:app --port 8010` instead. **Held again on 2026-09-28** by the same two (`job-hunt-os` uvicorn PIDs 26160/9688; `wc26-mlops-serving-1`, which Docker Desktop restarts on launch). `uv run poe tower --port 8012` works — poe appends the flag and uvicorn takes the last `--port`. On a busy port `poe tower` **exits with code 3**, it does not keep running. |
 | Key versions | anthropic **1.7.0**, langgraph **1.2.11**, langgraph-checkpoint-postgres **3.1.2**, pydantic 2.13, sqlglot 30.18 |
 
 > LangGraph is **1.x**, not the 0.2.x most tutorials show. Check the current
@@ -647,7 +647,10 @@ credit, so `AXON_LLM_VENDOR` now defaults to `groq` (`openai/gpt-oss-120b` /
 44 incidents, 176 cassettes, **$0 spent**, committed under `data/cassettes/`.
 CI now runs `poe bench --arm rules_llm` in cassette mode with no key set.
 
-**C3, C5, C10, C12 all `MEASURED`** (run `run-a48b31474123`, published):
+**C3, C5, C10, C12 all `MEASURED`** (run `run-a434370a4627` at `cbce97f`,
+published — a clean-tree replay of the original `run-a48b31474123`, which was
+recorded from a dirty tree and so was never eligible for `published/`; every
+result field is identical, see the 2026-09-28 log entry):
 - **C3** rules_llm top-1 **0.432** vs rules_only's **0.500** — worse.
 - **C5 `REFUTED`**: Δtop-1 **−0.068**, Δcorrect-action **0.000** (identical
   on all 44 — the I2/decision-engine separation, confirmed on real model
@@ -703,7 +706,32 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 
 ---
 
-## 7. Next block in detail — rehearse, then B15b's sign-off
+## 7. Next block in detail — B15b's sign-off, then (optionally) B14 re-scoped
+
+**Status on 2026-09-28:** step 2 (rehearsal) is **done** — twice, green, see §8.
+Step 1 is **still open**: the tower was served for the owner (port 8012) but
+they have not yet said whether B15b is accepted. That answer is the only
+demo-critical item left, plus one fully cold run the owner does themselves
+(the agent was not permitted to quit Docker Desktop or delete `data/generated/`).
+
+### B14 is not what this file said it was — re-scoped from the register
+The line below ("needs no key and unlocks C9 and C13") is **wrong for C9**,
+the fourth time a brief here has misjudged a block's size:
+- **C9 cannot reach `MEASURED` in B14.** Its method names four modalities
+  including **images** (B13) and a defences-off baseline; attack success
+  against the model needs **new cassettes recorded live** (Groq, free, but a
+  key and a network). B14 can build the text-modality attack pack and the
+  harness; the claim stays `INSUFFICIENT_DATA` until B13.
+- **C13 is reachable and keyless — but "the failure matrix" its method cites
+  does not exist.** `claims.md` says "every row of the failure matrix"; the
+  only candidate is the four-row degradation ladder in `overview.md` §7, one
+  row of which (`NO_VLM`) has no VLM behind it. `ClaimSpec.required_cases=8`
+  is derived from nothing written down. **First step of B14: write the failure
+  matrix (dependency × failure kind → expected degradation), commit it, and
+  only then write the injections** — otherwise the matrix gets drawn around
+  whatever the injections happen to cover.
+
+The rest of this section is the original brief, kept for the record.
 
 B10b is done (previous entry). **Nothing left before the demo needs new code.**
 The two remaining items are a person watching a screen, not a block to build.
@@ -768,4 +796,5 @@ Do **not** start B11, B13 or B16 before the demo — §0.0.
 | 2026-09-26 | **B15b + B10b (partial)** | Owner: "complete as much as you can, make no mistakes." **B15b built** (`061e930`), awaiting their look — palette validated, two CVD findings above. **B10b built but not recorded**: OpenAI returned `credit_balance_exhausted`, **$0 spent**. Findings, in order of cost avoided: (1) **`agents/nodes/` and `agents/prompts/` were empty** — §6 called B10b "a recording session only"; the two model nodes had never existed outside scripted test doubles, so the block was a build, not a recording. Same lesson as B10c a third time: re-derive size from the tree, not from the last summary. (2) **Evidence ids are random UUIDs**, so one in a prompt makes every cassette replay a miss; the digest uses stable handles (`E07`). (3) **Reading the prompt before paying for it found a real bug**: the digest showed only the last-sorted source for a type, presenting the ERP's 10 °C as the ceiling and hiding the Bill of Lading's 8 °C from the model. (4) **The rules baseline for C3 is 0.50 — and 0/8 on fuel exhaustion**, because no fuel rule exists and the scorer caps a model at its prior; C5 is structurally bounded and its action delta is 0 by construction. (5) `claims.md` states **no dataset size for C3, C5 or C12**; the harness's 40 is borrowed from C1 and labelled so. (6) **C9 cannot be measured yet for a reason other than the key**: no attack pack, no images until B13, and a weak pack trips the register's own stop condition. (7) Two things I wrote in `claims.md` from memory were wrong (the 6 non-breach incidents are near-miss controls with real faults, not `no_fault`; and "right on every compressor incident" was 14/15) — caught by recomputing from the stored run before committing. (8) Port 8000 was occupied by two unrelated projects; tower served on 8010. Real gate: **903 passed**; CI **run 35 green** on `51b7e2d`. |
 | 2026-09-26 | **B12** | Trained risk model, evaluated leave-one-regime-out with mandatory baselines and a scenario bootstrap. Findings: (1) **LightGBM fails the stop condition decisively**; trees fit regime quirks (12 regimes ~ 60 independent scenarios). (2) A logistic stack wins on ranking and calibration, not provably on lead time; chosen after two looks at the held-out regimes, flagged everywhere. (3) One of my own tests compared a function with itself (train/serve skew) — replaced by serving-path vs training-row equality, then proved by injecting skew. (4) A bad test setup: with no control scenario the false-alarm budget cannot bind. (5) Coefficients are not physical (headroom positive). |
 | 2026-09-27 | **B10b, done** | Owner: "complete ASAP, make it working in 2 days." OpenAI still had no credit (confirmed again: `429 credit_balance_exhausted`, second attempt). **Switched to Groq's free tier** (`openai/gpt-oss-120b`/`-20b`) rather than wait on a person — `AXON_LLM_VENDOR` now defaults to `groq`, reusing `OpenAIProvider` with a base URL. Recorded all 44 incidents, **$0 spent**, 176 cassettes committed. **C3/C5/C10/C12 all `MEASURED`; C5 is `REFUTED`** (Δtop-1 −0.068, Δaction 0.000 — identical on all 44, confirming I2/decision-engine separation on real output — Δexplanation +1.45/5). Findings: (1) a session restart left **duplicate recording processes** running against the same cassette dir — found and killed via `Get-CimInstance` before they could corrupt or double-spend; always check for orphans after a restart. (2) `gpt-oss` writes negative numbers with a **typographic minus** (en dash), which `[-+]?` didn't match, so correct negative readings (frozen cargo) were flagged as fabricated — a parser bug, fixed and proven red-then-green, not a threshold tuned against the run. (3) **Verified the Groq prices instead of trusting the guess**: `gpt-oss-120b`'s output price was wrong from memory (0.75 vs the real 0.60) — checking is what caught it, guessing plausible-looking numbers is not verification. (4) C10's grounding check has a *documented* strictness this run made visible: whole-dollar rounding against a 0.05 absolute tolerance — left uncorrected to avoid tuning against the benchmark, and written into the register both ways. **Then, unprompted: found the actual demo (`scripts/demo.py`, what `poe demo` runs) still had zero LLM calls** — AxonBench measures a different code path. Added a strictly additive showcase step after the rules-only loop closes: replays the flagship incident through the real graph from the committed cassette and prints hypotheses, narrative and grounding verdict. Cannot touch `run_demo()`'s steps, exit code or trace (C5's baseline), proven by an unchanged `tests/e2e/test_demo.py` plus 6 new tests, two shown red first. Also brought README/DEMO.md up to date - README still said "Phase 0 complete" and named `claude-opus-5`/LightGBM/Next.js, none true. Real gate: **943 passed**; CI **run 38 green** on `4d9fc46`, including the new `rules_llm` CI step's first real run. |
-| | **Next** | Owner looks at the control tower (§7 step 1) and rehearses `docs/DEMO.md` cold, including the new §5 (§7 step 2). After the demo: B14 (needs no key, unlocks C9/C13), or confirm the risk model on fresh scenarios before making it primary. |
+| 2026-09-28 | **Demo rehearsal ×2** | Docker was down at start (relaunched, up in 5 s). Port 8000 held again (job-hunt-os uvicorn + wc26-mlops container); tower served on 8010/8011/8012. Both rehearsals green: `poe demo-trace`, a literal `python -m scripts.demo --json`, `poe demo`, `--no-llm`, `poe test-sec` (140 passed); **LLM showcase grounded in 5.0 s and byte-identical across runs**. Findings, in order of how badly they would have landed in the room: (1) **the tower's header carried an amber "not reproducible — do not quote" chip** — the published `rules_llm` run `run-a48b31474123` was recorded from a dirty tree (`6a32821-dirty`), which `published/README.md` says makes it ineligible for that directory, and `results.md` said "must not be quoted" over the C3/C5/C10/C12 numbers. The UI was right to flag it. Fixed by replaying the arm from the committed cassettes at clean `cbce97f` (1 min, $0): **every result field identical**, only provenance differs → `run-a434370a4627` published, the dirty run removed, `claims.md` and `results.md` repointed. This also proves the LLM arm reproduces from cassettes. (2) **DEMO.md §5 told the presenter to point at citations in the narrative — there are none**; the E-codes print only on hypothesis lines. (3) DEMO.md §1 said "the green one … the red one"; B15b made them cyan-solid and red-dashed (deliberately — red/green collapse under CVD). (4) DEMO.md's port-collision row said uvicorn "keeps running" on a busy port; today it **exits with code 3** and the browser shows the other app's `{"detail":"Not Found"}`. (5) `poe bench-report <dir>` **ignores its argument** — `report.py` calls `main()` without `sys.argv[1:]`, so it always reads `benchmarks/results/`. Logged, not fixed (demo week, no code). (6) **B14's brief was wrong about C9** — see §7. Not done: the fully cold rehearsal (quit Docker Desktop, delete `data/generated/`) — the agent's permission classifier refused the teardown; the owner should do one. |
+| | **Next** | **Owner says yes/no on B15b** (tower: `uv run poe demo-trace && uv run poe tower --port 8012`) and does one fully cold run of `docs/DEMO.md`. Demo 09-30; 09-29 is buffer. After the demo: B14 **starting with writing the failure matrix** (§7) for C13; C9 stays blocked on B13. Or confirm the risk model on fresh scenarios. Small fix queued: `report.py` argv. |
