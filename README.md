@@ -148,11 +148,15 @@ Common tasks (`uv run poe --help` for the full list):
 
 ### The control tower
 
-`poe demo-trace && poe tower` puts the closed loop on a page: the reported
-cargo temperature against its permitted envelope, the minute AxonFDE raised the
-incident beside the minute a threshold alarm would have, the measured claims
-with the run id behind each one, and all thirteen steps including the three
-that **refuse** something.
+`poe demo-trace && poe tower` puts the closed loop on a page, written for a
+reader outside cold-chain logistics: an animated truck whose trailer display
+replays the recorded cargo temperature; a minute-by-minute replay of the
+flagship shipment (route map, live gauges, event feed, and the chart with the
+minute AxonFDE warned beside the minute a threshold alarm fired); the measured
+claims with the run id behind each one; the model's own investigation and the
+measured verdict on it; and all thirteen steps including the three that
+**refuse** something. Every animation is driven by recorded data — the only
+illustrative element, the truck's position on the route, is labelled as such.
 
 The UI runs nothing. It reads the trace the last `poe demo` wrote, so the page
 shows a run that actually happened against real databases rather than a fixture

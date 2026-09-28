@@ -45,24 +45,40 @@ of times. Run it once more right before the room if anything has been touched.
 
 ## What to show, in order
 
-### 1. The chart — 30 seconds
+The page reads top to bottom as the story; scroll it in order. It is written
+for someone outside cold-chain logistics, so let it do the explaining and keep
+your own words for the numbers.
 
-Two vertical lines. The solid cyan one at **minute 102** is AxonFDE. The dashed
-red one at **minute 137** is where the cargo first leaves the 2–8 °C envelope,
-which is where the customer's existing threshold alarm fires. (Cyan and red,
-not green and red: those two collapse under colour-vision deficiency, which is
-why the redesign never pairs them.)
+### 1. The hero — 15 seconds
+
+Let the truck drive. The display on its trailer is **replaying the flagship's
+recorded cargo temperature** — green while every reading is in range, cyan
+once AxonFDE warns (minute 102), red when the standard alarm finally fires
+(137). It lingers at both moments. The three numbers under it are live from
+the stored runs; the middle one (49 min) is printed with its false-alarm rate
+and the page will not render it without one.
+
+### 2. Live replay — 60 seconds, the part people remember
+
+Click **Watch the replay** (or scroll; it starts itself when it comes on
+screen). The truck moves along the route, the gauges show the recorded
+readings, and the "What happened" feed fills in: fault code at minute 83,
+AxonFDE's warning at 102, the standard alarm at 137. Drag the slider to jump.
 
 > "Thirty-five minutes of warning on this shipment. Every reading before 137 is
 > in spec, so a threshold alarm shows green the whole way."
 
-The line is **what the sensor reported**. The simulator knows the true
-temperature and the API deliberately will not serve it — there is a test that
-fails if it ever does.
+Two things to say before anyone asks: the **route position is illustrative**
+(the recording has no GPS — the page says so under the map); the readings and
+alerts are the recorded values. And the chart line is **what the sensor
+reported** — the simulator knows the true temperature and the API deliberately
+will not serve it; a test fails if it ever does. On the chart the solid cyan
+line is AxonFDE, the dashed red one the standard alarm (cyan and red, not
+green and red: those two collapse under colour-vision deficiency).
 
-### 2. The claim cards — 60 seconds, and this is the part that lands
+### 3. Results — 60 seconds, and this is the part that lands
 
-Four measured claims, each with the run id that produced it.
+Four measured claims, each traceable to the run id in the footer.
 
 Do not quote the 49-minute median on its own. The card will not let you: it
 prints the false-alarm rate in the same box, because `claims.md` says an
@@ -72,7 +88,8 @@ unpaired lead time is a misuse of the claim.
 > false-alarm rate against the threshold alarm's 20%. Ten points of extra false
 > alarms is the price."
 
-Then the caveat under the cards, which is the strongest thing on the page:
+Then "The honest fine print" under the cards, which is the strongest thing on
+the page:
 
 > "On 23% of those scenarios — nine of forty — the detector fired *before the
 > fault started*.
@@ -85,7 +102,7 @@ Then the caveat under the cards, which is the strongest thing on the page:
 
 If you say nothing else, say that.
 
-### 3. "Two shipments that look the same" — 60 seconds, the sophisticated beat
+### 4. "Is the cargo warming, or is the thermometer lying?" — 60 seconds
 
 Two scenarios, four sparklines. Both cargo temperatures climb; the **lying**
 sensor climbs faster (+0.039 °C/min against +0.016).
@@ -107,10 +124,20 @@ Every number on that panel is computed in the browser from the served
 telemetry, over the same 30-reading window `claims.md` uses. They match the
 register because they are the same calculation, not because they were copied.
 
-### 4. The timeline — 90 seconds
+### 5. The AI — 60 seconds
 
-Thirteen steps, no language model anywhere in them. Three steps carry a
-**refusal** and they are the point of the whole system:
+Now on the page as well as in the terminal (§6 below): the model's ranked
+causes as bars, each with a cyan tick at the ceiling the rules allow, the
+narrative it wrote for the fleet manager, and the green "Fact-checked" line.
+Under it, **"Did the AI make the decisions better? We measured it. No."** —
+root cause 50% → 43%, right action 64% → 64% (identical on all 44, because the
+AI never chooses), explanation quality 1.8 → 3.3 of 5. Lead with the "No."
+
+### 6. Every step, on the record — 60 seconds
+
+Thirteen steps, no language model anywhere in them, each with a plain-English
+line and the recorded detail under "Technical detail". Three steps carry a
+**refusal** (amber) and they are the point of the whole system:
 
 | Step | What is refused | Why it matters |
 |---|---|---|
@@ -122,7 +149,7 @@ The last step verifies the outcome, finds the intervention did **not** work,
 and reopens the incident. That is honest: the recording is the trajectory of a
 truck nobody rerouted.
 
-### 5. The LLM showcase — 60 seconds, right after the loop finishes
+### 7. The LLM showcase in the terminal — if you are showing `poe demo`
 
 The terminal prints a fifth, un-numbered section: the same flagship incident,
 investigated by the real two-model-node graph, replayed from a committed
@@ -165,7 +192,7 @@ Server, in containers. The loop is the shipped code path, not a script written
 for the demo: the UI and the terminal run the same function.
 
 **"Where's the LLM?"**
-Section 5, right after the loop closes — same incident, real graph, replayed
+The AI section of the page, and in the terminal right after the loop closes — same incident, real graph, replayed
 from a committed cassette. It is deliberately *not* inside the 13 steps above:
 those are `rules_only`, the ablation baseline the LLM is measured against, and
 that measurement only means something if the baseline never changed once the
