@@ -28,7 +28,7 @@ nothing else gets started.
 
 | Day | Do | Why it and not something else |
 |---|---|---|
-| 1 ⚠️ **B15b rejected 2026-09-28 → B15c built, awaiting the owner's look** | **B15c — rebuild the tower as a company website** (see §6) | The owner has seen B15a and **rejected the look**: "more futuristic and impressive". It is the only artifact a recruiter actually looks at. |
+| 1 ✅ **B15c accepted by the owner 2026-09-28** ("it looks very good"; B15b was rejected the same day) | **B15c — rebuild the tower as a company website** (see §6) | The owner has seen B15a and **rejected the look**: "more futuristic and impressive". It is the only artifact a recruiter actually looks at. |
 | 2 ✅ **done, on Groq not OpenAI** | **B10b — record cassettes** | The demo now **shows a real model investigation** (§7 below and `docs/DEMO.md` §5). OpenAI never got credit; recorded on Groq's free tier instead, $0 spent. C5 came back `REFUTED` — say so, it's a stronger signal than a win. |
 | 3 ✅ **rehearsed twice** (2026-09-28) | Rehearse `docs/DEMO.md` end to end, twice, on a cold machine | Both rehearsals green, LLM showcase byte-identical across them, `--no-llm` fallback works. Found and fixed **a "do not quote" chip on the tower's header** (dirty-tree published run) and three stale lines in DEMO.md — see §8. The *fully* cold path (quit Docker Desktop, delete `data/generated/`) was not rehearsed by the agent: its permission classifier refused the teardown. Docker cold-start itself was exercised at session start (down → `docker info` OK in 5 s). **The owner should do one fully cold run themselves.** |
 | 4 | Buffer. **Do not start a new block.** | |
@@ -602,7 +602,7 @@ no automated test, and there was no light theme (the tower is dark-only).
 
 > **Rejected by the owner on 2026-09-28** — superseded by B15c below.
 
-### B15c — The tower as a company website ✅ **BUILT, awaiting the owner's look** (2026-09-28) [demo-critical]
+### B15c — The tower as a company website ✅ **DONE — accepted by the owner** (2026-09-28) [demo-critical]
 **The owner's brief, verbatim:** "it should look something like a real company
 would do and the people without knowledge in this domain should understand
 about it, it should be in black bg with white font, arial font and too good of
@@ -646,7 +646,7 @@ not done — demo week).
 refusal and the slope window now live in a 1,100-line `app.js`; a node-driven
 test in CI is the obvious next step.
 
-**Done when:** the owner says it looks good.
+**Done when:** the owner says it looks good. **They did: "done it looks very good" (2026-09-28).**
 
 ### B15b — original brief (kept for the record)
 **B15a's design was rejected by the owner.** The data, the endpoints and the
@@ -760,8 +760,8 @@ honest system at 70% of scope beats a sprawling 100% attempt.
 Step 1: the owner looked and **rejected B15b** ("look like a real company
 website … black bg, white Arial … realistic animations of trucks … people
 without knowledge in this domain should understand"). **B15c** (§6) rebuilt it
-the same day and is awaiting their look. That answer is the only demo-critical
-item left, plus one fully cold run the owner does themselves (the agent was not
+the same day and the owner **accepted it**. The only demo item left is one
+fully cold run the owner does themselves (the agent was not
 permitted to quit Docker Desktop or delete `data/generated/`).
 
 **Owner's scope decision for the last two days (2026-09-28):** "Demo-ready +
@@ -785,6 +785,17 @@ the fourth time a brief here has misjudged a block's size:
   matrix (dependency × failure kind → expected degradation), commit it, and
   only then write the injections** — otherwise the matrix gets drawn around
   whatever the injections happen to cover.
+- **First C13 finding, from reading the code (2026-09-28), not yet proven by a
+  test: an LLM outage crashes the workflow.** `model_nodes.propose_links` /
+  `narrate` await `provider.complete()` with no exception handling, and
+  `graph.py`'s wrappers add none, so a timeout / 429 / 5xx propagates out of
+  the graph — contradicting `escalate`'s own docstring ("a workflow that threw
+  would lose what it had learned") and the `NO_LLM` rung of `overview.md` §7
+  (rule hypotheses, rule actions, templated narrative), which is **documented
+  but not implemented**. Also to check: `response.parsed is None` makes
+  `narrate` return an empty narrative — does `check_grounding` pass an empty
+  narrative as trivially "grounded"? **Write the failing test first**, then
+  implement `NO_LLM`; this is the first row of the failure matrix.
 
 The rest of this section is the original brief, kept for the record.
 
@@ -853,4 +864,4 @@ Do **not** start B11, B13 or B16 before the demo — §0.0.
 | 2026-09-27 | **B10b, done** | Owner: "complete ASAP, make it working in 2 days." OpenAI still had no credit (confirmed again: `429 credit_balance_exhausted`, second attempt). **Switched to Groq's free tier** (`openai/gpt-oss-120b`/`-20b`) rather than wait on a person — `AXON_LLM_VENDOR` now defaults to `groq`, reusing `OpenAIProvider` with a base URL. Recorded all 44 incidents, **$0 spent**, 176 cassettes committed. **C3/C5/C10/C12 all `MEASURED`; C5 is `REFUTED`** (Δtop-1 −0.068, Δaction 0.000 — identical on all 44, confirming I2/decision-engine separation on real output — Δexplanation +1.45/5). Findings: (1) a session restart left **duplicate recording processes** running against the same cassette dir — found and killed via `Get-CimInstance` before they could corrupt or double-spend; always check for orphans after a restart. (2) `gpt-oss` writes negative numbers with a **typographic minus** (en dash), which `[-+]?` didn't match, so correct negative readings (frozen cargo) were flagged as fabricated — a parser bug, fixed and proven red-then-green, not a threshold tuned against the run. (3) **Verified the Groq prices instead of trusting the guess**: `gpt-oss-120b`'s output price was wrong from memory (0.75 vs the real 0.60) — checking is what caught it, guessing plausible-looking numbers is not verification. (4) C10's grounding check has a *documented* strictness this run made visible: whole-dollar rounding against a 0.05 absolute tolerance — left uncorrected to avoid tuning against the benchmark, and written into the register both ways. **Then, unprompted: found the actual demo (`scripts/demo.py`, what `poe demo` runs) still had zero LLM calls** — AxonBench measures a different code path. Added a strictly additive showcase step after the rules-only loop closes: replays the flagship incident through the real graph from the committed cassette and prints hypotheses, narrative and grounding verdict. Cannot touch `run_demo()`'s steps, exit code or trace (C5's baseline), proven by an unchanged `tests/e2e/test_demo.py` plus 6 new tests, two shown red first. Also brought README/DEMO.md up to date - README still said "Phase 0 complete" and named `claude-opus-5`/LightGBM/Next.js, none true. Real gate: **943 passed**; CI **run 38 green** on `4d9fc46`, including the new `rules_llm` CI step's first real run. |
 | 2026-09-28 | **Demo rehearsal ×2** | Docker was down at start (relaunched, up in 5 s). Port 8000 held again (job-hunt-os uvicorn + wc26-mlops container); tower served on 8010/8011/8012. Both rehearsals green: `poe demo-trace`, a literal `python -m scripts.demo --json`, `poe demo`, `--no-llm`, `poe test-sec` (140 passed); **LLM showcase grounded in 5.0 s and byte-identical across runs**. Findings, in order of how badly they would have landed in the room: (1) **the tower's header carried an amber "not reproducible — do not quote" chip** — the published `rules_llm` run `run-a48b31474123` was recorded from a dirty tree (`6a32821-dirty`), which `published/README.md` says makes it ineligible for that directory, and `results.md` said "must not be quoted" over the C3/C5/C10/C12 numbers. The UI was right to flag it. Fixed by replaying the arm from the committed cassettes at clean `cbce97f` (1 min, $0): **every result field identical**, only provenance differs → `run-a434370a4627` published, the dirty run removed, `claims.md` and `results.md` repointed. This also proves the LLM arm reproduces from cassettes. (2) **DEMO.md §5 told the presenter to point at citations in the narrative — there are none**; the E-codes print only on hypothesis lines. (3) DEMO.md §1 said "the green one … the red one"; B15b made them cyan-solid and red-dashed (deliberately — red/green collapse under CVD). (4) DEMO.md's port-collision row said uvicorn "keeps running" on a busy port; today it **exits with code 3** and the browser shows the other app's `{"detail":"Not Found"}`. (5) `poe bench-report <dir>` **ignores its argument** — `report.py` calls `main()` without `sys.argv[1:]`, so it always reads `benchmarks/results/`. Logged, not fixed (demo week, no code). (6) **B14's brief was wrong about C9** — see §7. Not done: the fully cold rehearsal (quit Docker Desktop, delete `data/generated/`) — the agent's permission classifier refused the teardown; the owner should do one. |
 | 2026-09-28 | **B15c** | Owner rejected B15b ("look like a real company website"). Rebuilt the tower as a one-page product site in black/white Arial with an animated truck, a live minute-by-minute replay, and the model's investigation — all driven by recorded data. DEMO.md's walkthrough and the README rewritten to match. Findings: `--virtual-time-budget` screenshots stall transitions and rAF, which hid a real fragility (content hidden until an observer fired); the trace carries raw ANSI escapes. See §6 B15c. |
-| | **Next** | **Owner says yes/no on B15c** (tower: `uv run poe demo-trace && uv run poe tower --port 8012`) and does one fully cold run of `docs/DEMO.md`. Demo 09-30; 09-29 is buffer. After the demo: B14 **starting with writing the failure matrix** (§7) for C13; C9 stays blocked on B13. Or confirm the risk model on fresh scenarios. Small fix queued: `report.py` argv. |
+| | **Next** | B15c **accepted**. Owner does one fully cold run of `docs/DEMO.md` (tower: `uv run poe demo-trace && uv run poe tower --port 8012`). Demo 09-30; 09-29 is buffer. After the demo: B14 **starting with writing the failure matrix** (§7) for C13; C9 stays blocked on B13. Or confirm the risk model on fresh scenarios. Small fix queued: `report.py` argv. |
