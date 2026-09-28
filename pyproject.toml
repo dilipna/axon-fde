@@ -112,6 +112,7 @@ demo = { cmd = "python -m scripts.demo", help = "Run the end-to-end incident dem
 # never runs the loop, so the page shows the last run that actually happened.
 demo-trace = { cmd = "python -m scripts.demo --json", help = "Run the demo and record its trace for the UI" }
 tower = { cmd = "uvicorn backend.app.main:app --port 8000", help = "Serve the control tower on http://localhost:8000" }
+export-site = { cmd = "python -m scripts.export_site", help = "Export the control tower as a static snapshot in site/" }
 forge = { cmd = "python -m simulator.incidentforge.cli", help = "IncidentForge scenario CLI" }
 bench = { cmd = "python -m benchmarks.axonbench.runner", help = "Run AxonBench" }
 train-risk = { cmd = "python -m benchmarks.riskmodel.train", help = "Train and judge the risk model out of regime (--write-artifact to store it)" }

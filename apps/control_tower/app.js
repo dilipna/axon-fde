@@ -12,7 +12,9 @@
  * page says so beside it - the recording has no GPS.
  */
 
-const API = "/api/v1";
+// Relative, so the same page works served by the API at "/" and as a static
+// snapshot under a sub-path (GitHub Pages serves this repo at /axon-fde/).
+const API = "api/v1";
 
 const PERMITTED_MIN_C = 2.0;
 const PERMITTED_MAX_C = 8.0;
