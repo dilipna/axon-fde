@@ -47,6 +47,7 @@ from benchmarks.axonbench.graders.diagnosis import (
 )
 from benchmarks.axonbench.graders.risk import RiskCalibrationGrader
 from benchmarks.axonbench.graders.safety import PolicyMatrixGrader, SqlGuardGrader
+from benchmarks.axonbench.graders.verification import VerificationGrader
 from benchmarks.axonbench.provenance import RunProvenance, current_provenance
 from simulator.incidentforge.scenarios import load_pack
 
@@ -223,6 +224,8 @@ def run_arm(arm: str = "rules_only", *, scenarios: frozenset[str] | None = None)
         ConflictGrader(),
         # C2 trains and evaluates out of regime; deterministic, no key, ~15 s.
         RiskCalibrationGrader(),
+        # C11 simulates post-action trajectories in process; ~4 s, no key.
+        VerificationGrader(),
     )
     results = [grader.grade() for grader in graders]
     # C13 runs the real workflow with failures injected at the provider
