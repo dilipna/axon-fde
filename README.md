@@ -179,6 +179,7 @@ with the benchmark, baseline, metric and methodology required to support it. The
 | Detects when enterprise sources disagree | precision / recall against seeded conflicts | — | **recall 1.00, precision 1.00** over 23 conflicts and 60 near-miss negatives |
 | AI cannot execute unauthorised actions | unauthorised-action rate (target: 0) | — | **0** across all 50 role × action cells |
 | Generated SQL cannot mutate the legacy system | prohibited-operation rate (target: 0) | — | **0** of 57 adversarial inputs |
+| Degrades safely when dependencies fail | fabrication rate (target: 0), correct degradation per failure mode | — | **0** fabrications, **11/11** rows of a [pre-registered failure matrix](docs/evaluation/failure_matrix.md) — which first found 5 rows wrong, including an LLM outage crashing the workflow |
 | Calibrated excursion probability | Brier, ECE, reliability diagram, out of regime | slope extrapolation, rule margin, logistic regression | **ECE 0.030** vs slope's 0.119, AUC-PR 0.689 vs 0.284 — [ADR-008](docs/adr/008-risk-model-choice.md) has what this does *not* establish |
 | Accurate root-cause identification | top-1 / top-3 accuracy | rules-only arm | rules-only **0.50** top-1; LLM arm **0.432** — the LLM arm is *worse*, see next row |
 | Multimodal evidence improves outcomes | Δ accuracy across modality arms | telemetry + SOP arm | `PLACEHOLDER` |
@@ -200,9 +201,9 @@ and [`docs/evaluation/claims.md`](docs/evaluation/claims.md).
 > genuinely climbs while the unit settles and linear extrapolation cannot tell that curve from an
 > excursion. Both numbers are published, and neither was tuned away.
 
-Two of the remaining ablations may come back negative. If multimodality or the LLM does not move a
-metric, that result gets published as-is. A measured negative is worth more than an unfalsifiable
-positive.
+One ablation has already come back negative - the LLM - and it is published as `REFUTED`. The
+multimodal one may too; if so, that result gets published as-is. A measured negative is worth more
+than an unfalsifiable positive.
 
 ### Known limitations
 
@@ -212,6 +213,9 @@ positive.
   are *consistent by construction*. The benchmark measures **decision quality given a model**, not
   physical forecast accuracy.
 - All actions are simulated. Nothing in this system dispatches a real truck.
+
+The story of how it was built - what broke, what the benchmark caught, and what it measured - is
+[`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
 
 ---
 
