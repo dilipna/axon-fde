@@ -271,7 +271,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**63 commits · 943 tests (real gate, 2026-09-28) · mypy --strict clean · 11 module contracts · CI green (run 38, `4d9fc46`; check the badge for the 09-28 push) · pushed to
+**63 commits · 943 tests (real gate, 2026-09-28) · mypy --strict clean · 11 module contracts · CI green (run 40, `ee61c7a`) · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
