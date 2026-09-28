@@ -72,10 +72,15 @@ const CLAIM_CARDS = [
     format: (r) => pct(r.value),
     /* Never shown without the error that matters: saying an action worked
      * when it did not. */
-    pair: (r) =>
-      r.companions?.false_confirmations === undefined
-        ? null
-        : `${fmt(r.companions.false_confirmations)} false "it worked" verdicts, all from a stuck or drifting sensor`,
+    pair: (r) => {
+      const n = r.companions?.false_confirmations;
+      if (n === undefined) return null;
+      /* "All from a faulty sensor" is only said when the run shows it: perfect
+       * agreement on honest sensors means none of the errors came from one. */
+      const cause =
+        r.companions?.honest_sensor_agreement === 1 ? ", all from a stuck or drifting sensor" : "";
+      return `${fmt(n)} false "it worked" verdicts${cause}`;
+    },
     required: true,
   },
   {

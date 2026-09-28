@@ -394,7 +394,15 @@ Measured numbers are regenerated into `docs/evaluation/results.md` by
 | **Method** | *Pre-registered 2026-09-28, before any post-action trajectory was generated.* IncidentForge gains an intervention hook that changes the physics from the minute an action takes effect: **cold storage** (reroute: cargo on shore power in a cold room at the setpoint, door closed, 45 min after the action - the flagship's detour to CS-11), **unit swap** (a healthy reefer, door closed, 60 min after), **driver contact** (an open door is closed 20 min after; nothing else changes). For each breach scenario in pack v1.1.0 and each of the three actions, the action is taken at minute *A* = 30 minutes before the reported breach (the true breach when the sensor never reports one), floored at 30. The shipped verifier (`verification.outcome.evaluate_effect`) grades the **reported** readings over the window the shipped action catalogue declares (90 / 120 / 90 min). The **label** is the same rule applied to the simulator's **true** temperatures over the same window. A trajectory whose window runs past the scenario's end is excluded and counted. |
 | **Dataset** | Up to 120 trajectories (40 breach scenarios x 3 actions); the ClaimSpec's 20 is the floor. |
 | **What it does and does not measure** | Whether a verifier that can only see the sensor reaches the verdict it would reach if it could see the truth - so its errors come from the sensor (noise, drift, a stuck reading). It does **not** measure whether "back in the envelope within 90 minutes" is the right definition of success; the label shares that rule by construction. **Prediction, stated before running:** agreement is high on honest-sensor scenarios and breaks on the lying-sensor ones, where a drifting or stuck reading can confirm a recovery that did not happen. The dangerous error - **confirming an intervention that did not work** - is reported separately as a companion, not averaged away. |
-| **Status** | `PLACEHOLDER` |
+| **Status** | `MEASURED` — agreement **0.94** over **100** trajectories (20 more excluded because the verification window ran past the scenario's end). **1.00 on honest sensors, 0.50 on lying ones.** **3 false confirmations** (false-confirmation rate 0.09 of the 33 interventions that did not work), **every one from a stuck sensor** whose frozen, in-range reading "confirmed" a recovery that did not happen. Exactly the pre-registered prediction. Per action: cold storage 0.97, unit swap 0.91, driver contact 0.94. |
+| **Run** | rules_llm `run-a065a21ba569` · rules_only `run-fab8f60ecdcc` · `git_sha=ddc96ca` · `pack_version=1.1.0` |
+
+> **What to do about the three.** A stuck sensor reports a constant; the
+> verifier could refuse to confirm a recovery on readings with zero variance
+> over the window. That is a one-line rule - and it was **not** added, because
+> adding it after seeing which trajectories failed would tune the verifier to
+> this benchmark. It is the obvious next change, to be measured on scenarios
+> authored after it.
 
 ### C12 — Operating cost and latency
 

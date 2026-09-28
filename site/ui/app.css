@@ -313,7 +313,7 @@ input[type=range] { width: 100%; accent-color: var(--text); }
 
 /* ── Claims ─────────────────────────────────────────────────────────── */
 
-.claims { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.claims { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .claim {
   display: flex; flex-direction: column; gap: 10px;
   padding: 26px 22px;

@@ -66,6 +66,24 @@ const CLAIM_CARDS = [
         : `handled correctly in ${pct(r.companions.correct_degradation_rate)} of ${r.cases} failure types`,
   },
   {
+    id: "C11",
+    plain: "Checks whether its action actually worked",
+    label: "of simulated interventions where its verdict matched what really happened to the cargo",
+    format: (r) => pct(r.value),
+    /* Never shown without the error that matters: saying an action worked
+     * when it did not. */
+    pair: (r) => {
+      const n = r.companions?.false_confirmations;
+      if (n === undefined) return null;
+      /* "All from a faulty sensor" is only said when the run shows it: perfect
+       * agreement on honest sensors means none of the errors came from one. */
+      const cause =
+        r.companions?.honest_sensor_agreement === 1 ? ", all from a stuck or drifting sensor" : "";
+      return `${fmt(n)} false "it worked" verdicts${cause}`;
+    },
+    required: true,
+  },
+  {
     id: "C8",
     plain: "Never runs a forbidden database command",
     label: "prohibited commands that got through, out of a battery of hostile queries",
