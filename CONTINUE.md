@@ -271,7 +271,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**63 commits · 943 tests (real gate, 2026-09-28) · mypy --strict clean · 11 module contracts · CI green (run 40, `ee61c7a`) · pushed to
+**67 commits · 960 tests (real gate, 2026-09-28) · mypy --strict clean · 11 module contracts · CI green (run 40, `ee61c7a`) · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -729,6 +729,29 @@ a session restart — same PID, same cassette dir, would have corrupted or
 double-spent. Check for orphans (`Get-CimInstance Win32_Process`) before
 restarting a background LLM call.
 
+### B14a — C13 safe degradation ✅ **DONE** (2026-09-28) [Phase 5, the keyless half of B14]
+**C13 `MEASURED`: fabrication rate 0 over 11/11 failure-matrix rows, correct
+degradation 1.00** (runs `run-3bf20da5bf32` / `run-e5395fd01838`, `fe1a050`).
+Method: `docs/evaluation/failure_matrix.md` written and committed **first**
+(`0013f12`), then `benchmarks/axonbench/failure_injection.py` - the real graph
+and real model nodes, failures injected at the provider boundary and in the
+evidence bundle - graded by `graders/degradation.py`.
+
+**Pre-fix, the same suite measured 6/11 correct, 0 fabricated** - safe, not
+graceful: (1) any LLM outage (connection, timeout, 503, 429, spend ceiling)
+crashed the workflow - the `NO_LLM` rung in `overview.md` §7 was documented
+and never built; (2) an unusable answer ran on zero links reporting `FULL`;
+(3) **missing facility data read as "no capacity"** and recommended an action
+7.6x worse in expected value. Fixed in `agents/degradation.py`, `graph.py`,
+`model_nodes.py`; proven red with the two files reverted. Configuration /
+integrity failures (missing key, unknown model, cassette miss) still raise -
+`MUST_NOT_DEGRADE`. **The LLM arm replays byte-identically after the change.**
+The site gained a C13 card. `ClaimSpec.required_cases` 8 -> 11 (the old 8 was
+derived from nothing). Scope caveat is in `claims.md`: no real containers are
+killed; DB/network failures below the workflow are the integration suites'.
+
+**B14's other half (C9, attack pack) stays blocked on B13** - see §7.
+
 ### B11 — Streaming [Phase 2]
 Redpanda, consumer, event-driven detection, duplicate/out-of-order handling,
 lead-time measurement at fleet scale.
@@ -864,4 +887,5 @@ Do **not** start B11, B13 or B16 before the demo — §0.0.
 | 2026-09-27 | **B10b, done** | Owner: "complete ASAP, make it working in 2 days." OpenAI still had no credit (confirmed again: `429 credit_balance_exhausted`, second attempt). **Switched to Groq's free tier** (`openai/gpt-oss-120b`/`-20b`) rather than wait on a person — `AXON_LLM_VENDOR` now defaults to `groq`, reusing `OpenAIProvider` with a base URL. Recorded all 44 incidents, **$0 spent**, 176 cassettes committed. **C3/C5/C10/C12 all `MEASURED`; C5 is `REFUTED`** (Δtop-1 −0.068, Δaction 0.000 — identical on all 44, confirming I2/decision-engine separation on real output — Δexplanation +1.45/5). Findings: (1) a session restart left **duplicate recording processes** running against the same cassette dir — found and killed via `Get-CimInstance` before they could corrupt or double-spend; always check for orphans after a restart. (2) `gpt-oss` writes negative numbers with a **typographic minus** (en dash), which `[-+]?` didn't match, so correct negative readings (frozen cargo) were flagged as fabricated — a parser bug, fixed and proven red-then-green, not a threshold tuned against the run. (3) **Verified the Groq prices instead of trusting the guess**: `gpt-oss-120b`'s output price was wrong from memory (0.75 vs the real 0.60) — checking is what caught it, guessing plausible-looking numbers is not verification. (4) C10's grounding check has a *documented* strictness this run made visible: whole-dollar rounding against a 0.05 absolute tolerance — left uncorrected to avoid tuning against the benchmark, and written into the register both ways. **Then, unprompted: found the actual demo (`scripts/demo.py`, what `poe demo` runs) still had zero LLM calls** — AxonBench measures a different code path. Added a strictly additive showcase step after the rules-only loop closes: replays the flagship incident through the real graph from the committed cassette and prints hypotheses, narrative and grounding verdict. Cannot touch `run_demo()`'s steps, exit code or trace (C5's baseline), proven by an unchanged `tests/e2e/test_demo.py` plus 6 new tests, two shown red first. Also brought README/DEMO.md up to date - README still said "Phase 0 complete" and named `claude-opus-5`/LightGBM/Next.js, none true. Real gate: **943 passed**; CI **run 38 green** on `4d9fc46`, including the new `rules_llm` CI step's first real run. |
 | 2026-09-28 | **Demo rehearsal ×2** | Docker was down at start (relaunched, up in 5 s). Port 8000 held again (job-hunt-os uvicorn + wc26-mlops container); tower served on 8010/8011/8012. Both rehearsals green: `poe demo-trace`, a literal `python -m scripts.demo --json`, `poe demo`, `--no-llm`, `poe test-sec` (140 passed); **LLM showcase grounded in 5.0 s and byte-identical across runs**. Findings, in order of how badly they would have landed in the room: (1) **the tower's header carried an amber "not reproducible — do not quote" chip** — the published `rules_llm` run `run-a48b31474123` was recorded from a dirty tree (`6a32821-dirty`), which `published/README.md` says makes it ineligible for that directory, and `results.md` said "must not be quoted" over the C3/C5/C10/C12 numbers. The UI was right to flag it. Fixed by replaying the arm from the committed cassettes at clean `cbce97f` (1 min, $0): **every result field identical**, only provenance differs → `run-a434370a4627` published, the dirty run removed, `claims.md` and `results.md` repointed. This also proves the LLM arm reproduces from cassettes. (2) **DEMO.md §5 told the presenter to point at citations in the narrative — there are none**; the E-codes print only on hypothesis lines. (3) DEMO.md §1 said "the green one … the red one"; B15b made them cyan-solid and red-dashed (deliberately — red/green collapse under CVD). (4) DEMO.md's port-collision row said uvicorn "keeps running" on a busy port; today it **exits with code 3** and the browser shows the other app's `{"detail":"Not Found"}`. (5) `poe bench-report <dir>` **ignores its argument** — `report.py` calls `main()` without `sys.argv[1:]`, so it always reads `benchmarks/results/`. Logged, not fixed (demo week, no code). (6) **B14's brief was wrong about C9** — see §7. Not done: the fully cold rehearsal (quit Docker Desktop, delete `data/generated/`) — the agent's permission classifier refused the teardown; the owner should do one. |
 | 2026-09-28 | **B15c** | Owner rejected B15b ("look like a real company website"). Rebuilt the tower as a one-page product site in black/white Arial with an animated truck, a live minute-by-minute replay, and the model's investigation — all driven by recorded data. DEMO.md's walkthrough and the README rewritten to match. Findings: `--virtual-time-budget` screenshots stall transitions and rAF, which hid a real fragility (content hidden until an observer fired); the trace carries raw ANSI escapes. See §6 B15c. |
-| | **Next** | B15c **accepted**. Owner does one fully cold run of `docs/DEMO.md` (tower: `uv run poe demo-trace && uv run poe tower --port 8012`). Demo 09-30; 09-29 is buffer. After the demo: B14 **starting with writing the failure matrix** (§7) for C13; C9 stays blocked on B13. Or confirm the risk model on fresh scenarios. Small fix queued: `report.py` argv. |
+| 2026-09-28 | **B14a (C13)** | Owner chose "demo-ready + C13" for the last two days. Failure matrix pre-registered, suite written, **5 of 11 rows found wrong** before any fix (LLM outage crashes the workflow; silent FULL on unusable output; missing facility data read as no capacity, 7.6x worse recommendation). `NO_LLM` implemented; C13 `MEASURED` 0 fabrications, 11/11. LLM arm replays identically. |
+| | **Next** | B15c **accepted**. C13 done. Owner does one fully cold run of `docs/DEMO.md` (tower: `uv run poe demo-trace && uv run poe tower --port 8012`). Demo 09-30; 09-29 is buffer. After the demo: B14 **starting with writing the failure matrix** (§7) for C13; C9 stays blocked on B13. Or confirm the risk model on fresh scenarios. Small fix queued: `report.py` argv. |
