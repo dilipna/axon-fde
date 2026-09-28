@@ -219,11 +219,6 @@ CLAIMS: dict[str, ClaimSpec] = {
         kind=MetricKind.QUALITY,
         required_cases=20,
         case_unit="post-action trajectories",
-        blocked_by=(
-            "IncidentForge does not simulate post-action physics, so no known "
-            "post-action trajectory exists to grade a verdict against. Needs simulator "
-            "work before the claim is reachable."
-        ),
     ),
     "C13": ClaimSpec(
         claim_id="C13",

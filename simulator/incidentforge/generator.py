@@ -16,13 +16,15 @@ in reality.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
+from typing import Literal
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
 
 from simulator.incidentforge.faults.schedule import (
+    FaultEffects,
     compute_fault_effects,
     low_fuel_code,
 )
@@ -36,6 +38,7 @@ from simulator.incidentforge.scenarios import Scenario
 
 __all__ = [
     "GroundTruthFrame",
+    "Intervention",
     "SimulationResult",
     "TelemetryEvent",
     "run_scenario",
@@ -161,7 +164,47 @@ def _reefer_status(duty: float, health: float, fuel_pct: float) -> str:
     return "cycling"
 
 
-def run_scenario(scenario: Scenario) -> SimulationResult:
+@dataclass(frozen=True)
+class Intervention:
+    """What an action physically changes, from the minute it takes effect.
+
+    Used only to generate post-action trajectories for C11, never for the
+    60-scenario pack: the risk model's labels must describe what happens if
+    nobody acts. With no intervention the run is byte-identical to before
+    this existed, which the golden digests in test_emitters.py enforce.
+
+    - ``cold_storage``: the trailer is on shore power in a cold room held at
+      the setpoint. The unit is powered and healthy, the door is shut, fuel
+      no longer matters.
+    - ``unit_swap``: a healthy reefer unit replaces the faulty one, door shut,
+      full tank. Outside air is unchanged.
+    - ``close_door``: the driver shuts an open door. Nothing else changes.
+
+    **The sensor is not repaired by any of them.** It travels with the cargo,
+    so a drifting or stuck instrument keeps lying after the action - which is
+    exactly the case where verification can be fooled, and why C11 needs it.
+    """
+
+    kind: Literal["cold_storage", "unit_swap", "close_door"]
+    effective_minute: int
+
+
+def _intervened(effects: FaultEffects, intervention: Intervention) -> FaultEffects:
+    if intervention.kind == "close_door":
+        return replace(effects, door_open=False)
+    return replace(
+        effects,
+        compressor_health=1.0,
+        door_open=False,
+        ambient_bonus_c=0.0,
+        fuel_drain_multiplier=1.0,
+        active_codes=frozenset(),
+    )
+
+
+def run_scenario(
+    scenario: Scenario, *, intervention: Intervention | None = None
+) -> SimulationResult:
     """Execute a scenario end to end.
 
     Deterministic: the same scenario and seed produce a byte-identical event
@@ -189,8 +232,17 @@ def run_scenario(scenario: Scenario) -> SimulationResult:
 
     for minute in range(scenario.duration_minutes):
         effects = compute_fault_effects(scenario.injected_faults, minute)
+        acted = intervention is not None and minute >= intervention.effective_minute
+        if acted:
+            assert intervention is not None
+            effects = _intervened(effects, intervention)
+            if minute == intervention.effective_minute and intervention.kind != "close_door":
+                # Shore power or a fresh unit: fuel stops being the constraint.
+                state = ThermalState(cargo_temp_c=state.cargo_temp_c, reefer_fuel_pct=95.0)
 
         ambient = ambient_temperature_c(scenario.ambient, minute) + effects.ambient_bonus_c
+        if acted and intervention is not None and intervention.kind == "cold_storage":
+            ambient = setpoint_c
 
         step = step_thermal(
             state,
