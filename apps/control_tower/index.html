@@ -1,104 +1,404 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AxonFDE Control Tower</title>
+<title>AxonFDE — Cold-chain protection</title>
+<meta name="description" content="AxonFDE predicts when a refrigerated shipment is about to spoil, before the temperature alarm fires, and acts only with a human's approval.">
 <link rel="stylesheet" href="/ui/app.css">
 </head>
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <span class="mark" aria-hidden="true"></span>
-    <div>
-      <h1>AxonFDE</h1>
-      <p class="sub">Cold-chain decision intelligence &middot; <span id="arm-label">rules-only arm</span></p>
-    </div>
-  </div>
-  <div class="provenance" id="provenance">
-    <span class="pill pill-muted">loading provenance&hellip;</span>
-  </div>
+<!-- ── Navigation ─────────────────────────────────────────────────────── -->
+<header class="nav" id="nav">
+  <a class="logo" href="#top" aria-label="AxonFDE home">
+    <svg viewBox="0 0 32 32" aria-hidden="true" class="logo-mark">
+      <circle cx="16" cy="16" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M16 6v20M7.3 11l17.4 10M7.3 21l17.4-10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="16" cy="16" r="3.2" fill="var(--cyan)"/>
+    </svg>
+    <span>AxonFDE</span>
+  </a>
+  <nav class="links" aria-label="Sections">
+    <a href="#problem">The problem</a>
+    <a href="#how">How it works</a>
+    <a href="#replay">Live replay</a>
+    <a href="#results">Results</a>
+    <a href="#ai">The AI</a>
+    <a href="#safety">Safety</a>
+  </nav>
+  <a class="btn btn-small" href="#replay">Watch the replay</a>
 </header>
 
-<section class="hero">
-  <span class="eyebrow">Live replay &middot; closed-loop decision intelligence</span>
-  <h2>It saw the failure before the alarm did.</h2>
-  <p class="lede">
-    A refrigerated truck's compressor is degrading. A threshold alarm waits for the cargo to leave
-    its permitted range; AxonFDE reads the trend, reconciles the conflicting paperwork, and acts
-    while there is still time to save the load. Every figure below is computed from a stored run.
-  </p>
-  <div class="readouts" id="readouts" hidden>
-    <div class="readout axon"><div class="k">AxonFDE detects</div><div class="v" id="ro-detect">&mdash;</div><div class="d">predictive detection, this shipment</div></div>
-    <div class="readout alarm"><div class="k">Threshold alarm</div><div class="v" id="ro-alarm">&mdash;</div><div class="d">cargo already out of spec</div></div>
-    <div class="readout margin"><div class="k">Warning gained</div><div class="v" id="ro-lead">&mdash;</div><div class="d" id="ro-lead-d">on this one shipment &mdash; not the fleet claim</div></div>
+<!-- ── Hero ───────────────────────────────────────────────────────────── -->
+<section class="hero" id="top">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="live-dot"></span> Cold-chain protection for refrigerated freight</p>
+    <h1>We see a spoiling shipment <span class="hl">before the alarm does.</span></h1>
+    <p class="lede">
+      Vaccines, medicines and fresh food travel in refrigerated trucks. When the cooling
+      starts to fail, today's alarms wait until the cargo is already too warm. AxonFDE
+      reads the warning signs early, works out the best response, and acts only once a
+      person has approved it.
+    </p>
+    <div class="cta">
+      <a class="btn" href="#replay">See a real incident, minute by minute</a>
+      <a class="btn btn-ghost" href="#how">How it works</a>
+    </div>
+  </div>
+
+  <div class="scene" aria-label="Animated refrigerated truck on a highway at night. The display on its trailer replays the recorded cargo temperature.">
+    <svg id="hero-scene" viewBox="0 0 1200 430" preserveAspectRatio="xMidYMid slice" role="img">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#000"/>
+          <stop offset="1" stop-color="#0b0b0b"/>
+        </linearGradient>
+        <linearGradient id="trailerSide" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fafafa"/>
+          <stop offset=".55" stop-color="#e9e9e9"/>
+          <stop offset="1" stop-color="#cfcfcf"/>
+        </linearGradient>
+        <linearGradient id="cabBody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f4f4f4"/>
+          <stop offset="1" stop-color="#bdbdbd"/>
+        </linearGradient>
+        <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#2a2f35"/>
+          <stop offset=".5" stop-color="#0c0e10"/>
+          <stop offset="1" stop-color="#1c2126"/>
+        </linearGradient>
+        <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="shadow" cx=".5" cy=".5" r=".5">
+          <stop offset="0" stop-color="#000" stop-opacity=".9"/>
+          <stop offset="1" stop-color="#000" stop-opacity="0"/>
+        </radialGradient>
+        <g id="wheel">
+          <circle r="27" fill="#050505" stroke="#262626" stroke-width="3"/>
+          <circle r="15" fill="#8d8d8d"/>
+          <circle r="15" fill="none" stroke="#bdbdbd" stroke-width="1.5"/>
+          <g class="spokes" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round">
+            <line x1="0" y1="-12" x2="0" y2="12"/>
+            <line x1="-12" y1="0" x2="12" y2="0"/>
+            <line x1="-8.5" y1="-8.5" x2="8.5" y2="8.5"/>
+            <line x1="-8.5" y1="8.5" x2="8.5" y2="-8.5"/>
+          </g>
+          <circle r="4" fill="#d9d9d9"/>
+        </g>
+      </defs>
+
+      <rect width="1200" height="430" fill="url(#sky)"/>
+
+      <!-- Distant skyline, two copies side by side so the loop is seamless. -->
+      <g class="parallax far">
+        <g id="skyline" fill="#141414">
+          <rect x="0" y="210" width="60" height="120"/><rect x="70" y="170" width="40" height="160"/>
+          <rect x="120" y="230" width="80" height="100"/><rect x="210" y="150" width="34" height="180"/>
+          <rect x="250" y="200" width="70" height="130"/><rect x="330" y="240" width="90" height="90"/>
+          <rect x="430" y="185" width="46" height="145"/><rect x="486" y="220" width="64" height="110"/>
+          <rect x="560" y="160" width="30" height="170"/><rect x="600" y="235" width="100" height="95"/>
+          <rect x="710" y="195" width="52" height="135"/><rect x="772" y="215" width="80" height="115"/>
+          <rect x="862" y="175" width="38" height="155"/><rect x="910" y="240" width="96" height="90"/>
+          <rect x="1016" y="205" width="58" height="125"/><rect x="1084" y="230" width="116" height="100"/>
+        </g>
+        <use href="#skyline" x="1200"/>
+      </g>
+
+      <!-- Roadside poles, nearer, so they move faster. -->
+      <g class="parallax near">
+        <g id="poles" stroke="#1f1f1f" stroke-width="4">
+          <line x1="100" y1="200" x2="100" y2="330"/><line x1="100" y1="205" x2="140" y2="205"/>
+          <line x1="400" y1="200" x2="400" y2="330"/><line x1="400" y1="205" x2="440" y2="205"/>
+          <line x1="700" y1="200" x2="700" y2="330"/><line x1="700" y1="205" x2="740" y2="205"/>
+          <line x1="1000" y1="200" x2="1000" y2="330"/><line x1="1000" y1="205" x2="1040" y2="205"/>
+        </g>
+        <use href="#poles" x="1200"/>
+      </g>
+
+      <!-- Road -->
+      <rect x="0" y="330" width="1200" height="100" fill="#0e0e0e"/>
+      <line x1="0" y1="331" x2="1200" y2="331" stroke="#2a2a2a" stroke-width="2"/>
+      <g class="lane">
+        <line x1="0" y1="398" x2="2400" y2="398" stroke="#6b6b6b" stroke-width="4" stroke-dasharray="46 54"/>
+      </g>
+
+      <!-- Headlight beam, drawn under the truck. -->
+      <polygon points="905,286 1200,250 1200,340" fill="url(#beam)" class="beamfx"/>
+
+      <ellipse cx="610" cy="352" rx="330" ry="14" fill="url(#shadow)"/>
+
+      <g class="truck">
+        <!-- Trailer -->
+        <rect x="300" y="160" width="420" height="152" rx="6" fill="url(#trailerSide)"/>
+        <rect x="300" y="292" width="420" height="8" fill="var(--cyan)"/>
+        <rect x="300" y="300" width="420" height="16" fill="#1a1a1a"/>
+        <text x="330" y="222" class="trailer-brand">AxonFDE</text>
+        <text x="332" y="248" class="trailer-tag">COLD CHAIN</text>
+        <!-- The live readout: replays the recorded cargo temperature. -->
+        <g id="hero-display" transform="translate(546 190)">
+          <rect width="150" height="70" rx="8" fill="#050505"/>
+          <text x="12" y="22" class="disp-k">CARGO</text>
+          <text x="12" y="54" class="disp-v" id="hero-temp">—</text>
+          <text x="138" y="22" class="disp-k" text-anchor="end" id="hero-min"> </text>
+          <circle cx="138" cy="48" r="6" id="hero-led" fill="#3a3a3a"/>
+        </g>
+
+        <!-- Refrigeration unit on the trailer nose -->
+        <rect x="720" y="178" width="26" height="100" rx="3" fill="#9e9e9e"/>
+        <g transform="translate(733 205)">
+          <circle r="10" fill="#2b2b2b"/>
+          <g class="fan" stroke="#8a8a8a" stroke-width="3" stroke-linecap="round">
+            <line x1="0" y1="-7" x2="0" y2="7"/><line x1="-7" y1="0" x2="7" y2="0"/>
+          </g>
+        </g>
+        <g stroke="#6f6f6f" stroke-width="2"><line x1="724" y1="232" x2="742" y2="232"/><line x1="724" y1="240" x2="742" y2="240"/><line x1="724" y1="248" x2="742" y2="248"/><line x1="724" y1="256" x2="742" y2="256"/></g>
+
+        <!-- Cab -->
+        <path d="M752 312 L752 196 Q752 186 762 186 L826 186 Q836 186 842 194 L880 244 Q884 250 892 252 L902 256 Q910 259 910 268 L910 312 Z" fill="url(#cabBody)"/>
+        <path d="M790 196 L826 196 Q832 196 836 202 L866 244 L790 244 Z" fill="url(#glass)"/>
+        <path d="M800 200 L812 200 L802 238 L794 238 Z" fill="#fff" opacity=".08"/>
+        <line x1="786" y1="250" x2="786" y2="300" stroke="#9a9a9a" stroke-width="1.5"/>
+        <rect x="796" y="262" width="16" height="4" rx="2" fill="#7a7a7a"/>
+        <rect x="764" y="160" width="7" height="42" rx="2" fill="#777"/>
+        <rect x="900" y="276" width="10" height="16" rx="3" fill="#fff" class="headlight"/>
+        <rect x="886" y="300" width="28" height="14" rx="3" fill="#2a2a2a"/>
+        <g class="exhaust">
+          <circle cx="767" cy="150" r="6" fill="#2d2d2d"/>
+          <circle cx="760" cy="138" r="8" fill="#232323"/>
+          <circle cx="750" cy="124" r="10" fill="#1a1a1a"/>
+        </g>
+
+        <!-- Wheels -->
+        <use href="#wheel" x="370" y="322" class="w"/>
+        <use href="#wheel" x="432" y="322" class="w"/>
+        <use href="#wheel" x="782" y="322" class="w"/>
+        <use href="#wheel" x="872" y="322" class="w"/>
+      </g>
+    </svg>
+    <p class="scene-cap" id="hero-cap">The trailer display replays this shipment's recorded temperature.</p>
+  </div>
+
+  <div class="stats" id="stats" hidden>
+    <div class="stat">
+      <div class="stat-v" id="st-lead">—</div>
+      <div class="stat-k">earlier warning on the shipment below than a standard temperature alarm</div>
+    </div>
+    <div class="stat">
+      <div class="stat-v" id="st-median">—</div>
+      <div class="stat-k" id="st-median-k">median early warning across simulated breaches</div>
+    </div>
+    <div class="stat">
+      <div class="stat-v" id="st-unauth">—</div>
+      <div class="stat-k">actions taken without a human's approval, across every role and action tested</div>
+    </div>
   </div>
 </section>
 
 <main>
 
-  <!-- ── The incident ────────────────────────────────────────────── -->
-  <section class="panel">
-    <div class="panel-head">
-      <h2>Flagship incident</h2>
-      <p class="hint" id="scenario-hint">&nbsp;</p>
+<!-- ── Problem ────────────────────────────────────────────────────────── -->
+<section class="section" id="problem">
+  <p class="kicker">The problem</p>
+  <h2>A temperature alarm tells you the cargo is ruined. It doesn't tell you it's about to be.</h2>
+  <div class="cards three">
+    <article class="card">
+      <div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M20 30V10a4 4 0 0 1 8 0v20a8 8 0 1 1-8 0z" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="24" cy="36" r="4" fill="var(--cyan)"/></svg>
+      </div>
+      <h3>Cargo with a narrow safe range</h3>
+      <p>Many vaccines must stay between <strong id="env-range">2 and 8 °C</strong> for the whole
+      journey. A few degrees too warm for too long and a truckload of medicine can't be used.</p>
+    </article>
+    <article class="card">
+      <div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 13v11l7 5" fill="none" stroke="var(--rose)" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <h3>Alarms that fire too late</h3>
+      <p>A standard alarm goes off only once the cargo has <em>already</em> left its safe range.
+      By then there is nothing left to save.</p>
+    </article>
+    <article class="card">
+      <div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><rect x="8" y="8" width="20" height="26" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="20" y="14" width="20" height="26" rx="2" fill="#000" stroke="currentColor" stroke-width="2.5"/><path d="M25 25h10M25 31h7" stroke="var(--amber)" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <h3>Paperwork that disagrees</h3>
+      <p>The company's order system and the signed shipping document often state different
+      limits. If you trust the wrong one, a shipment at risk looks perfectly fine.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ── How it works ───────────────────────────────────────────────────── -->
+<section class="section" id="how">
+  <p class="kicker">How it works</p>
+  <h2>Four steps, and a person signs off before anything happens.</h2>
+  <ol class="steps">
+    <li class="stepcard">
+      <span class="num">01</span>
+      <h3>Sense</h3>
+      <p>Reads the truck's sensors every minute: cargo temperature, outside heat, how hard the
+      cooling unit is working, fault codes. It also reads the order system and the shipping papers.</p>
+    </li>
+    <li class="stepcard">
+      <span class="num">02</span>
+      <h3>Predict</h3>
+      <p>Spots the <em>trend</em>, not just the current reading: a cooling unit slowly losing the
+      fight shows up long before the cargo is too warm.</p>
+    </li>
+    <li class="stepcard">
+      <span class="num">03</span>
+      <h3>Decide, with a human</h3>
+      <p>Prices every option, including doing nothing, and recommends the best. A fleet manager
+      approves it. If conditions change after they sign, the approval is refused and must be renewed.</p>
+    </li>
+    <li class="stepcard">
+      <span class="num">04</span>
+      <h3>Verify</h3>
+      <p>Checks afterwards whether the action actually worked, and reopens the case if it didn't.
+      Every step is written to a record that can't be edited.</p>
+    </li>
+  </ol>
+</section>
+
+<!-- ── Live replay ────────────────────────────────────────────────────── -->
+<section class="section" id="replay">
+  <p class="kicker">Live replay</p>
+  <h2>One shipment, minute by minute.</h2>
+  <p class="sub" id="replay-sub">Loading the recorded run…</p>
+
+  <div class="replay">
+    <div class="map-wrap">
+      <svg id="map" viewBox="0 0 800 380" role="img" aria-label="Route from Chicago to Columbus with the truck's progress and nearby cold-storage sites"></svg>
+      <p class="fine">Route position is illustrative. Temperatures, cooling-unit speed, fault codes and alerts are the recorded values.</p>
     </div>
 
-    <div class="chart-wrap">
-      <svg id="chart" role="img" aria-label="Cargo temperature against its permitted envelope"></svg>
+    <aside class="gauges" aria-live="polite">
+      <div class="clock"><span class="k">Time since departure</span><span class="v" id="g-min">—</span></div>
+      <div class="status" id="g-status"><span class="dot"></span><span id="g-status-t">Waiting to start</span></div>
+      <div class="gauge-grid">
+        <div class="g"><span class="k">Cargo temperature</span><span class="v" id="g-temp">—</span><div class="bar"><i id="g-temp-bar"></i><b class="lim lo"></b><b class="lim hi"></b></div></div>
+        <div class="g"><span class="k">Cooling unit speed</span><span class="v" id="g-rpm">—</span></div>
+        <div class="g"><span class="k">Outside air</span><span class="v" id="g-amb">—</span></div>
+        <div class="g"><span class="k">Fault codes</span><span class="v" id="g-codes">—</span></div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-small" id="r-play" type="button">▶ Play</button>
+        <button class="btn btn-small btn-ghost" id="r-restart" type="button">↺ Restart</button>
+        <label class="speed">Speed
+          <select id="r-speed">
+            <option value="4">4 min / s</option>
+            <option value="8" selected>8 min / s</option>
+            <option value="20">20 min / s</option>
+          </select>
+        </label>
+      </div>
+      <input type="range" id="r-scrub" min="0" max="239" value="0" aria-label="Scrub through the replay">
+    </aside>
+  </div>
+
+  <div class="feed-wrap">
+    <h3 class="small-h">What happened</h3>
+    <ol class="feed" id="feed"></ol>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <h3 class="small-h">Cargo temperature, as the sensor reported it</h3>
       <div class="legend" id="legend"></div>
     </div>
-
-    <p class="caveat">
-      The line is <strong>what the sensor reported</strong>. The simulator's true temperature is
-      deliberately not served by the API &mdash; ground truth is benchmark-only, and a chart that
-      overlaid it would put it one fetch away from the application.
-    </p>
-  </section>
-
-  <!-- ── Measured claims ─────────────────────────────────────────── -->
-  <section class="panel" id="claims-panel">
-    <div class="panel-head">
-      <h2>Measured claims</h2>
-      <p class="hint">Every figure comes from a stored benchmark run. Nothing here is typed by hand.</p>
+    <div class="chart-wrap">
+      <svg id="chart" role="img" aria-label="Cargo temperature against its permitted range, with the moments each alarm fired"></svg>
     </div>
-    <div class="claim-grid" id="claim-grid"></div>
-    <p class="caveat" id="c1-caveat" hidden></p>
-  </section>
+    <p class="fine">The simulator also knows the <em>true</em> temperature. The site is deliberately never
+    given it: a test fails if it is ever served, so everything above is what a real sensor could have reported.</p>
+  </div>
+</section>
 
-  <!-- ── Why temperature alone is not enough ─────────────────────── -->
-  <section class="panel">
-    <div class="panel-head">
-      <h2>Two shipments that look the same</h2>
-      <p class="hint">
-        One cargo is genuinely warming. The other is fine and its sensor is lying.
-        Both report a climbing temperature.
-      </p>
-    </div>
-    <div id="compare"></div>
-    <p class="caveat" id="compare-note"></p>
-  </section>
+<!-- ── Results ────────────────────────────────────────────────────────── -->
+<section class="section" id="results">
+  <p class="kicker">Results</p>
+  <h2>Measured, not promised.</h2>
+  <p class="sub">Every number here is read from a stored benchmark run over simulated shipments.
+  Nothing is typed in by hand, and anything not yet measured is left off rather than estimated.</p>
+  <div class="claims" id="claim-grid"></div>
+  <div class="callout" id="c1-caveat" hidden></div>
+</section>
 
-  <!-- ── The loop ────────────────────────────────────────────────── -->
-  <section class="panel">
-    <div class="panel-head">
-      <h2>The closed loop</h2>
-      <p class="hint">
-        Thirteen steps, no language model. Replayed from the last
-        <code>poe demo --json</code> &mdash; the same code path, against the same two databases.
-      </p>
+<!-- ── Two shipments ──────────────────────────────────────────────────── -->
+<section class="section" id="compare-section">
+  <p class="kicker">Why a thermometer isn't enough</p>
+  <h2>Is the cargo warming, or is the thermometer lying?</h2>
+  <p class="sub">Both of these shipments report a climbing temperature. Only one of them is in trouble.</p>
+  <div id="compare" class="compare"></div>
+  <div class="callout" id="compare-note"></div>
+</section>
+
+<!-- ── The AI ─────────────────────────────────────────────────────────── -->
+<section class="section" id="ai">
+  <p class="kicker">The AI</p>
+  <h2>The AI explains. The rules decide. Here is exactly what it said.</h2>
+  <p class="sub">A language model investigates the same incident: it ranks possible causes and writes
+  the explanation a manager reads. It is never allowed to invent a reading, set a confidence above
+  what the rules permit, or choose the action.</p>
+
+  <div class="ai-grid">
+    <div class="ai-card">
+      <h3 class="small-h">Likely causes, as ranked by the model</h3>
+      <div id="hyps"></div>
+      <p class="fine">White bar: the model's confidence. Cyan tick: the ceiling the rules allow. The model can
+      only narrow belief inside that ceiling, never raise it.</p>
     </div>
-    <ol class="timeline" id="timeline"></ol>
-  </section>
+    <div class="ai-card">
+      <h3 class="small-h">What it told the fleet manager</h3>
+      <blockquote id="narrative">—</blockquote>
+      <div class="grounded" id="grounded"></div>
+      <p class="fine" id="ai-model"></p>
+    </div>
+  </div>
+
+  <div class="verdict" id="ai-verdict" hidden>
+    <h3>Did the AI make the decisions better? We measured it. <span class="neg">No.</span></h3>
+    <div class="vs" id="ai-vs"></div>
+    <p class="fine" id="ai-verdict-note"></p>
+  </div>
+</section>
+
+<!-- ── Closed loop ────────────────────────────────────────────────────── -->
+<section class="section" id="loop">
+  <p class="kicker">Every step, on the record</p>
+  <h2>What the system did with this shipment, in order.</h2>
+  <p class="sub" id="loop-sub">Recorded from the last full run of the real code, against real databases.</p>
+  <ol class="timeline" id="timeline"></ol>
+</section>
+
+<!-- ── Safety ─────────────────────────────────────────────────────────── -->
+<section class="section" id="safety">
+  <p class="kicker">Safety</p>
+  <h2>Built so the AI can't go rogue — and tested to prove it.</h2>
+  <div class="cards three">
+    <article class="card"><h3>It can't invent evidence</h3><p>A language model is never allowed to be the source of a sensor reading. The database itself rejects one.</p></article>
+    <article class="card"><h3>It can't act alone</h3><p>No action runs without a valid, unexpired approval that matches exactly what the approver saw.</p></article>
+    <article class="card"><h3>It can't change your records</h3><p>Read-only access to the company's order system, through six approved views, with every query checked before it runs.</p></article>
+    <article class="card"><h3>It can't rewrite history</h3><p>The audit log is append-only and hash-chained, so an edited or deleted entry is detectable.</p></article>
+    <article class="card"><h3>It admits what it doesn't know</h3><p>A missing reading stays missing and lowers confidence. It is never filled in with a guess.</p></article>
+    <article class="card"><h3>It shows its work</h3><p>Every number on this page traces to a stored run that anyone with the code can reproduce.</p></article>
+  </div>
+</section>
 
 </main>
 
-<footer>
-  <p>
-    Numbers on this page trace to <code id="run-id">&mdash;</code>.
-    Claims that are not yet measured are absent rather than estimated.
-  </p>
+<footer class="footer">
+  <div class="foot-top">
+    <div class="logo"><span>AxonFDE</span></div>
+    <p>Cold-chain decision intelligence. A working system over simulated shipments: the physics is
+    simulated; the databases, the code and the measurements are real.</p>
+  </div>
+  <div class="provenance" id="provenance"><span class="pill">loading provenance…</span></div>
+  <p class="fine">Numbers on this page trace to <span id="run-id">—</span>.
+  Source: <a href="https://github.com/dilipna/axon-fde">github.com/dilipna/axon-fde</a></p>
 </footer>
 
 <script type="module" src="/ui/app.js"></script>
