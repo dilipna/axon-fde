@@ -179,6 +179,7 @@ with the benchmark, baseline, metric and methodology required to support it. The
 | Detects when enterprise sources disagree | precision / recall against seeded conflicts | — | **recall 1.00, precision 1.00** over 23 conflicts and 60 near-miss negatives |
 | AI cannot execute unauthorised actions | unauthorised-action rate (target: 0) | — | **0** across all 50 role × action cells |
 | Generated SQL cannot mutate the legacy system | prohibited-operation rate (target: 0) | — | **0** of 57 adversarial inputs |
+| Verifies whether an action actually worked | verdict agreement with simulated ground truth | — | **0.94** over 100 post-action trajectories — 1.00 on honest sensors; **3 false "it worked" verdicts, all from a stuck sensor** |
 | Degrades safely when dependencies fail | fabrication rate (target: 0), correct degradation per failure mode | — | **0** fabrications, **11/11** rows of a [pre-registered failure matrix](docs/evaluation/failure_matrix.md) — which first found 5 rows wrong, including an LLM outage crashing the workflow |
 | Calibrated excursion probability | Brier, ECE, reliability diagram, out of regime | slope extrapolation, rule margin, logistic regression | **ECE 0.030** vs slope's 0.119, AUC-PR 0.689 vs 0.284 — [ADR-008](docs/adr/008-risk-model-choice.md) has what this does *not* establish |
 | Accurate root-cause identification | top-1 / top-3 accuracy | rules-only arm | rules-only **0.50** top-1; LLM arm **0.432** — the LLM arm is *worse*, see next row |

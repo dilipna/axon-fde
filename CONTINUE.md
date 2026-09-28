@@ -271,7 +271,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**69 commits · 963 tests (real gate, 2026-09-28) · mypy --strict clean · 11 module contracts · CI green (run 40, `ee61c7a`) · pushed to
+**74 commits · 974 tests (real gate, 2026-09-28) · mypy --strict clean · 11 module contracts · CI green (run 40, `ee61c7a`) · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -754,6 +754,25 @@ killed; DB/network failures below the workflow are the integration suites'.
 
 **B14's other half (C9, attack pack) stays blocked on B13** - see §7.
 
+### Static site + C11 ✅ **DONE** (2026-09-28)
+**Public snapshot.** `poe export-site` asks the real API for exactly what the
+page fetches and writes `site/` (7 files, ~200 KB); `.github/workflows/pages.yml`
+publishes it. Page paths are relative so it works at `/` and under
+`/axon-fde/`. `tests/unit/test_site_snapshot.py` fails if the snapshot's run is
+not the newest published one, if its page differs from `apps/control_tower/`,
+or if it carries ground truth. **Pages must be switched on by the owner**
+(repo Settings > Pages > Source: GitHub Actions); the URL will be
+`https://dilipna.github.io/axon-fde/`. Re-export after any new published run:
+`uv run poe demo-trace && uv run poe export-site`.
+
+**C11 `MEASURED`: agreement 0.94 over 100 post-action trajectories** (1.00
+honest sensors, 0.50 lying; **3 false confirmations, all stuck sensors**).
+IncidentForge has an `Intervention` hook (cold storage / unit swap / close
+door; the sensor is not repaired); 60 golden digests unchanged. Method
+pre-registered in `claims.md` (`c61105e`) before any trajectory. The obvious
+fix - refuse to confirm on zero-variance readings - was **not** added: it would
+be tuned to this benchmark; measure it on new scenarios.
+
 ### B11 — Streaming [Phase 2]
 Redpanda, consumer, event-driven detection, duplicate/out-of-order handling,
 lead-time measurement at fleet scale.
@@ -891,4 +910,5 @@ Do **not** start B11, B13 or B16 before the demo — §0.0.
 | 2026-09-28 | **B15c** | Owner rejected B15b ("look like a real company website"). Rebuilt the tower as a one-page product site in black/white Arial with an animated truck, a live minute-by-minute replay, and the model's investigation — all driven by recorded data. DEMO.md's walkthrough and the README rewritten to match. Findings: `--virtual-time-budget` screenshots stall transitions and rAF, which hid a real fragility (content hidden until an observer fired); the trace carries raw ANSI escapes. See §6 B15c. |
 | 2026-09-28 | **B14a (C13)** | Owner chose "demo-ready + C13" for the last two days. Failure matrix pre-registered, suite written, **5 of 11 rows found wrong** before any fix (LLM outage crashes the workflow; silent FULL on unusable output; missing facility data read as no capacity, 7.6x worse recommendation). `NO_LLM` implemented; C13 `MEASURED` 0 fabrications, 11/11. LLM arm replays identically. |
 | 2026-09-28 | **Polish + B17 (case study)** | Owner: "complete this project in its best way in 1 day". Closed every small known gap: ANSI escapes stripped at the source; `bench-report <dir>` honours its argument; **the site's JS now has a test** (Node harness over the shipped functions). README gains the C13 row; `docs/CASE_STUDY.md` written for recruiters/interviewers. Honest scope: B11/B13/B16 and C9/C11 remain weeks of work and were not started. |
-| | **Next** | B15c **accepted**. C13 done. Case study written. Owner does one fully cold run of `docs/DEMO.md` (tower: `uv run poe demo-trace && uv run poe tower --port 8012`). Demo 09-30; 09-29 is buffer. After the demo: B14 **starting with writing the failure matrix** (§7) for C13; C9 stays blocked on B13. Or confirm the risk model on fresh scenarios. Small fix queued: `report.py` argv. |
+| 2026-09-28 | **Static site + C11** | Owner: "best project on my portfolio". The site had no public URL - now `site/` + a Pages workflow, guarded against going stale. **C11 measured** (0.94; 3 false confirmations, all stuck sensors) with post-action physics in IncidentForge; method pre-registered first. **11 of 15 claims measured** (C4 multimodal, C9 injection, C14 workflow, C15 avoided loss remain). |
+| | **Next** | **Owner: switch on GitHub Pages** (Settings > Pages > GitHub Actions), then add the URL to the README. After the demo: B13 multimodal unblocks C4 and C9; the zero-variance verifier rule, measured on new scenarios. Owner does one fully cold run of `docs/DEMO.md` (tower: `uv run poe demo-trace && uv run poe tower --port 8012`). Demo 09-30; 09-29 is buffer. After the demo: B14 **starting with writing the failure matrix** (§7) for C13; C9 stays blocked on B13. Or confirm the risk model on fresh scenarios. Small fix queued: `report.py` argv. |

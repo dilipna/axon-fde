@@ -56,6 +56,7 @@ approval that matches exactly what the approver saw*.
 | Unauthorised actions (C7) | **0** across all 50 role × action cells |
 | Forbidden SQL (C8) | **0** of 57 adversarial queries |
 | Calibration (C2) | ECE **0.030** vs 0.119 for slope extrapolation, out of regime |
+| Verifying outcomes (C11) | **0.94** agreement with ground truth over 100 post-action trajectories; **3 false confirmations, all from stuck sensors** |
 | Safe degradation (C13) | **0** fabrications, **11/11** rows of a pre-registered failure matrix |
 | Does the LLM help? (C5) | **Refuted.** Root cause 50% → 43% (worse); chosen action identical on all 44 incidents; explanation quality 1.8 → 3.3 of 5 |
 
@@ -106,9 +107,8 @@ it happened.
 ## What is not done
 
 - The physics is simulated; real-world generalisation is unvalidated.
-- Three claims are still open: multimodal evidence (needs a vision model),
-  prompt-injection resistance (needs an attack pack and images), and
-  verification accuracy (needs post-action physics in the simulator).
+- Two claims are still open: multimodal evidence (needs a vision model) and
+  prompt-injection resistance (needs an attack pack and images).
 - Actions are simulated; nothing dispatches a real truck. Approving an action
   from the web UI is not built — the UI is read-only over recorded runs.
 - No cloud deployment yet.

@@ -6,9 +6,9 @@ render time, and nothing is typed by hand. That is invariant I7.
 
 ## Arm: `rules_llm`
 
-- Run: `run-3bf20da5bf32`
-- Completed: 2026-09-28T05:45:32.429354+00:00
-- Code: `fe1a050`
+- Run: `run-a065a21ba569`
+- Completed: 2026-09-28T06:19:25.291841+00:00
+- Code: `ddc96ca`
 - Model: `openai/gpt-oss-120b (links), openai/gpt-oss-20b (narrative), openai/gpt-oss-20b (judge)` · prompt `v2`
 - Pack: `1.1.0` · config `42da15021752172e`
 
@@ -16,7 +16,7 @@ render time, and nothing is typed by hand. That is invariant I7.
 |---|---|---|---|---|
 | C1 | measured | median lead time and IQR, jointly with false-alarm rate | 49 | 40/40 true-breach scenarios |
 | C10 | measured | unsupported-claim rate | 0.318182 | 44/40 generated narratives |
-| C11 | insufficient data | verification-verdict accuracy against known post-action trajectories | — | 0/20 post-action trajectories |
+| C11 | measured | verification-verdict accuracy against known post-action trajectories | 0.94 | 100/20 post-action trajectories |
 | C12 | measured | p95 model cost per incident, with p50 and latency percentiles | 0.000631436 | 44/40 investigated incidents |
 | C13 | measured | correct-degradation rate per failure mode; fabrication rate target 0 | 0 | 11/11 failure-matrix rows |
 | C2 | measured | expected calibration error out of regime, with AUC-PR, Brier and the baselines | 0.030426 | 60/60 out-of-regime scenarios |
@@ -41,6 +41,21 @@ render time, and nothing is typed by hand. That is invariant I7.
 **C10 companion metrics** — these must be quoted together:
 - `figures_checked`: 313
 - `narratives_grounded_rate`: 0.681818
+
+**C11 companion metrics** — these must be quoted together:
+- `agreement`: 0.94
+- `agreement_contact_driver`: 0.941176
+- `agreement_reroute_to_cold_storage`: 0.970588
+- `agreement_trailer_swap`: 0.90625
+- `excluded_window_past_end`: 20
+- `false_confirmation_rate`: 0.0909091
+- `false_confirmations`: 3
+- `honest_sensor_agreement`: 1
+- `inconclusive`: 0
+- `lying_sensor_agreement`: 0.5
+- `lying_sensor_trajectories`: 12
+- `missed_recoveries`: 3
+- `truly_worked`: 67
 
 **C12 companion metrics** — these must be quoted together:
 - `cached_input_share`: 0.0681564
@@ -127,14 +142,13 @@ render time, and nothing is typed by hand. That is invariant I7.
 
 ### What is not measured yet, and why
 
-- **C11** — IncidentForge does not simulate post-action physics, so no known post-action trajectory exists to grade a verdict against. Needs simulator work before the claim is reachable.
 - **C9** — no attack pack exists. The method needs injected instructions across four modalities (documents, images, SOPs, database values) and a defences-off baseline; there is no image modality until B13 and no attack suite until AxonRed (B14). The register's own stop condition applies to a small hand-written pack: an attack success rate of 0 from weak attacks is not evidence of security. The structural defences are real and tested - ProposedLink has no confidence field, the scorer ignores prose, and the grounding check rejects an untraceable figure - but a structural argument is not a measured attack success rate.
 
 ## Arm: `rules_only`
 
-- Run: `run-e5395fd01838`
-- Completed: 2026-09-28T05:44:33.928580+00:00
-- Code: `fe1a050`
+- Run: `run-fab8f60ecdcc`
+- Completed: 2026-09-28T06:18:13.014978+00:00
+- Code: `ddc96ca`
 - Model: `none` · prompt `none`
 - Pack: `1.1.0` · config `42da15021752172e`
 
@@ -142,7 +156,7 @@ render time, and nothing is typed by hand. That is invariant I7.
 |---|---|---|---|---|
 | C1 | measured | median lead time and IQR, jointly with false-alarm rate | 49 | 40/40 true-breach scenarios |
 | C10 | insufficient data | unsupported-claim rate | — | 0/40 generated narratives |
-| C11 | insufficient data | verification-verdict accuracy against known post-action trajectories | — | 0/20 post-action trajectories |
+| C11 | measured | verification-verdict accuracy against known post-action trajectories | 0.94 | 100/20 post-action trajectories |
 | C12 | insufficient data | p95 model cost per incident, with p50 and latency percentiles | — | 0/40 investigated incidents |
 | C13 | measured | correct-degradation rate per failure mode; fabrication rate target 0 | 0 | 11/11 failure-matrix rows |
 | C2 | measured | expected calibration error out of regime, with AUC-PR, Brier and the baselines | 0.030426 | 60/60 out-of-regime scenarios |
@@ -163,6 +177,21 @@ render time, and nothing is typed by hand. That is invariant I7.
 - `lead_time_sample_size`: 37
 - `median_lead_time_after_fault_onset_min`: 35
 - `median_lead_time_min`: 49
+
+**C11 companion metrics** — these must be quoted together:
+- `agreement`: 0.94
+- `agreement_contact_driver`: 0.941176
+- `agreement_reroute_to_cold_storage`: 0.970588
+- `agreement_trailer_swap`: 0.90625
+- `excluded_window_past_end`: 20
+- `false_confirmation_rate`: 0.0909091
+- `false_confirmations`: 3
+- `honest_sensor_agreement`: 1
+- `inconclusive`: 0
+- `lying_sensor_agreement`: 0.5
+- `lying_sensor_trajectories`: 12
+- `missed_recoveries`: 3
+- `truly_worked`: 67
 
 **C13 companion metrics** — these must be quoted together:
 - `F10_correct`: 1
@@ -225,7 +254,6 @@ render time, and nothing is typed by hand. That is invariant I7.
 ### What is not measured yet, and why
 
 - **C10** — the rules-only arm generates no model narrative to check for unsupported claims
-- **C11** — IncidentForge does not simulate post-action physics, so no known post-action trajectory exists to grade a verdict against. Needs simulator work before the claim is reachable.
 - **C12** — the rules-only arm makes no model calls, so there is no cost or latency
 - **C5** — the ablation compares two arms; this run is the rules-only baseline
 - **C9** — no attack pack exists. The method needs injected instructions across four modalities (documents, images, SOPs, database values) and a defences-off baseline; there is no image modality until B13 and no attack suite until AxonRed (B14). The register's own stop condition applies to a small hand-written pack: an attack success rate of 0 from weak attacks is not evidence of security. The structural defences are real and tested - ProposedLink has no confidence field, the scorer ignores prose, and the grounding check rejects an untraceable figure - but a structural argument is not a measured attack success rate.
