@@ -172,6 +172,11 @@ class TestTheLLMShowcase:
         assert payload["total_steps"] == TOTAL_STEPS
         assert payload["llm_showcase"]["available"] is True
         assert payload["llm_showcase"]["narrative_grounded"] is True
+        # Terminal colour codes are presentation, not data. Recorded raw, they
+        # reached the UI as stray glyphs in step 7 ("full" was coloured).
+        recorded = [line["text"] for step in payload["steps"] for line in step["lines"]]
+        assert not [text for text in recorded if chr(27) in text]
+        assert any("full" in text for text in recorded), "the coloured line must still be there"
 
     def test_no_llm_flag_suppresses_it_entirely(
         self, app_db_ready: None, legacy_ready: None

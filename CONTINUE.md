@@ -271,7 +271,7 @@ over mechanisms.
 
 ## 2. Current state
 
-**67 commits · 960 tests (real gate, 2026-09-28) · mypy --strict clean · 11 module contracts · CI green (run 40, `ee61c7a`) · pushed to
+**69 commits · 963 tests (real gate, 2026-09-28) · mypy --strict clean · 11 module contracts · CI green (run 40, `ee61c7a`) · pushed to
 `https://github.com/dilipna/axon-fde`**
 
 Repository: `C:\dev\axonfde` (deliberately **not** in OneDrive — sync corrupts
@@ -639,12 +639,14 @@ by default and only below-the-fold elements get the entrance animation.
 **Found on the way:** the trace records **raw ANSI escapes** in step 7
 (`\x1b[33mfull\x1b[0m`) — the terminal narrator's colour leaking into data the
 UI renders; the B15b page printed them as a stray glyph. The JS strips them;
-the recording narrator still writes them (fix belongs in `scripts/demo.py`,
-not done — demo week).
+**fixed at the source 2026-09-28** - the recording narrator strips them, with an
+e2e assertion proven red against the old narrator.
 
-**Still open:** the JavaScript still has no automated test. The C1-pairing
-refusal and the slope window now live in a 1,100-line `app.js`; a node-driven
-test in CI is the obvious next step.
+**Closed 2026-09-28:** `tests/unit/test_control_tower_js.py` runs the shipped
+`app.js` functions under Node (`tower_harness.mjs` imports everything above the
+Boot banner) and asserts the C1 refusal, ANSI stripping, and that the four
+comparison figures equal the register's. Proven red by breaking the window
+convention and the C1 refusal.
 
 **Done when:** the owner says it looks good. **They did: "done it looks very good" (2026-09-28).**
 
@@ -888,4 +890,5 @@ Do **not** start B11, B13 or B16 before the demo — §0.0.
 | 2026-09-28 | **Demo rehearsal ×2** | Docker was down at start (relaunched, up in 5 s). Port 8000 held again (job-hunt-os uvicorn + wc26-mlops container); tower served on 8010/8011/8012. Both rehearsals green: `poe demo-trace`, a literal `python -m scripts.demo --json`, `poe demo`, `--no-llm`, `poe test-sec` (140 passed); **LLM showcase grounded in 5.0 s and byte-identical across runs**. Findings, in order of how badly they would have landed in the room: (1) **the tower's header carried an amber "not reproducible — do not quote" chip** — the published `rules_llm` run `run-a48b31474123` was recorded from a dirty tree (`6a32821-dirty`), which `published/README.md` says makes it ineligible for that directory, and `results.md` said "must not be quoted" over the C3/C5/C10/C12 numbers. The UI was right to flag it. Fixed by replaying the arm from the committed cassettes at clean `cbce97f` (1 min, $0): **every result field identical**, only provenance differs → `run-a434370a4627` published, the dirty run removed, `claims.md` and `results.md` repointed. This also proves the LLM arm reproduces from cassettes. (2) **DEMO.md §5 told the presenter to point at citations in the narrative — there are none**; the E-codes print only on hypothesis lines. (3) DEMO.md §1 said "the green one … the red one"; B15b made them cyan-solid and red-dashed (deliberately — red/green collapse under CVD). (4) DEMO.md's port-collision row said uvicorn "keeps running" on a busy port; today it **exits with code 3** and the browser shows the other app's `{"detail":"Not Found"}`. (5) `poe bench-report <dir>` **ignores its argument** — `report.py` calls `main()` without `sys.argv[1:]`, so it always reads `benchmarks/results/`. Logged, not fixed (demo week, no code). (6) **B14's brief was wrong about C9** — see §7. Not done: the fully cold rehearsal (quit Docker Desktop, delete `data/generated/`) — the agent's permission classifier refused the teardown; the owner should do one. |
 | 2026-09-28 | **B15c** | Owner rejected B15b ("look like a real company website"). Rebuilt the tower as a one-page product site in black/white Arial with an animated truck, a live minute-by-minute replay, and the model's investigation — all driven by recorded data. DEMO.md's walkthrough and the README rewritten to match. Findings: `--virtual-time-budget` screenshots stall transitions and rAF, which hid a real fragility (content hidden until an observer fired); the trace carries raw ANSI escapes. See §6 B15c. |
 | 2026-09-28 | **B14a (C13)** | Owner chose "demo-ready + C13" for the last two days. Failure matrix pre-registered, suite written, **5 of 11 rows found wrong** before any fix (LLM outage crashes the workflow; silent FULL on unusable output; missing facility data read as no capacity, 7.6x worse recommendation). `NO_LLM` implemented; C13 `MEASURED` 0 fabrications, 11/11. LLM arm replays identically. |
-| | **Next** | B15c **accepted**. C13 done. Owner does one fully cold run of `docs/DEMO.md` (tower: `uv run poe demo-trace && uv run poe tower --port 8012`). Demo 09-30; 09-29 is buffer. After the demo: B14 **starting with writing the failure matrix** (§7) for C13; C9 stays blocked on B13. Or confirm the risk model on fresh scenarios. Small fix queued: `report.py` argv. |
+| 2026-09-28 | **Polish + B17 (case study)** | Owner: "complete this project in its best way in 1 day". Closed every small known gap: ANSI escapes stripped at the source; `bench-report <dir>` honours its argument; **the site's JS now has a test** (Node harness over the shipped functions). README gains the C13 row; `docs/CASE_STUDY.md` written for recruiters/interviewers. Honest scope: B11/B13/B16 and C9/C11 remain weeks of work and were not started. |
+| | **Next** | B15c **accepted**. C13 done. Case study written. Owner does one fully cold run of `docs/DEMO.md` (tower: `uv run poe demo-trace && uv run poe tower --port 8012`). Demo 09-30; 09-29 is buffer. After the demo: B14 **starting with writing the failure matrix** (§7) for C13; C9 stays blocked on B13. Or confirm the risk model on fresh scenarios. Small fix queued: `report.py` argv. |

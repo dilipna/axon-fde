@@ -188,4 +188,6 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # The arguments were once dropped here, so `poe bench-report <dir>` read
+    # benchmarks/results/ whatever directory it was given.
+    sys.exit(main(sys.argv[1:]))

@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import sys
 from contextlib import suppress
 from dataclasses import dataclass
@@ -113,6 +114,9 @@ def _trace_path(args: list[str]) -> Path | None:
 # ---------------------------------------------------------------------------
 
 
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
 class Narrator(Protocol):
     """Where the loop's narration goes.
 
@@ -186,7 +190,10 @@ class Recorder:
         if not self.steps:
             # Narration before the first step - the opening banner's notes.
             self.steps.append({"number": 0, "title": "", "lines": []})
-        self.steps[-1]["lines"].append({"kind": kind, "text": text})
+        # The terminal colours some words, and those escape codes are for a
+        # terminal. Recorded raw, they reached the UI as stray glyphs (step 7's
+        # "full" printed as `ESC[33mfullESC[0m`).
+        self.steps[-1]["lines"].append({"kind": kind, "text": _ANSI.sub("", text)})
 
     def step(self, title: str) -> None:
         self._console.step(title)
