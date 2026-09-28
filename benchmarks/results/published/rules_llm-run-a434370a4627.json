@@ -31,16 +31,16 @@
     "prompt_version": "v2",
     "stopped_before_the_model": {}
   },
-  "completed_at": "2026-09-27T19:46:07.174225+00:00",
+  "completed_at": "2026-09-28T04:18:33.522821+00:00",
   "provenance": {
     "config_hash": "42da15021752172e",
-    "git_sha": "6a32821-dirty",
+    "git_sha": "cbce97f",
     "model_id": "openai/gpt-oss-120b (links), openai/gpt-oss-20b (narrative), openai/gpt-oss-20b (judge)",
     "pack_version": "1.1.0",
     "prompt_version": "v2",
-    "reproducible": false,
-    "run_id": "run-a48b31474123",
-    "started_at": "2026-09-27 19:46:07.173253+00:00"
+    "reproducible": true,
+    "run_id": "run-a434370a4627",
+    "started_at": "2026-09-28 04:18:33.522821+00:00"
   },
   "results": [
     {

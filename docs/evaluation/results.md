@@ -6,13 +6,11 @@ render time, and nothing is typed by hand. That is invariant I7.
 
 ## Arm: `rules_llm`
 
-- Run: `run-a48b31474123`
-- Completed: 2026-09-27T19:46:07.174225+00:00
-- Code: `6a32821-dirty`
+- Run: `run-a434370a4627`
+- Completed: 2026-09-28T04:18:33.522821+00:00
+- Code: `cbce97f`
 - Model: `openai/gpt-oss-120b (links), openai/gpt-oss-20b (narrative), openai/gpt-oss-20b (judge)` · prompt `v2`
 - Pack: `1.1.0` · config `42da15021752172e`
-
-> **Not reproducible.** This run was measured against code that was not committed, so nobody else can reproduce the numbers below. They are recorded for the person who ran them and must not be quoted.
 
 | Claim | Status | Metric | Value | Cases |
 |---|---|---|---|---|
