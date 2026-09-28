@@ -26,6 +26,8 @@ whether the intervention actually worked.
 
 ---
 
+**Live:** [dilipna.github.io/axon-fde](https://dilipna.github.io/axon-fde/) — a static snapshot of the control tower, no setup required.
+
 ## The problem
 
 Axon Truck Services moves temperature-sensitive cargo — pharmaceuticals, vaccines, fresh and frozen

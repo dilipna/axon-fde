@@ -7,14 +7,12 @@ name: Pages
 # tests/unit/test_site_snapshot.py, so a stale page fails CI instead of
 # quietly contradicting the register.
 
-# Manual for now: Pages has to be switched on in the repository settings
-# (Settings > Pages > Source: GitHub Actions) before a deploy can succeed, and
-# an automatic run before that only leaves a red cross on the latest commit.
-# Once Pages is on, restore the push trigger:
-#   push:
-#     branches: [main]
-#     paths: ["site/**", ".github/workflows/pages.yml"]
+# Pages is switched on (Settings > Pages > Source: GitHub Actions), so every
+# push that touches the snapshot deploys it.
 on:
+  push:
+    branches: [main]
+    paths: ["site/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
