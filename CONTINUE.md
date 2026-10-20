@@ -1,5 +1,20 @@
 # CONTINUE — session handoff
 
+## October 20, 2026: bounded verification validity repair
+
+New local branch `improve/verification-evidence-validity`, based on `ad90a2f`.
+Read `docs/verification-validity.md` for scope, reproduction and interview guidance.
+The verifier normalizes duplicate timestamps, abstains on invalid/conflicting
+measurements and checks finite computed slopes. Ordinary Evidence.create already
+rejects NaN; the core guard is defense in depth. Finite lying sensors remain a
+limitation. No historical C11 number is updated, no model call or deployment is made.
+Acceptance is closed: 717 unit tests and 23 real-Postgres governance tests passed;
+focused verification 53 passed, no skips. Ruff/format, strict mypy and all 11
+architecture contracts passed. Details: `docs/verification-validity-results.md`.
+The local commit is recorded in the mission's separate completion report. No
+other repository was edited. Move to the next portfolio evidence gap rather than
+starting another Axon feature cycle.
+
 Read this first in any new session. It is the single source of truth for where
 AxonFDE stands and what to do next.
 
