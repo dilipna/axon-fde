@@ -656,6 +656,37 @@ class TestVerificationClosesTheLoop:
         assert outcome.reopened is False
         assert governance.incident.status == IncidentStatus.RESOLVED.value
 
+    @pytest.mark.parametrize("values", [[7.0, 7.0, 7.0], [7.0, 9.0, 7.0]])
+    async def test_repeated_or_conflicting_readings_cannot_resolve_an_incident(
+        self, governance: Governance, values: list[float]
+    ) -> None:
+        await governance.incidents.transition(
+            governance.incident,
+            IncidentStatus.ACTING,
+            actor=FLEET_MANAGER.subject,
+            at=GRANTED_AT,
+        )
+        _, verification = await self._execute_reroute(governance)
+        outcome = await governance.verification.verify(
+            verification,
+            incident=governance.incident,
+            evidence=[temperature(v, observed_at=verification.window_start) for v in values],
+            envelope=ENVELOPE,
+            at=verification.window_end + timedelta(minutes=1),
+        )
+        assert outcome.result.verdict is Verdict.INCONCLUSIVE
+        await governance.session.commit()
+        await governance.session.refresh(verification)
+        await governance.session.refresh(governance.incident)
+        assert verification.verdict == Verdict.INCONCLUSIVE.value
+        assert verification.follow_up_required
+        assert governance.incident.status == IncidentStatus.VERIFYING.value
+        payload = await governance.session.scalar(
+            sa.select(AuditEvent.payload).where(AuditEvent.action == "verification.completed")
+        )
+        assert payload["verdict"] == Verdict.INCONCLUSIVE.value
+        assert (await governance.audit.verify()).valid
+
     async def test_a_verification_with_no_readings_leaves_the_incident_alone(
         self, governance: Governance
     ) -> None:

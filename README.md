@@ -16,6 +16,11 @@ whether the intervention actually worked.
 
 **Resuming work?** Read [CONTINUE.md](CONTINUE.md) first.
 
+**Verification validity repair (October 20, 2026):** outcome grading now rejects
+invalid evidence, collapses repeated timestamps and abstains on conflicting readings.
+See the [design, reproduction steps and limitations](docs/verification-validity.md).
+This is new local project work; it does not establish a new historical benchmark result.
+
 **Start here:** [customer brief](docs/customer-brief.md) ·
 [architecture](docs/architecture/overview.md) ·
 [evidence model](docs/architecture/evidence-model.md) ·
