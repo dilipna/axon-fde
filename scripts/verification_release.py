@@ -18,7 +18,8 @@ PACK = Path(__file__).resolve().parents[1] / "data/scenarios/verification_releas
 
 def measure() -> dict[str, Any]:
     """Keep truth/expected labels outside the application grading arguments."""
-    content = PACK.read_bytes()
+    # Git normalizes checkout line endings. Bind identity to UTF-8/LF bytes.
+    content = PACK.read_bytes().replace(b"\r\n", b"\n")
     pack = json.loads(content)
     start = datetime(2026, 10, 21, tzinfo=UTC)
     end = start + timedelta(minutes=pack["window_minutes"])
@@ -42,6 +43,7 @@ def measure() -> dict[str, Any]:
     abstentions = sum(r["verdict"] == "inconclusive" for r in rows)
     return {
         "pack_sha256": hashlib.sha256(content).hexdigest(),
+        "pack_hash_method": "utf8_lf_bytes_sha256",
         "cases": len(rows),
         "true_failures": len(failures),
         "true_successes": len(successes),

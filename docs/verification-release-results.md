@@ -2,6 +2,16 @@
 
 Candidate release, October 21, 2026. Local release qualification has passed;
 remote CI and deployment approval are pending.
+
+The first Linux CI run on `7172427` passed five jobs and 719 unit tests but
+failed the pack checksum assertion: Windows checkout CRLF bytes differed from
+Git's Linux LF bytes. The correction hashes UTF-8/LF bytes explicitly, with
+a regression proving that both checkouts produce identical full reports.
+No cases, labels, verdict logic, thresholds or before/after counts changed.
+Original Windows-byte receipts remain in the release evidence; derived public
+reports label the hash method and retain the originally recorded hash.
+Canonical frozen input SHA-256:
+`6eb4c2fbbb0db0ae8479a1eea3127f6f2486a6f48fe5e335c70f795f4ae88814`.
 Protocol committed before implementation at `1129ec7`; baseline `af2741f`.
 The public [machine-readable evidence](../apps/control_tower/verification-release.json)
 contains both complete case reports, the input hash and historical regression.

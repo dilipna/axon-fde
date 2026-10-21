@@ -7,6 +7,14 @@ a time through deployment. AxonFDE is active on isolated `improve/axon-release`.
 This supersedes the earlier instruction to leave after the narrow validity fix;
 that completed repair remains preserved at `af2741f`.
 
+Publication update: the owner explicitly approved `7172427`; PR #1 is open.
+Linux CI passed five jobs and 719 unit tests, but the frozen pack hash assertion
+failed because Git changed CRLF to LF. The local correction hashes UTF-8/LF
+bytes and proves identical full reports for LF/CRLF. Fifty-six focused tests,
+including the new regression and snapshot checks, pass. No verifier logic or
+fault cases changed. Obtain approval for the corrected release identity before
+publishing it, then require green CI before the main merge/Pages deployment.
+
 Read `docs/verification-release-protocol.md` (frozen commit `1129ec7`) and
 `docs/verification-release-results.md`. The candidate fixes early finalization,
 stale evidence, compressed recovery holds and constant-trace ambiguity. New

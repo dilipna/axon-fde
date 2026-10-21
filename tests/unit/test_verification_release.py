@@ -10,13 +10,14 @@ from backend.app.actions.effects import EffectKind, ExpectedEffect
 from backend.app.db.app.models import Incident, OutcomeVerification
 from backend.app.domain.envelope import TemperatureEnvelope
 from backend.app.verification.service import VerificationService
+from scripts import verification_release
 from scripts.verification_release import measure
 
 
 def test_frozen_fault_pack_and_explicit_costs() -> None:
     report = measure()
     assert (
-        report["pack_sha256"] == "424186c905df517636b5fddcc2f4afd526839ed39f57e43ef64d5882ce3dd8f6"
+        report["pack_sha256"] == "6eb4c2fbbb0db0ae8479a1eea3127f6f2486a6f48fe5e335c70f795f4ae88814"
     )
     assert report["cases"] == report["expected_verdict_matches"] == 24
     assert report["false_confirmations"] == 2  # nonconstant lies remain unidentifiable
@@ -24,6 +25,16 @@ def test_frozen_fault_pack_and_explicit_costs() -> None:
     assert report["abstentions"] == 12
     assert all(r["verdict"] != "confirmed" for r in report["rows"] if r["group"] == "target_fault")
     assert all(r["verdict"] == r["truth"] for r in report["rows"] if r["group"] == "honest_control")
+
+
+def test_checkout_line_endings_do_not_change_frozen_inputs(tmp_path, monkeypatch) -> None:
+    content = verification_release.PACK.read_bytes().replace(b"\r\n", b"\n")
+    copy = tmp_path / "pack.json"
+    monkeypatch.setattr(verification_release, "PACK", copy)
+    copy.write_bytes(content)
+    linux = measure()
+    copy.write_bytes(content.replace(b"\n", b"\r\n"))
+    assert measure() == linux
 
 
 @pytest.mark.asyncio

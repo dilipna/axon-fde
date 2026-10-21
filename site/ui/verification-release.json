@@ -3,7 +3,7 @@
   "baseline_source": "af2741fd22a391a1af4cb468d2d05feda31b9db4",
   "scope": "Constructed simulation faults; no field-performance claim",
   "before": {
-    "pack_sha256": "424186c905df517636b5fddcc2f4afd526839ed39f57e43ef64d5882ce3dd8f6",
+    "pack_sha256": "6eb4c2fbbb0db0ae8479a1eea3127f6f2486a6f48fe5e335c70f795f4ae88814",
     "cases": 24,
     "true_failures": 12,
     "true_successes": 12,
@@ -418,10 +418,12 @@
           "threshold_c_per_min": 0.01
         }
       }
-    ]
+    ],
+    "original_recorded_pack_sha256": "424186c905df517636b5fddcc2f4afd526839ed39f57e43ef64d5882ce3dd8f6",
+    "pack_hash_method": "utf8_lf_bytes_sha256"
   },
   "after": {
-    "pack_sha256": "424186c905df517636b5fddcc2f4afd526839ed39f57e43ef64d5882ce3dd8f6",
+    "pack_sha256": "6eb4c2fbbb0db0ae8479a1eea3127f6f2486a6f48fe5e335c70f795f4ae88814",
     "cases": 24,
     "true_failures": 12,
     "true_successes": 12,
@@ -855,7 +857,9 @@
           "final_reading_age_minutes": 0.0
         }
       }
-    ]
+    ],
+    "original_recorded_pack_sha256": "424186c905df517636b5fddcc2f4afd526839ed39f57e43ef64d5882ce3dd8f6",
+    "pack_hash_method": "utf8_lf_bytes_sha256"
   },
   "historical_regression": {
     "baseline": {
