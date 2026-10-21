@@ -33,6 +33,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
+from math import isfinite
 from typing import Any
 
 from backend.app.actions.effects import EffectKind, ExpectedEffect
@@ -73,6 +74,11 @@ STOPPED_RISING_SLOPE_C_PER_MIN = 0.010
 #: on transients and the corrected answer needed a hold. One reading in spec
 #: after a reroute is a thermometer twitching; three in a row is a trend.
 RECOVERY_HOLD_READINGS = 3
+
+# Release protocol v1: one-minute demo telemetry, allowing one missing sample.
+# Operational policy, not a field-calibrated sensor health threshold.
+MAX_FINAL_READING_AGE_MINUTES = 2.0
+MIN_RECOVERY_HOLD_MINUTES = 2.0
 
 
 class Verdict(StrEnum):
@@ -129,9 +135,64 @@ def evaluate_effect(
             detail="the action changes a record, not a temperature; nothing to measure",
         )
 
-    inside = sorted(
-        (moment, value) for moment, value in readings if window_start <= moment <= window_end
-    )
+    if (
+        window_start.utcoffset() is None
+        or window_end.utcoffset() is None
+        or window_end <= window_start
+    ):
+        return VerificationResult(
+            Verdict.INCONCLUSIVE,
+            "verification needs an ordered, timezone-aware window",
+            {"invalid_context": "window"},
+        )
+    if (
+        not isfinite(envelope.minimum_c)
+        or not isfinite(envelope.maximum_c)
+        or envelope.minimum_c > envelope.maximum_c
+    ):
+        return VerificationResult(
+            Verdict.INCONCLUSIVE,
+            "verification needs finite, ordered temperature limits",
+            {"invalid_context": "envelope"},
+        )
+
+    # Repeated delivery is not an independent measurement. This interface has
+    # no sensor identity, so disagreement at one instant cannot be reconciled
+    # here. Do not select whichever source happened to arrive last.
+    by_time: dict[datetime, float] = {}
+    invalid_count = 0
+    duplicate_count = 0
+    conflicts: set[datetime] = set()
+    for moment, value in readings:
+        if moment.utcoffset() is None:
+            return VerificationResult(
+                Verdict.INCONCLUSIVE,
+                "a reading has no timezone; its verification window is unknown",
+                {"invalid_context": "reading_timestamp"},
+            )
+        if not window_start <= moment <= window_end:
+            continue
+        if isinstance(value, bool) or not isfinite(value):
+            invalid_count += 1
+            continue
+        if moment in by_time:
+            if by_time[moment] != value:
+                conflicts.add(moment)
+            else:
+                duplicate_count += 1
+        else:
+            by_time[moment] = value
+
+    if invalid_count or conflicts:
+        return VerificationResult(
+            Verdict.INCONCLUSIVE,
+            "invalid or conflicting temperature evidence requires review",
+            {
+                "invalid_reading_count": invalid_count,
+                "conflicting_timestamp_count": len(conflicts),
+            },
+        )
+    inside = sorted(by_time.items())
     if not inside:
         return VerificationResult(
             verdict=Verdict.INCONCLUSIVE,
@@ -143,8 +204,28 @@ def evaluate_effect(
         )
 
     if effect.kind is EffectKind.TEMPERATURE_WITHIN_ENVELOPE:
-        return _grade_recovery(inside, envelope)
-    return _grade_slope(inside, window_start, window_end, effect)
+        result = _grade_recovery(inside, envelope)
+    else:
+        result = _grade_slope(inside, window_start, window_end, effect)
+    if result.verdict in {Verdict.CONFIRMED, Verdict.FAILED}:
+        age = (window_end - inside[-1][0]).total_seconds() / 60.0
+        result.observed["final_reading_age_minutes"] = age
+        if age > MAX_FINAL_READING_AGE_MINUTES:
+            result = VerificationResult(
+                Verdict.INCONCLUSIVE,
+                "readings are stale at the verification deadline; current outcome is unknown",
+                result.observed | {"abstention_reason": "stale_at_deadline"},
+            )
+    if result.verdict is Verdict.CONFIRMED and len({v for _, v in inside}) == 1:
+        result = VerificationResult(
+            Verdict.INCONCLUSIVE,
+            "constant single-channel readings cannot distinguish steady recovery "
+            "from a stuck sensor",
+            result.observed | {"abstention_reason": "constant_trace_ambiguity"},
+        )
+    if duplicate_count:
+        result.observed["duplicate_reading_count"] = duplicate_count
+    return result
 
 
 def _grade_recovery(
@@ -163,6 +244,17 @@ def _grade_recovery(
         )
 
     tail = readings[-RECOVERY_HOLD_READINGS:]
+    hold_minutes = (tail[-1][0] - tail[0][0]).total_seconds() / 60.0
+    if hold_minutes < MIN_RECOVERY_HOLD_MINUTES:
+        return VerificationResult(
+            Verdict.INCONCLUSIVE,
+            "recovery samples are too close together to establish the required hold",
+            {
+                "reading_count": len(readings),
+                "hold_minutes": hold_minutes,
+                "abstention_reason": "compressed_recovery_hold",
+            },
+        )
     breaching = [value for _, value in tail if envelope.breaches(value)]
     observed = {
         "reading_count": len(readings),
@@ -225,6 +317,12 @@ def _grade_slope(
         )
 
     slope = least_squares_slope(minutes, values)
+    if not isfinite(slope):
+        return VerificationResult(
+            Verdict.INCONCLUSIVE,
+            "the fitted slope is not finite; numerical failure is not recovery",
+            observed=observed,
+        )
     observed["slope_c_per_min"] = round(slope, 6)
     observed["threshold_c_per_min"] = STOPPED_RISING_SLOPE_C_PER_MIN
 

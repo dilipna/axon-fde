@@ -1,5 +1,11 @@
 # AxonFDE — case study
 
+This is a personal engineering project with a fictional carrier and simulated
+shipments. The databases and application are real; there was no customer field
+deployment. Historical numbers below describe their stored runs, not a fresh
+evaluation of every subsequent release. The October 21 verification repair has
+its own [frozen protocol and measured tradeoffs](verification-release-results.md).
+
 Written for: engineers and hiring managers deciding whether this project is
 evidence of how its author works. Every number below comes from a stored,
 reproducible benchmark run committed under `benchmarks/results/published/`;

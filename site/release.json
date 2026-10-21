@@ -1,0 +1,9 @@
+{
+  "project": "AxonFDE",
+  "protocol_commit": "1129ec7",
+  "demo_source_commit": "4ad4333",
+  "baseline_source_commit": "af2741fd22a391a1af4cb468d2d05feda31b9db4",
+  "pack_sha256": "6eb4c2fbbb0db0ae8479a1eea3127f6f2486a6f48fe5e335c70f795f4ae88814",
+  "mode": "static_snapshot_with_cassette_replay",
+  "field_performance_validated": false
+}
