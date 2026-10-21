@@ -99,19 +99,25 @@ class TestMissingDataIsNeverSuccess:
 
 
 class TestRecovery:
+    @staticmethod
+    def fresh(values: list[float]) -> list[tuple[datetime, float]]:
+        # Controls exercise the recovery rule at its deadline, not stale data.
+        end = START + timedelta(minutes=90)
+        return [(end - timedelta(minutes=len(values) - 1 - i), v) for i, v in enumerate(values)]
+
     def test_cargo_back_inside_the_envelope_and_holding_is_confirmed(self) -> None:
-        result = grade(recovery(), series([9.0, 8.5, 7.9, 7.4, 7.0, 6.8]))
+        result = grade(recovery(), self.fresh([9.0, 8.5, 7.9, 7.4, 7.0, 6.8]))
         assert result.verdict is Verdict.CONFIRMED
         assert result.requires_follow_up is False
 
     def test_cargo_still_outside_the_envelope_is_a_failure(self) -> None:
-        result = grade(recovery(), series([9.0, 9.2, 9.4, 9.6, 9.8, 10.0]))
+        result = grade(recovery(), self.fresh([9.0, 9.2, 9.4, 9.6, 9.8, 10.0]))
         assert result.verdict is Verdict.FAILED
         assert result.requires_follow_up is True
 
     def test_a_dip_into_spec_that_does_not_hold_is_a_failure(self) -> None:
         """Ending outside the envelope fails, however good the middle looked."""
-        result = grade(recovery(), series([9.0, 7.5, 7.4, 7.6, 8.4, 8.9]))
+        result = grade(recovery(), self.fresh([9.0, 7.5, 7.4, 7.6, 8.4, 8.9]))
         assert result.verdict is Verdict.FAILED
 
     def test_the_envelope_boundary_is_inclusive(self) -> None:
@@ -121,7 +127,8 @@ class TestRecovery:
         the cargo exactly on its limit, and our verdict would disagree with
         the customer's on the boundary case most likely to be disputed.
         """
-        assert grade(recovery(), series([8.0, 8.0, 8.0])).verdict is Verdict.CONFIRMED
+        # A nonconstant control separates inclusive limits from sensor ambiguity.
+        assert grade(recovery(), self.fresh([8.0, 7.9, 8.0])).verdict is Verdict.CONFIRMED
 
 
 class TestTheRiseStopping:

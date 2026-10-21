@@ -72,6 +72,8 @@ def _config(scenario_filter: frozenset[str] | None = None) -> dict[str, Any]:
     from backend.app.risk.baselines import DEFAULT_HORIZON_MINUTES
     from backend.app.risk.features import DEFAULT_WINDOW_MINUTES, MIN_WINDOW_COVERAGE
     from backend.app.verification.outcome import (
+        MAX_FINAL_READING_AGE_MINUTES,
+        MIN_RECOVERY_HOLD_MINUTES,
         RECOVERY_HOLD_READINGS,
         STOPPED_RISING_SLOPE_C_PER_MIN,
     )
@@ -91,6 +93,9 @@ def _config(scenario_filter: frozenset[str] | None = None) -> dict[str, Any]:
         "verification_slope_window_minutes": MIN_SLOPE_WINDOW_MINUTES,
         "verification_slope_threshold": STOPPED_RISING_SLOPE_C_PER_MIN,
         "verification_recovery_hold": RECOVERY_HOLD_READINGS,
+        "verification_final_reading_age_minutes": MAX_FINAL_READING_AGE_MINUTES,
+        "verification_recovery_hold_minutes": MIN_RECOVERY_HOLD_MINUTES,
+        "verification_constant_trace_policy": "abstain_v1",
     }
 
 

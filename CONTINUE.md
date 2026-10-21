@@ -1,5 +1,54 @@
 # CONTINUE — session handoff
 
+## October 21, 2026: active complete-project release
+
+The owner has now closed Chess and requested the next personal project, one at
+a time through deployment. AxonFDE is active on isolated `improve/axon-release`.
+This supersedes the earlier instruction to leave after the narrow validity fix;
+that completed repair remains preserved at `af2741f`.
+
+Publication update: the owner explicitly approved `7172427`; PR #1 is open.
+Linux CI passed five jobs and 719 unit tests, but the frozen pack hash assertion
+failed because Git changed CRLF to LF. The local correction hashes UTF-8/LF
+bytes and proves identical full reports for LF/CRLF. Fifty-six focused tests,
+including the new regression and snapshot checks, pass. No verifier logic or
+fault cases changed. Obtain approval for the corrected release identity before
+publishing it, then require green CI before the main merge/Pages deployment.
+
+Read `docs/verification-release-protocol.md` (frozen commit `1129ec7`) and
+`docs/verification-release-results.md`. The candidate fixes early finalization,
+stale evidence, compressed recovery holds and constant-trace ambiguity. New
+faults retain nonconstant lies and honest constant readings as explicit limits
+and costs. Historical C11 remains unchanged. Fresh full unit/database/demo/UI
+qualification passed locally: 719 unit tests, 247 database/security tests, 44
+workflow/e2e tests, 43 affected checks after final edits and 8 snapshot/fault
+checks after the clean-source export. Ruff/format, strict mypy and 11 architecture
+contracts pass. Chrome desktop/tablet/mobile replay and evidence-download checks
+pass. The clean-source demo/export was recorded from `4ad4333`.
+Tests ran against disposable database ports 55439 and 51439;
+never run destructive integration fixtures against existing working databases.
+Public destination mapping has been read-verified as this repository's GitHub
+Pages environment. Its deployment policy allows only main. Do not change that
+policy. Publish the isolated release branch and obtain a green Linux CI run,
+then request approval for its exact merge into main and the resulting existing
+Pages deployment. No deployment is authorized yet; do not move projects before
+the approved deployment and live checks close this release.
+
+## October 20, 2026: bounded verification validity repair
+
+New local branch `improve/verification-evidence-validity`, based on `ad90a2f`.
+Read `docs/verification-validity.md` for scope, reproduction and interview guidance.
+The verifier normalizes duplicate timestamps, abstains on invalid/conflicting
+measurements and checks finite computed slopes. Ordinary Evidence.create already
+rejects NaN; the core guard is defense in depth. Finite lying sensors remain a
+limitation. No historical C11 number is updated, no model call or deployment is made.
+Acceptance is closed: 717 unit tests and 23 real-Postgres governance tests passed;
+focused verification 53 passed, no skips. Ruff/format, strict mypy and all 11
+architecture contracts passed. Details: `docs/verification-validity-results.md`.
+The local commit is recorded in the mission's separate completion report. No
+other repository was edited. Move to the next portfolio evidence gap rather than
+starting another Axon feature cycle.
+
 Read this first in any new session. It is the single source of truth for where
 AxonFDE stands and what to do next.
 

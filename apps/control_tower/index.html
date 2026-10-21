@@ -42,7 +42,7 @@
       person has approved it.
     </p>
     <div class="cta">
-      <a class="btn" href="#replay">See a real incident, minute by minute</a>
+      <a class="btn" href="#replay">Replay a simulated incident, minute by minute</a>
       <a class="btn btn-ghost" href="#how">How it works</a>
     </div>
   </div>
@@ -325,6 +325,30 @@
   Nothing is typed in by hand, and anything not yet measured is left off rather than estimated.</p>
   <div class="claims" id="claim-grid"></div>
   <div class="callout" id="c1-caveat" hidden></div>
+  <p class="fine">These are historical benchmark results from the run identified below.
+    The current verification repair is evaluated separately; it does not rewrite C11.</p>
+</section>
+
+<section class="section" id="engineering">
+  <p class="kicker">Engineering evidence</p>
+  <h2>An action ran. Did it actually help?</h2>
+  <p class="sub">Outcome verification now refuses premature finalization and asks for
+    review when readings are stale, compressed into an instant, or exactly constant.
+    A constant sensor could be healthy or stuck; this system cannot tell from one channel.</p>
+  <div class="cards three">
+    <article class="card"><h3>Freeze the test first</h3><p>A versioned fault pack includes
+      valid recoveries, continued warming, missing data and deliberately lying sensors.
+      The acceptance protocol was committed before the repair.</p></article>
+    <article class="card"><h3>Count the cost of caution</h3><p>False confirmations,
+      missed recoveries and abstentions are reported together. More human review is
+      a cost, even when it prevents an unsupported automatic resolution.</p></article>
+    <article class="card"><h3>Keep the limit visible</h3><p>A nonconstant lying sensor
+      can still fool the verifier. Constructed fault tests and simulated regressions
+      do not establish performance in a real fleet.</p></article>
+  </div>
+  <p class="fine"><a href="ui/verification-release.json">Download the before/after test evidence (JSON)</a>
+    · <a href="https://github.com/dilipna/axon-fde/blob/improve/axon-release/docs/verification-release-protocol.md">Read the frozen protocol</a>
+    · <a href="https://github.com/dilipna/axon-fde/blob/improve/axon-release/docs/verification-release-results.md">Reproduce the repair</a></p>
 </section>
 
 <!-- ── Two shipments ──────────────────────────────────────────────────── -->
@@ -380,7 +404,7 @@
   <h2>Built so the AI can't go rogue — and tested to prove it.</h2>
   <div class="cards three">
     <article class="card"><h3>It can't invent evidence</h3><p>A language model is never allowed to be the source of a sensor reading. The database itself rejects one.</p></article>
-    <article class="card"><h3>It can't act alone</h3><p>No action runs without a valid, unexpired approval that matches exactly what the approver saw.</p></article>
+    <article class="card"><h3>Consequential actions need approval</h3><p>Gated actions require a valid, unexpired approval that matches exactly what the approver saw. Low-risk actions follow the explicit policy catalogue.</p></article>
     <article class="card"><h3>It can't change your records</h3><p>Read-only access to the company's order system, through six approved views, with every query checked before it runs.</p></article>
     <article class="card"><h3>It can't rewrite history</h3><p>The audit log is append-only and hash-chained, so an edited or deleted entry is detectable.</p></article>
     <article class="card"><h3>It admits what it doesn't know</h3><p>A missing reading stays missing and lowers confidence. It is never filled in with a guess.</p></article>

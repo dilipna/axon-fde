@@ -1,0 +1,1597 @@
+{
+  "protocol_commit": "1129ec7",
+  "baseline_source": "af2741fd22a391a1af4cb468d2d05feda31b9db4",
+  "scope": "Constructed simulation faults; no field-performance claim",
+  "before": {
+    "pack_sha256": "6eb4c2fbbb0db0ae8479a1eea3127f6f2486a6f48fe5e335c70f795f4ae88814",
+    "cases": 24,
+    "true_failures": 12,
+    "true_successes": 12,
+    "false_confirmations": 6,
+    "false_confirmation_rate": 0.5,
+    "missed_recoveries": 0,
+    "missed_recovery_rate": 0.0,
+    "abstentions": 4,
+    "abstention_rate": 0.16666666666666666,
+    "expected_verdict_matches": 16,
+    "rows": [
+      {
+        "id": "temperature_within_envelope/stuck_hiding_failure",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.0,
+            6.0,
+            6.0
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/honest_constant",
+        "truth": "confirmed",
+        "expected": "inconclusive",
+        "group": "abstention_cost",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.0,
+            6.0,
+            6.0
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/stale_recovery",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 81,
+          "final_temperatures_c": [
+            6.922,
+            6.921,
+            6.92
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/compressed_tail",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 3,
+          "final_temperatures_c": [
+            7.0,
+            6.9,
+            6.8
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/healthy_drift",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.088,
+            6.089,
+            6.09
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/continued_warming",
+        "truth": "failed",
+        "expected": "failed",
+        "group": "honest_control",
+        "verdict": "failed",
+        "detail": "3 of the last 3 readings are outside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            9.2,
+            9.225,
+            9.25
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/lying_nonconstant",
+        "truth": "failed",
+        "expected": "confirmed",
+        "group": "known_blind_spot",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.088,
+            6.089,
+            6.09
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/freshness_at_limit",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 89,
+          "final_temperatures_c": [
+            6.086,
+            6.087,
+            6.088
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/freshness_over_limit",
+        "truth": "confirmed",
+        "expected": "inconclusive",
+        "group": "abstention_cost",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 88,
+          "final_temperatures_c": [
+            6.085,
+            6.086,
+            6.087
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/quantized_healthy",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.0,
+            6.1,
+            6.0
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_within_envelope/no_data",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "no cargo temperature readings between 2026-10-21T00:00:00+00:00 and 2026-10-21T01:30:00+00:00; absence of data is not evidence of recovery",
+        "observed": {
+          "reading_count": 0
+        }
+      },
+      {
+        "id": "temperature_within_envelope/boundary",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            7.9,
+            8.0,
+            7.8
+          ],
+          "envelope_c": [
+            2,
+            8
+          ]
+        }
+      },
+      {
+        "id": "temperature_stops_rising/stuck_hiding_failure",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0000 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.0,
+          "threshold_c_per_min": 0.01
+        }
+      },
+      {
+        "id": "temperature_stops_rising/honest_constant",
+        "truth": "confirmed",
+        "expected": "inconclusive",
+        "group": "abstention_cost",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0000 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.0,
+          "threshold_c_per_min": 0.01
+        }
+      },
+      {
+        "id": "temperature_stops_rising/stale_recovery",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "81 readings spanning 80.0 of the 90 minute window; a trend over that window needs at least 85.5 minutes of it covered",
+        "observed": {
+          "reading_count": 81,
+          "span_minutes": 80.0,
+          "required_span_minutes": 85.5
+        }
+      },
+      {
+        "id": "temperature_stops_rising/compressed_tail",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "3 readings spanning 0.0 of the 90 minute window; a trend over that window needs at least 85.5 minutes of it covered",
+        "observed": {
+          "reading_count": 3,
+          "span_minutes": 0.02,
+          "required_span_minutes": 85.5
+        }
+      },
+      {
+        "id": "temperature_stops_rising/healthy_drift",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0010 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.001,
+          "threshold_c_per_min": 0.01
+        }
+      },
+      {
+        "id": "temperature_stops_rising/continued_warming",
+        "truth": "failed",
+        "expected": "failed",
+        "group": "honest_control",
+        "verdict": "failed",
+        "detail": "cargo temperature is still rising at 0.0250 C/min, above the 0.01 C/min a healthy trailer stays under",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.025,
+          "threshold_c_per_min": 0.01
+        }
+      },
+      {
+        "id": "temperature_stops_rising/lying_nonconstant",
+        "truth": "failed",
+        "expected": "confirmed",
+        "group": "known_blind_spot",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0010 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.001,
+          "threshold_c_per_min": 0.01
+        }
+      },
+      {
+        "id": "temperature_stops_rising/freshness_at_limit",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0010 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 89,
+          "span_minutes": 88.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.001,
+          "threshold_c_per_min": 0.01
+        }
+      },
+      {
+        "id": "temperature_stops_rising/freshness_over_limit",
+        "truth": "confirmed",
+        "expected": "inconclusive",
+        "group": "abstention_cost",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0010 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 88,
+          "span_minutes": 87.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.001,
+          "threshold_c_per_min": 0.01
+        }
+      },
+      {
+        "id": "temperature_stops_rising/quantized_healthy",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0000 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.0,
+          "threshold_c_per_min": 0.01
+        }
+      },
+      {
+        "id": "temperature_stops_rising/no_data",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "no cargo temperature readings between 2026-10-21T00:00:00+00:00 and 2026-10-21T01:30:00+00:00; absence of data is not evidence of recovery",
+        "observed": {
+          "reading_count": 0
+        }
+      },
+      {
+        "id": "temperature_stops_rising/boundary",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0000 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 2.4e-05,
+          "threshold_c_per_min": 0.01
+        }
+      }
+    ],
+    "original_recorded_pack_sha256": "424186c905df517636b5fddcc2f4afd526839ed39f57e43ef64d5882ce3dd8f6",
+    "pack_hash_method": "utf8_lf_bytes_sha256"
+  },
+  "after": {
+    "pack_sha256": "6eb4c2fbbb0db0ae8479a1eea3127f6f2486a6f48fe5e335c70f795f4ae88814",
+    "cases": 24,
+    "true_failures": 12,
+    "true_successes": 12,
+    "false_confirmations": 2,
+    "false_confirmation_rate": 0.16666666666666666,
+    "missed_recoveries": 4,
+    "missed_recovery_rate": 0.3333333333333333,
+    "abstentions": 12,
+    "abstention_rate": 0.5,
+    "expected_verdict_matches": 24,
+    "rows": [
+      {
+        "id": "temperature_within_envelope/stuck_hiding_failure",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "constant single-channel readings cannot distinguish steady recovery from a stuck sensor",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.0,
+            6.0,
+            6.0
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 0.0,
+          "abstention_reason": "constant_trace_ambiguity"
+        }
+      },
+      {
+        "id": "temperature_within_envelope/honest_constant",
+        "truth": "confirmed",
+        "expected": "inconclusive",
+        "group": "abstention_cost",
+        "verdict": "inconclusive",
+        "detail": "constant single-channel readings cannot distinguish steady recovery from a stuck sensor",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.0,
+            6.0,
+            6.0
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 0.0,
+          "abstention_reason": "constant_trace_ambiguity"
+        }
+      },
+      {
+        "id": "temperature_within_envelope/stale_recovery",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "readings are stale at the verification deadline; current outcome is unknown",
+        "observed": {
+          "reading_count": 81,
+          "final_temperatures_c": [
+            6.922,
+            6.921,
+            6.92
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 10.0,
+          "abstention_reason": "stale_at_deadline"
+        }
+      },
+      {
+        "id": "temperature_within_envelope/compressed_tail",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "recovery samples are too close together to establish the required hold",
+        "observed": {
+          "reading_count": 3,
+          "hold_minutes": 0.02,
+          "abstention_reason": "compressed_recovery_hold"
+        }
+      },
+      {
+        "id": "temperature_within_envelope/healthy_drift",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.088,
+            6.089,
+            6.09
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 0.0
+        }
+      },
+      {
+        "id": "temperature_within_envelope/continued_warming",
+        "truth": "failed",
+        "expected": "failed",
+        "group": "honest_control",
+        "verdict": "failed",
+        "detail": "3 of the last 3 readings are outside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            9.2,
+            9.225,
+            9.25
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 0.0
+        }
+      },
+      {
+        "id": "temperature_within_envelope/lying_nonconstant",
+        "truth": "failed",
+        "expected": "confirmed",
+        "group": "known_blind_spot",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.088,
+            6.089,
+            6.09
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 0.0
+        }
+      },
+      {
+        "id": "temperature_within_envelope/freshness_at_limit",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 89,
+          "final_temperatures_c": [
+            6.086,
+            6.087,
+            6.088
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 2.0
+        }
+      },
+      {
+        "id": "temperature_within_envelope/freshness_over_limit",
+        "truth": "confirmed",
+        "expected": "inconclusive",
+        "group": "abstention_cost",
+        "verdict": "inconclusive",
+        "detail": "readings are stale at the verification deadline; current outcome is unknown",
+        "observed": {
+          "reading_count": 88,
+          "final_temperatures_c": [
+            6.085,
+            6.086,
+            6.087
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 3.0,
+          "abstention_reason": "stale_at_deadline"
+        }
+      },
+      {
+        "id": "temperature_within_envelope/quantized_healthy",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            6.0,
+            6.1,
+            6.0
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 0.0
+        }
+      },
+      {
+        "id": "temperature_within_envelope/no_data",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "no cargo temperature readings between 2026-10-21T00:00:00+00:00 and 2026-10-21T01:30:00+00:00; absence of data is not evidence of recovery",
+        "observed": {
+          "reading_count": 0
+        }
+      },
+      {
+        "id": "temperature_within_envelope/boundary",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "the last 3 readings are inside [2, 8] C",
+        "observed": {
+          "reading_count": 91,
+          "final_temperatures_c": [
+            7.9,
+            8.0,
+            7.8
+          ],
+          "envelope_c": [
+            2,
+            8
+          ],
+          "final_reading_age_minutes": 0.0
+        }
+      },
+      {
+        "id": "temperature_stops_rising/stuck_hiding_failure",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "constant single-channel readings cannot distinguish steady recovery from a stuck sensor",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.0,
+          "threshold_c_per_min": 0.01,
+          "final_reading_age_minutes": 0.0,
+          "abstention_reason": "constant_trace_ambiguity"
+        }
+      },
+      {
+        "id": "temperature_stops_rising/honest_constant",
+        "truth": "confirmed",
+        "expected": "inconclusive",
+        "group": "abstention_cost",
+        "verdict": "inconclusive",
+        "detail": "constant single-channel readings cannot distinguish steady recovery from a stuck sensor",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.0,
+          "threshold_c_per_min": 0.01,
+          "final_reading_age_minutes": 0.0,
+          "abstention_reason": "constant_trace_ambiguity"
+        }
+      },
+      {
+        "id": "temperature_stops_rising/stale_recovery",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "81 readings spanning 80.0 of the 90 minute window; a trend over that window needs at least 85.5 minutes of it covered",
+        "observed": {
+          "reading_count": 81,
+          "span_minutes": 80.0,
+          "required_span_minutes": 85.5
+        }
+      },
+      {
+        "id": "temperature_stops_rising/compressed_tail",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "3 readings spanning 0.0 of the 90 minute window; a trend over that window needs at least 85.5 minutes of it covered",
+        "observed": {
+          "reading_count": 3,
+          "span_minutes": 0.02,
+          "required_span_minutes": 85.5
+        }
+      },
+      {
+        "id": "temperature_stops_rising/healthy_drift",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0010 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.001,
+          "threshold_c_per_min": 0.01,
+          "final_reading_age_minutes": 0.0
+        }
+      },
+      {
+        "id": "temperature_stops_rising/continued_warming",
+        "truth": "failed",
+        "expected": "failed",
+        "group": "honest_control",
+        "verdict": "failed",
+        "detail": "cargo temperature is still rising at 0.0250 C/min, above the 0.01 C/min a healthy trailer stays under",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.025,
+          "threshold_c_per_min": 0.01,
+          "final_reading_age_minutes": 0.0
+        }
+      },
+      {
+        "id": "temperature_stops_rising/lying_nonconstant",
+        "truth": "failed",
+        "expected": "confirmed",
+        "group": "known_blind_spot",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0010 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.001,
+          "threshold_c_per_min": 0.01,
+          "final_reading_age_minutes": 0.0
+        }
+      },
+      {
+        "id": "temperature_stops_rising/freshness_at_limit",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0010 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 89,
+          "span_minutes": 88.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.001,
+          "threshold_c_per_min": 0.01,
+          "final_reading_age_minutes": 2.0
+        }
+      },
+      {
+        "id": "temperature_stops_rising/freshness_over_limit",
+        "truth": "confirmed",
+        "expected": "inconclusive",
+        "group": "abstention_cost",
+        "verdict": "inconclusive",
+        "detail": "readings are stale at the verification deadline; current outcome is unknown",
+        "observed": {
+          "reading_count": 88,
+          "span_minutes": 87.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.001,
+          "threshold_c_per_min": 0.01,
+          "final_reading_age_minutes": 3.0,
+          "abstention_reason": "stale_at_deadline"
+        }
+      },
+      {
+        "id": "temperature_stops_rising/quantized_healthy",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0000 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 0.0,
+          "threshold_c_per_min": 0.01,
+          "final_reading_age_minutes": 0.0
+        }
+      },
+      {
+        "id": "temperature_stops_rising/no_data",
+        "truth": "failed",
+        "expected": "inconclusive",
+        "group": "target_fault",
+        "verdict": "inconclusive",
+        "detail": "no cargo temperature readings between 2026-10-21T00:00:00+00:00 and 2026-10-21T01:30:00+00:00; absence of data is not evidence of recovery",
+        "observed": {
+          "reading_count": 0
+        }
+      },
+      {
+        "id": "temperature_stops_rising/boundary",
+        "truth": "confirmed",
+        "expected": "confirmed",
+        "group": "honest_control",
+        "verdict": "confirmed",
+        "detail": "cargo temperature gradient is 0.0000 C/min, at or below the 0.01 C/min threshold",
+        "observed": {
+          "reading_count": 91,
+          "span_minutes": 90.0,
+          "required_span_minutes": 85.5,
+          "slope_c_per_min": 2.4e-05,
+          "threshold_c_per_min": 0.01,
+          "final_reading_age_minutes": 0.0
+        }
+      }
+    ],
+    "original_recorded_pack_sha256": "424186c905df517636b5fddcc2f4afd526839ed39f57e43ef64d5882ce3dd8f6",
+    "pack_hash_method": "utf8_lf_bytes_sha256"
+  },
+  "historical_regression": {
+    "baseline": {
+      "excluded": 20,
+      "baseline": {
+        "agreement": 0.94,
+        "false_confirmations": 3.0,
+        "false_confirmation_rate": 0.09090909090909091,
+        "missed_recoveries": 3.0,
+        "inconclusive": 0.0,
+        "truly_worked": 67.0,
+        "honest_sensor_agreement": 1.0,
+        "lying_sensor_agreement": 0.5,
+        "lying_sensor_trajectories": 12.0,
+        "excluded_window_past_end": 20,
+        "agreement_contact_driver": 0.9411764705882353,
+        "agreement_reroute_to_cold_storage": 0.9705882352941176,
+        "agreement_trailer_swap": 0.90625
+      },
+      "truth": {
+        "ambient_heat_pharma_01/reroute_to_cold_storage": "confirmed",
+        "ambient_heat_pharma_01/trailer_swap": "failed",
+        "ambient_heat_pharma_01/contact_driver": "failed",
+        "ambient_heat_pharma_02/reroute_to_cold_storage": "confirmed",
+        "ambient_heat_pharma_02/trailer_swap": "failed",
+        "ambient_heat_pharma_02/contact_driver": "failed",
+        "ambient_heat_pharma_03/reroute_to_cold_storage": "confirmed",
+        "ambient_heat_pharma_03/trailer_swap": "failed",
+        "ambient_heat_pharma_03/contact_driver": "failed",
+        "ambient_heat_vaccine_01/reroute_to_cold_storage": "confirmed",
+        "ambient_heat_vaccine_01/trailer_swap": "failed",
+        "ambient_heat_vaccine_01/contact_driver": "failed",
+        "ambient_heat_vaccine_02/reroute_to_cold_storage": "confirmed",
+        "ambient_heat_vaccine_02/trailer_swap": "confirmed",
+        "ambient_heat_vaccine_02/contact_driver": "failed",
+        "ambient_heat_vaccine_03/reroute_to_cold_storage": "confirmed",
+        "ambient_heat_vaccine_03/contact_driver": "confirmed",
+        "compressor_degradation_frozen_01/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_frozen_01/trailer_swap": "confirmed",
+        "compressor_degradation_frozen_01/contact_driver": "confirmed",
+        "compressor_degradation_frozen_02/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_frozen_02/trailer_swap": "confirmed",
+        "compressor_degradation_frozen_02/contact_driver": "confirmed",
+        "compressor_degradation_pharma_01/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_pharma_01/trailer_swap": "confirmed",
+        "compressor_degradation_pharma_01/contact_driver": "failed",
+        "compressor_degradation_pharma_02/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_pharma_02/trailer_swap": "failed",
+        "compressor_degradation_pharma_02/contact_driver": "failed",
+        "compressor_degradation_pharma_03/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_pharma_03/trailer_swap": "confirmed",
+        "compressor_degradation_pharma_03/contact_driver": "failed",
+        "compressor_degradation_produce_01/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_produce_01/trailer_swap": "confirmed",
+        "compressor_degradation_produce_01/contact_driver": "confirmed",
+        "compressor_degradation_produce_02/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_produce_02/trailer_swap": "confirmed",
+        "compressor_degradation_produce_02/contact_driver": "confirmed",
+        "compressor_degradation_vaccine_01/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_vaccine_01/trailer_swap": "confirmed",
+        "compressor_degradation_vaccine_01/contact_driver": "failed",
+        "compressor_degradation_vaccine_02/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_vaccine_02/trailer_swap": "confirmed",
+        "compressor_degradation_vaccine_02/contact_driver": "failed",
+        "compressor_degradation_vaccine_03/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_vaccine_03/contact_driver": "failed",
+        "compressor_degradation_vaccine_04/reroute_to_cold_storage": "confirmed",
+        "compressor_degradation_vaccine_04/trailer_swap": "confirmed",
+        "compressor_degradation_vaccine_04/contact_driver": "failed",
+        "door_open_frozen_01/reroute_to_cold_storage": "confirmed",
+        "door_open_frozen_01/trailer_swap": "failed",
+        "door_open_frozen_01/contact_driver": "confirmed",
+        "door_open_frozen_02/reroute_to_cold_storage": "confirmed",
+        "door_open_frozen_02/trailer_swap": "failed",
+        "door_open_frozen_02/contact_driver": "confirmed",
+        "door_open_pharma_01/reroute_to_cold_storage": "confirmed",
+        "door_open_pharma_01/trailer_swap": "failed",
+        "door_open_pharma_01/contact_driver": "confirmed",
+        "door_open_pharma_02/reroute_to_cold_storage": "failed",
+        "door_open_pharma_02/trailer_swap": "failed",
+        "door_open_pharma_02/contact_driver": "confirmed",
+        "door_open_pharma_03/reroute_to_cold_storage": "confirmed",
+        "door_open_pharma_03/trailer_swap": "failed",
+        "door_open_pharma_03/contact_driver": "confirmed",
+        "door_open_produce_01/reroute_to_cold_storage": "confirmed",
+        "door_open_produce_01/trailer_swap": "failed",
+        "door_open_produce_01/contact_driver": "confirmed",
+        "door_open_produce_02/reroute_to_cold_storage": "confirmed",
+        "door_open_produce_02/trailer_swap": "failed",
+        "door_open_produce_02/contact_driver": "confirmed",
+        "door_open_vaccine_01/reroute_to_cold_storage": "confirmed",
+        "door_open_vaccine_01/trailer_swap": "failed",
+        "door_open_vaccine_01/contact_driver": "confirmed",
+        "door_open_vaccine_02/reroute_to_cold_storage": "confirmed",
+        "door_open_vaccine_02/trailer_swap": "confirmed",
+        "door_open_vaccine_02/contact_driver": "confirmed",
+        "door_open_vaccine_03/reroute_to_cold_storage": "confirmed",
+        "door_open_vaccine_03/trailer_swap": "failed",
+        "door_open_vaccine_03/contact_driver": "confirmed",
+        "drifting_sensor_real_breach_01/reroute_to_cold_storage": "confirmed",
+        "drifting_sensor_real_breach_01/trailer_swap": "confirmed",
+        "drifting_sensor_real_breach_01/contact_driver": "failed",
+        "drifting_sensor_real_breach_02/reroute_to_cold_storage": "confirmed",
+        "drifting_sensor_real_breach_02/trailer_swap": "confirmed",
+        "drifting_sensor_real_breach_02/contact_driver": "failed",
+        "fuel_exhaustion_frozen_01/reroute_to_cold_storage": "confirmed",
+        "fuel_exhaustion_frozen_01/trailer_swap": "confirmed",
+        "fuel_exhaustion_frozen_01/contact_driver": "confirmed",
+        "fuel_exhaustion_frozen_02/reroute_to_cold_storage": "confirmed",
+        "fuel_exhaustion_frozen_02/trailer_swap": "confirmed",
+        "fuel_exhaustion_frozen_02/contact_driver": "failed",
+        "fuel_exhaustion_produce_02/reroute_to_cold_storage": "confirmed",
+        "fuel_exhaustion_produce_02/trailer_swap": "confirmed",
+        "fuel_exhaustion_produce_02/contact_driver": "confirmed",
+        "stuck_sensor_real_breach_01/reroute_to_cold_storage": "confirmed",
+        "stuck_sensor_real_breach_01/trailer_swap": "failed",
+        "stuck_sensor_real_breach_01/contact_driver": "failed",
+        "stuck_sensor_real_breach_03/reroute_to_cold_storage": "confirmed",
+        "stuck_sensor_real_breach_03/trailer_swap": "confirmed",
+        "stuck_sensor_real_breach_03/contact_driver": "failed"
+      },
+      "receipt_note": "Excluded-window companion corrected from the explicit 20-window count; raw frozen receipt retained in release evidence."
+    },
+    "candidate": {
+      "cases": 100,
+      "excluded": 20,
+      "frozen_label_changes": 0,
+      "false_confirmations": 0,
+      "missed_recoveries": 6,
+      "abstentions": 6,
+      "rows": [
+        {
+          "id": "ambient_heat_pharma_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "ambient_heat_pharma_01/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "ambient_heat_pharma_01/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "ambient_heat_pharma_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "ambient_heat_pharma_02/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "ambient_heat_pharma_02/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "ambient_heat_pharma_03/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "ambient_heat_pharma_03/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "ambient_heat_pharma_03/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "ambient_heat_vaccine_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "ambient_heat_vaccine_01/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "ambient_heat_vaccine_01/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "ambient_heat_vaccine_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "ambient_heat_vaccine_02/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "ambient_heat_vaccine_02/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "ambient_heat_vaccine_03/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "ambient_heat_vaccine_03/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_frozen_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_frozen_01/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_frozen_01/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_frozen_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_frozen_02/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_frozen_02/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_pharma_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_pharma_01/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_pharma_01/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "compressor_degradation_pharma_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_pharma_02/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "compressor_degradation_pharma_02/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "compressor_degradation_pharma_03/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_pharma_03/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_pharma_03/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "compressor_degradation_produce_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_produce_01/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_produce_01/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_produce_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_produce_02/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_produce_02/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_01/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_01/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_02/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_02/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_03/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_03/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_04/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_04/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "compressor_degradation_vaccine_04/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_frozen_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_frozen_01/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_frozen_01/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_frozen_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_frozen_02/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_frozen_02/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_pharma_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_pharma_01/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_pharma_01/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_pharma_02/reroute_to_cold_storage",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_pharma_02/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_pharma_02/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_pharma_03/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_pharma_03/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_pharma_03/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_produce_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_produce_01/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_produce_01/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_produce_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_produce_02/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_produce_02/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_vaccine_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_vaccine_01/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_vaccine_01/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_vaccine_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_vaccine_02/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_vaccine_02/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_vaccine_03/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "door_open_vaccine_03/trailer_swap",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "door_open_vaccine_03/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "drifting_sensor_real_breach_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "drifting_sensor_real_breach_01/trailer_swap",
+          "reported": "failed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "drifting_sensor_real_breach_01/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "drifting_sensor_real_breach_02/reroute_to_cold_storage",
+          "reported": "failed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "drifting_sensor_real_breach_02/trailer_swap",
+          "reported": "failed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "drifting_sensor_real_breach_02/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "fuel_exhaustion_frozen_01/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "fuel_exhaustion_frozen_01/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "fuel_exhaustion_frozen_01/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "fuel_exhaustion_frozen_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "fuel_exhaustion_frozen_02/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "fuel_exhaustion_frozen_02/contact_driver",
+          "reported": "failed",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "fuel_exhaustion_produce_02/reroute_to_cold_storage",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "fuel_exhaustion_produce_02/trailer_swap",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "fuel_exhaustion_produce_02/contact_driver",
+          "reported": "confirmed",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "stuck_sensor_real_breach_01/reroute_to_cold_storage",
+          "reported": "inconclusive",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "stuck_sensor_real_breach_01/trailer_swap",
+          "reported": "inconclusive",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "stuck_sensor_real_breach_01/contact_driver",
+          "reported": "inconclusive",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        },
+        {
+          "id": "stuck_sensor_real_breach_03/reroute_to_cold_storage",
+          "reported": "inconclusive",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "stuck_sensor_real_breach_03/trailer_swap",
+          "reported": "inconclusive",
+          "truth": "confirmed",
+          "recomputed_truth": "confirmed"
+        },
+        {
+          "id": "stuck_sensor_real_breach_03/contact_driver",
+          "reported": "inconclusive",
+          "truth": "failed",
+          "recomputed_truth": "failed"
+        }
+      ]
+    }
+  }
+}

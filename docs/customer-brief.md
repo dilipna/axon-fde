@@ -1,7 +1,8 @@
 # Customer brief — Axon Truck Services
 
-*Discovery output. Written after stakeholder interviews, a ride-along, and two
-weeks of shadowing the dispatch desk.*
+*Fictional discovery exercise, structured as a customer brief. The interviews,
+ride-along and dispatch observations in this scenario are invented; no real
+customer engagement or field study is claimed.*
 
 > **Note on realism.** Axon Truck Services is a fictional company constructed to
 > be a faithful composite of real cold-chain logistics operations. The systems,
