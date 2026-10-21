@@ -12,11 +12,19 @@ Read `docs/verification-release-protocol.md` (frozen commit `1129ec7`) and
 stale evidence, compressed recovery holds and constant-trace ambiguity. New
 faults retain nonconstant lies and honest constant readings as explicit limits
 and costs. Historical C11 remains unchanged. Fresh full unit/database/demo/UI
-qualification is underway, against disposable database ports 55439 and 51439;
+qualification passed locally: 719 unit tests, 247 database/security tests, 44
+workflow/e2e tests, 43 affected checks after final edits and 8 snapshot/fault
+checks after the clean-source export. Ruff/format, strict mypy and 11 architecture
+contracts pass. Chrome desktop/tablet/mobile replay and evidence-download checks
+pass. The clean-source demo/export was recorded from `4ad4333`.
+Tests ran against disposable database ports 55439 and 51439;
 never run destructive integration fixtures against existing working databases.
 Public destination mapping has been read-verified as this repository's GitHub
-Pages environment. No deployment is authorized yet. Finish the full release
-gate and obtain specific production approval before deployment or moving on.
+Pages environment. Its deployment policy allows only main. Do not change that
+policy. Publish the isolated release branch and obtain a green Linux CI run,
+then request approval for its exact merge into main and the resulting existing
+Pages deployment. No deployment is authorized yet; do not move projects before
+the approved deployment and live checks close this release.
 
 ## October 20, 2026: bounded verification validity repair
 
