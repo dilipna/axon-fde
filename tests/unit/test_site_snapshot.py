@@ -41,7 +41,7 @@ def test_the_snapshot_shows_the_newest_published_run() -> None:
     assert snapshot["provenance"]["reproducible"] is True
 
 
-@pytest.mark.parametrize("name", ["index.html", "app.css", "app.js"])
+@pytest.mark.parametrize("name", ["index.html", "app.css", "app.js", "verification-release.json"])
 def test_the_snapshot_page_is_the_current_page(name: str) -> None:
     copy = SITE / name if name == "index.html" else SITE / "ui" / name
     assert _text(copy) == _text(UI / name), (

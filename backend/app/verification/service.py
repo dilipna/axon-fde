@@ -177,6 +177,8 @@ class VerificationService:
                 f"verification {verification.id} already concluded "
                 f"{verification.verdict}; re-grading would overwrite the record"
             )
+        if moment < verification.window_end:
+            raise ValueError("verification window must be closed before finalizing a verdict")
 
         effect = _effect_from_payload(verification.expected_effect)
         result = evaluate_effect(

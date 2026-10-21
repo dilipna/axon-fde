@@ -1,5 +1,23 @@
 # CONTINUE — session handoff
 
+## October 21, 2026: active complete-project release
+
+The owner has now closed Chess and requested the next personal project, one at
+a time through deployment. AxonFDE is active on isolated `improve/axon-release`.
+This supersedes the earlier instruction to leave after the narrow validity fix;
+that completed repair remains preserved at `af2741f`.
+
+Read `docs/verification-release-protocol.md` (frozen commit `1129ec7`) and
+`docs/verification-release-results.md`. The candidate fixes early finalization,
+stale evidence, compressed recovery holds and constant-trace ambiguity. New
+faults retain nonconstant lies and honest constant readings as explicit limits
+and costs. Historical C11 remains unchanged. Fresh full unit/database/demo/UI
+qualification is underway, against disposable database ports 55439 and 51439;
+never run destructive integration fixtures against existing working databases.
+Public destination mapping has been read-verified as this repository's GitHub
+Pages environment. No deployment is authorized yet. Finish the full release
+gate and obtain specific production approval before deployment or moving on.
+
 ## October 20, 2026: bounded verification validity repair
 
 New local branch `improve/verification-evidence-validity`, based on `ad90a2f`.
