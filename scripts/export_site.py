@@ -67,7 +67,7 @@ def export(out: Path = OUT) -> list[Path]:
         for scenario in sorted(scenarios):
             fetch(f"control/telemetry/{scenario}")
 
-    for name in ("app.css", "app.js"):
+    for name in ("app.css", "app.js", "verification-release.json"):
         shutil.copy2(UI / name, out / "ui" / name)
         written.append(out / "ui" / name)
     shutil.copy2(UI / "index.html", out / "index.html")

@@ -33,7 +33,8 @@ def grade(kind, readings, *, envelope=ENVELOPE, start=START, end=END):
 
 
 def trace(value=5.0):
-    return [(START + timedelta(minutes=i), value) for i in range(91)]
+    # Fresh, nonconstant healthy control. Constant traces now explicitly abstain.
+    return [(START + timedelta(minutes=i), value + 0.001 * i) for i in range(91)]
 
 
 @pytest.mark.parametrize("kind", KINDS)

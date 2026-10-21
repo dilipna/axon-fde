@@ -2,16 +2,17 @@
 
 **Proactive decision intelligence for cold-chain logistics.**
 
-AxonFDE turns fragmented enterprise data into proactive operational decisions. It continuously
-combines live telemetry, legacy enterprise records, multimodal evidence and operational knowledge
-to predict incidents *before* a threshold is breached, investigate root causes, compare intervention
-options, recommend an evidence-backed action, execute it only under human approval, and then verify
-whether the intervention actually worked.
+AxonFDE is a personal engineering project over simulated cold-chain logistics data.
+It combines recorded telemetry, a seeded SQL Server ERP and document evidence to
+investigate incidents, compare interventions, obtain approval for consequential
+actions, and verify outcomes. PostgreSQL, SQL Server and the application workflow
+are real local services; the carrier, people, shipments and interventions are fictional.
+Image-based evidence and production fleet operation are not implemented claims.
 
 > **Status: Phase 1 (the end-to-end vertical slice) complete, plus the Phase 3 risk model.**
-> The closed loop runs end to end against real Postgres and SQL Server, and eight of fifteen
-> registered claims are measured — six cleanly, two (C5, C10) measured with an honest caveat
-> attached. No performance claim appears in this README until it is produced by a stored
+> The closed loop runs end to end against real Postgres and SQL Server. The
+> [claim register](docs/evaluation/claims.md) distinguishes measured claims, caveats
+> and unmeasured work. No performance claim appears in this README until it is produced by a stored
 > benchmark run. Anything not yet measured is explicitly marked `PLACEHOLDER`.
 
 **Resuming work?** Read [CONTINUE.md](CONTINUE.md) first.
@@ -20,6 +21,14 @@ whether the intervention actually worked.
 invalid evidence, collapses repeated timestamps and abstains on conflicting readings.
 See the [design, reproduction steps and limitations](docs/verification-validity.md).
 This is new local project work; it does not establish a new historical benchmark result.
+
+**Verification release (October 21, 2026):** a predeclared fault pack evaluates
+early finalization, stale data, compressed holds and constant-sensor ambiguity.
+The repair reduces false confirmations on constructed cases at the cost of more
+abstention and missed recoveries. Nonconstant sensor lies remain unresolved.
+See [the protocol](docs/verification-release-protocol.md) and
+[before/after evidence and reproduction](docs/verification-release-results.md).
+The public page remains a static replay; it is not a running fleet backend.
 
 **Start here:** [customer brief](docs/customer-brief.md) ·
 [architecture](docs/architecture/overview.md) ·

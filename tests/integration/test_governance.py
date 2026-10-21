@@ -610,7 +610,7 @@ class TestVerificationClosesTheLoop:
         window_start = verification.window_start
         still_hot = [
             temperature(9.0 + 0.01 * i, observed_at=window_start + timedelta(minutes=i))
-            for i in range(0, 90, 10)
+            for i in range(0, 91, 10)
         ]
 
         outcome = await governance.verification.verify(
@@ -642,7 +642,7 @@ class TestVerificationClosesTheLoop:
         window_start = verification.window_start
         recovered = [
             temperature(7.6 - 0.05 * i, observed_at=window_start + timedelta(minutes=i * 10))
-            for i in range(9)
+            for i in range(10)
         ]
 
         outcome = await governance.verification.verify(
@@ -740,6 +740,60 @@ class TestVerificationClosesTheLoop:
                 at=verification.window_end + timedelta(minutes=2),
             )
 
+    @pytest.mark.parametrize("fault", ["early", "constant", "stale", "compressed"])
+    async def test_unsettled_outcomes_remain_unresolved_in_postgres(
+        self, governance: Governance, fault: str
+    ) -> None:
+        await governance.incidents.transition(
+            governance.incident,
+            IncidentStatus.ACTING,
+            actor=FLEET_MANAGER.subject,
+            at=GRANTED_AT,
+        )
+        _, verification = await self._execute_reroute(governance)
+        moments = list(range(91))
+        if fault == "stale":
+            moments = list(range(81))
+        elif fault == "compressed":
+            moments = [89.98, 89.99, 90]
+        evidence = [
+            temperature(
+                6.0 if fault == "constant" else 6.0 + i * 0.001,
+                observed_at=verification.window_start + timedelta(minutes=i),
+            )
+            for i in moments
+        ]
+        if fault == "early":
+            before_actions = await audit_actions(governance.session)
+            with pytest.raises(ValueError, match=r"window.*closed"):
+                await governance.verification.verify(
+                    verification,
+                    incident=governance.incident,
+                    evidence=evidence,
+                    envelope=ENVELOPE,
+                    at=verification.window_end - timedelta(seconds=1),
+                )
+            await governance.session.commit()
+            await governance.session.refresh(verification)
+            assert verification.verdict is None
+            assert await audit_actions(governance.session) == before_actions
+        else:
+            outcome = await governance.verification.verify(
+                verification,
+                incident=governance.incident,
+                evidence=evidence,
+                envelope=ENVELOPE,
+                at=verification.window_end,
+            )
+            assert outcome.result.verdict is Verdict.INCONCLUSIVE
+            await governance.session.commit()
+            await governance.session.refresh(verification)
+            assert verification.verdict == Verdict.INCONCLUSIVE.value
+            assert verification.follow_up_required
+        await governance.session.refresh(governance.incident)
+        assert governance.incident.status == IncidentStatus.VERIFYING.value
+        assert (await governance.audit.verify()).valid
+
     async def test_only_closed_windows_are_due(self, governance: Governance) -> None:
         await governance.incidents.transition(
             governance.incident,
@@ -794,8 +848,10 @@ async def test_every_transition_appears_in_the_audit_chain(governance: Governanc
         verification,
         incident=governance.incident,
         evidence=[
-            temperature(7.4, observed_at=verification.window_start + timedelta(minutes=i * 10))
-            for i in range(9)
+            temperature(
+                7.4 - i * 0.01, observed_at=verification.window_start + timedelta(minutes=i * 10)
+            )
+            for i in range(10)
         ],
         envelope=ENVELOPE,
         at=verification.window_end + timedelta(minutes=1),

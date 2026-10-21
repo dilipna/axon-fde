@@ -75,6 +75,11 @@ STOPPED_RISING_SLOPE_C_PER_MIN = 0.010
 #: after a reroute is a thermometer twitching; three in a row is a trend.
 RECOVERY_HOLD_READINGS = 3
 
+# Release protocol v1: one-minute demo telemetry, allowing one missing sample.
+# Operational policy, not a field-calibrated sensor health threshold.
+MAX_FINAL_READING_AGE_MINUTES = 2.0
+MIN_RECOVERY_HOLD_MINUTES = 2.0
+
 
 class Verdict(StrEnum):
     """What the data says about the claim."""
@@ -202,6 +207,22 @@ def evaluate_effect(
         result = _grade_recovery(inside, envelope)
     else:
         result = _grade_slope(inside, window_start, window_end, effect)
+    if result.verdict in {Verdict.CONFIRMED, Verdict.FAILED}:
+        age = (window_end - inside[-1][0]).total_seconds() / 60.0
+        result.observed["final_reading_age_minutes"] = age
+        if age > MAX_FINAL_READING_AGE_MINUTES:
+            result = VerificationResult(
+                Verdict.INCONCLUSIVE,
+                "readings are stale at the verification deadline; current outcome is unknown",
+                result.observed | {"abstention_reason": "stale_at_deadline"},
+            )
+    if result.verdict is Verdict.CONFIRMED and len({v for _, v in inside}) == 1:
+        result = VerificationResult(
+            Verdict.INCONCLUSIVE,
+            "constant single-channel readings cannot distinguish steady recovery "
+            "from a stuck sensor",
+            result.observed | {"abstention_reason": "constant_trace_ambiguity"},
+        )
     if duplicate_count:
         result.observed["duplicate_reading_count"] = duplicate_count
     return result
@@ -223,6 +244,17 @@ def _grade_recovery(
         )
 
     tail = readings[-RECOVERY_HOLD_READINGS:]
+    hold_minutes = (tail[-1][0] - tail[0][0]).total_seconds() / 60.0
+    if hold_minutes < MIN_RECOVERY_HOLD_MINUTES:
+        return VerificationResult(
+            Verdict.INCONCLUSIVE,
+            "recovery samples are too close together to establish the required hold",
+            {
+                "reading_count": len(readings),
+                "hold_minutes": hold_minutes,
+                "abstention_reason": "compressed_recovery_hold",
+            },
+        )
     breaching = [value for _, value in tail if envelope.breaches(value)]
     observed = {
         "reading_count": len(readings),
