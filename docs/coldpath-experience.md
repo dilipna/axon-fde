@@ -24,3 +24,5 @@ A new exact source must be approved for publication/full CI and gated merge to t
 ## Local qualification checkpoint
 
 35 affected Python tests and 67 Node checks passed. The original comparison arithmetic and false-alarm pairing still pass the shipped app.js harness. Strict types across 136 sources, Ruff lint/format and all 11 architecture contracts passed. Read-only HTTP verified 15 local paths/assets and all three static FastAPI UI routes without starting database/background services. A source-bindings check found no duplicate HTML IDs or unresolved literal workspace bindings. The 26 runner-only browser cases, screenshot review and exact-source full CI remain required for publication/deployment qualification. No local browser was run.
+
+The new presentation assets and changed module imports use a Coldpath release cache key so an existing browser does not mix the old dark workspace or AxonFDE renderer with the new pages. The underlying source data and stable public document paths remain unchanged.

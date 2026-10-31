@@ -1,4 +1,4 @@
-import { getStory, readStudyLocation, studyHash } from "./story.mjs";
+import { getStory, readStudyLocation, studyHash } from "./story.mjs?v=coldpath-1";
 import {
   verifyBundle,
   rankPlanning,
@@ -6,7 +6,7 @@ import {
   planningKey,
   makePacket,
   makeBrief,
-} from "./workbench-core.mjs";
+} from "./workbench-core.mjs?v=coldpath-1";
 const $ = (id) => document.getElementById(id);
 const labels = (id) =>
   id.replaceAll("_", " ").replace(/^./, (s) => s.toUpperCase());

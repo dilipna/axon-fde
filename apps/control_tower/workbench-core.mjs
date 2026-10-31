@@ -1,4 +1,4 @@
-import { getStory } from "./story.mjs";
+import { getStory } from "./story.mjs?v=coldpath-1";
 /* Pure workbench contracts. The public UI never authorizes or executes a carrier action. */
 export async function sha256(text) {
   const bytes = new TextEncoder().encode(text.replace(/\r\n/g, "\n"));
