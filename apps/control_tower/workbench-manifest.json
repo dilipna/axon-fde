@@ -1,0 +1,7 @@
+{
+  "algorithm": "sha256-normalized-utf8-lf",
+  "payload": "workbench-data.json",
+  "payload_sha256": "7a60aaf15078365339eb2fe90b7331f6726c200ab61986547b4aad7f226a95fb",
+  "schema": 1,
+  "scope": "Byte consistency, not an authenticity signature or field-performance claim."
+}

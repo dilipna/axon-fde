@@ -15,6 +15,24 @@ Image-based evidence and production fleet operation are not implemented claims.
 > and unmeasured work. No performance claim appears in this README until it is produced by a stored
 > benchmark run. Anything not yet measured is explicitly marked `PLACEHOLDER`.
 
+**October 31 decision-workspace redevelopment:** a source-checked decision workspace,
+versioned trajectory CI, genuine checkpoint review and the existing executor's database adapter.
+See [the acceptance and qualification status](docs/redevelopment-20261031.md) and
+[the fifteen-idea decisions](docs/fifteen-idea-decisions.md). No new fleet-performance
+or business-savings claim is made.
+
+**Preview the static decision workspace without databases or model calls:**
+
+```bash
+python scripts/site_identity.py
+python -m http.server 3292 --bind 127.0.0.1 --directory site
+# Open http://127.0.0.1:3292/workbench.html yourself.
+```
+
+The workspace preserves the original recorded dates. Its planning sandbox and notes
+are browser-only; real review/approval/execution are separate local backend services.
+Browser QA runs only on GitHub in this redevelopment.
+
 **Resuming work?** Read [CONTINUE.md](CONTINUE.md) first.
 
 **Verification validity repair (October 20, 2026):** outcome grading now rejects
@@ -257,3 +275,7 @@ The story of how it was built - what broke, what the benchmark caught, and what 
 ## License
 
 `PLACEHOLDER` — to be chosen before the repository is made public.
+
+### Decision-workspace engineering walkthrough
+
+See [the architecture, failure boundaries and reviewer journey](docs/decision-workspace.md) and [the fifteen-idea decisions](docs/fifteen-idea-decisions.md). Release qualification includes disposable-database and hosted-browser checks; see the repository Actions and release PR for the current verified status.

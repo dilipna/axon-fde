@@ -1,0 +1,2810 @@
+[
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0,
+    "value": 0
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0,
+    "value": 0
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0,
+    "value": 10000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0,
+    "value": 10000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0,
+    "value": 184000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0,
+    "value": 184000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0,
+    "value": 1000000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0,
+    "value": 1000000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.01,
+    "value": 0
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.01,
+    "value": 0
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -100.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -100.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -100.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -100.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -127.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -190.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -670.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1160.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2258.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3212.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.01,
+    "value": 10000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -100.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -100.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -100.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -100.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -127.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -190.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -670.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1160.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2258.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3212.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.01,
+    "value": 10000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -1769.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -1840.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -1840.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -1840.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -1840.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -1867.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -1887.9999999999998,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1930.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -2397.2,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3420.8,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.01,
+    "value": 184000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -1769.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -1840.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -1840.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -1840.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -1840.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -1867.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -1887.9999999999998,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1930.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -2397.2,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3420.8,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.01,
+    "value": 184000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -3050.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -4400.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -4625.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -7599.999999999999,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -10027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -10090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 0.01,
+    "value": 1000000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -4625.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -7599.999999999999,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -10027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -10090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -3050.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -4400.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.01,
+    "value": 1000000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.25,
+    "value": 0
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.25,
+    "value": 0
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -2000.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2350.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -2450.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -2500.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -2500.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -2500.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -2500.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -2527.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -2590.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -3500.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.25,
+    "value": 10000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -2000.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2350.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -2500.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -2500.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -2500.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -2500.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -2527.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -2590.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -2450.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3500.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.25,
+    "value": 10000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -5930.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -8720.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -17225.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -32800.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -46000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -46000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -46000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -46000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -46027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -46090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 0.25,
+    "value": 184000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -17225.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -32800.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -46000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -46000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -46000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -46000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -46027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -46090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -5930.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -8720.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.25,
+    "value": 184000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -22250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -33200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -88625.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -175600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -250000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -250000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -250000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -250000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -250027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -250090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 0.25,
+    "value": 1000000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -88625.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -175600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -250000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -250000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -250000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -250000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -250027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -250090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -22250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -33200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.25,
+    "value": 1000000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.5,
+    "value": 0
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.5,
+    "value": 0
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -2650.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -2875.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -3800.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -4100.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -5000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -5000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -5000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -5000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -5027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -5090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 0.5,
+    "value": 10000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -2875.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -4100.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -5000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -5000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -5000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -5000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -5027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -5090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -2650.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3800.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.5,
+    "value": 10000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -9610.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -14240.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -33325.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -64999.99999999999,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -92000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -92000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -92000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -92000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -92027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -92090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 0.5,
+    "value": 184000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -33325.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -64999.99999999999,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -92000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -92000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -92000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -92000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -92027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -92090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -9610.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -14240.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.5,
+    "value": 184000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -42250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -63200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -176125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -350600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -500000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -500000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -500000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -500000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -500027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -500090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 0.5,
+    "value": 1000000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -176125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -350600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -500000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -500000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -500000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -500000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -500027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -500090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -42250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -63200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.5,
+    "value": 1000000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.9,
+    "value": 0
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.9,
+    "value": 0
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -2970.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -4275.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -4280.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -6900.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -9000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -9000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -9000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -9000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -9027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -9090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 0.9,
+    "value": 10000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -4275.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -6900.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -9000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -9000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -9000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -9000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -9027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -9090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -2970.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -4280.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.9,
+    "value": 10000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -15498.000000000002,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -23072.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -59085.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -116520.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -165600.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -165600.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -165600.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -165600.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -165627.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -165690.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 0.9,
+    "value": 184000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -59085.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -116520.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -165600.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -165600.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -165600.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -165600.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -165627.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -165690.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -15498.000000000002,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -23072.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.9,
+    "value": 184000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -74250.00000000001,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -111200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -316125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -630600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -900000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -900000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -900000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -900000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -900027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -900090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 0.9,
+    "value": 1000000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -316125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -630600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -900000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -900000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -900000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -900000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -900027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -900090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -74250.00000000001,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -111200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 0.9,
+    "value": 1000000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 1,
+    "value": 0
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -0.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -27.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -90.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -2250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -3200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 1,
+    "value": 0
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -3050.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -4400.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -4625.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -7600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -10027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -10090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 1,
+    "value": 10000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -4625.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -7600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -10000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -10027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -10090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -3050.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -4400.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 1,
+    "value": 10000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -16970.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -25280.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -65524.99999999999,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -129399.99999999999,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -184000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -184000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -184000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -184000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -184027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -184090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 1,
+    "value": 184000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -65524.99999999999,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -129399.99999999999,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -184000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -184000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -184000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -184000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -184027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -184090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -16970.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -25280.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 1,
+    "value": 184000
+  },
+  {
+    "blocked": [],
+    "options": [
+      {
+        "ev": -82250.0,
+        "feasible": true,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -123200.0,
+        "feasible": true,
+        "id": "trailer_swap"
+      },
+      {
+        "ev": -351125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -700600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1000000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -1000000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -1000000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -1000000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -1000027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -1000090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      }
+    ],
+    "probability": 1,
+    "value": 1000000
+  },
+  {
+    "blocked": [
+      "reroute_to_cold_storage",
+      "trailer_swap"
+    ],
+    "options": [
+      {
+        "ev": -351125.0,
+        "feasible": true,
+        "id": "switch_facility"
+      },
+      {
+        "ev": -700600.0,
+        "feasible": true,
+        "id": "escalate_maintenance"
+      },
+      {
+        "ev": -1000000.0,
+        "feasible": true,
+        "id": "do_nothing"
+      },
+      {
+        "ev": -1000000.0,
+        "feasible": true,
+        "id": "continue_route"
+      },
+      {
+        "ev": -1000000.0,
+        "feasible": true,
+        "id": "draft_customer_notification"
+      },
+      {
+        "ev": -1000000.0,
+        "feasible": true,
+        "id": "mark_for_inspection"
+      },
+      {
+        "ev": -1000027.5,
+        "feasible": true,
+        "id": "contact_driver"
+      },
+      {
+        "ev": -1000090.0,
+        "feasible": true,
+        "id": "inspect_refrigeration"
+      },
+      {
+        "ev": -82250.0,
+        "feasible": false,
+        "id": "reroute_to_cold_storage"
+      },
+      {
+        "ev": -123200.0,
+        "feasible": false,
+        "id": "trailer_swap"
+      }
+    ],
+    "probability": 1,
+    "value": 1000000
+  }
+]

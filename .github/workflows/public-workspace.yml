@@ -1,0 +1,47 @@
+name: Public decision workspace
+on:
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Approved exact source commit whose tree must match production
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  public-browser:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'verify-axon-public'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || inputs.source_ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: Pin the approved source tree
+        env:
+          SOURCE_REF: ${{ github.event.pull_request.head.sha || inputs.source_ref }}
+        run: |
+          [[ "$SOURCE_REF" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          test "$(git rev-parse HEAD)" = "$SOURCE_REF"
+          echo "AXON_EXPECTED_TREE=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_ENV"
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: e2e
+      - run: npx playwright install --with-deps chromium
+        working-directory: e2e
+      - run: npm test
+        working-directory: e2e
+        env:
+          AXON_E2E_ORIGIN: https://dilipna.github.io/axon-fde/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: axon-workspace-public-browser-evidence
+          path: e2e-results/

@@ -525,3 +525,9 @@ def test_approval_requirements_travel_with_the_candidates() -> None:
         if option.action is ActionType.DO_NOTHING
     )
     assert not null_option.requires_approval
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), -float("inf")])
+def test_nonfinite_cargo_value_cannot_produce_a_planning_recommendation(value: float) -> None:
+    with pytest.raises(ValueError, match="finite"):
+        rank_options(probability=0.5, cargo_value_usd=value, feasibility={})

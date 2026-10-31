@@ -1,3 +1,17 @@
+## Authorized release qualification — October 31, 2026
+
+User approved dd6a8a52fe120f1d4cb4dda146aeaf16366b9fa2 publication, full CI with release-confined corrections, then gated merge/deployment to existing GitHub Pages and production verification. PR #2 is open. All 18 initial browser cases and screenshot review passed; disposable database integration passed 125 tests, including the three new durability/runtime cases. A documentation-only correction removes stale local-only status text. Run the corrected exact source through all CI gates before merge. Do not ask again for already authorized confined corrections. No merge/deployment has yet occurred. Keep the no-desktop-control restriction. Older local checkpoint notes below are historical, not a revocation of this approval.
+
+## Active Axon decision-workspace implementation — October 31, 2026
+
+Current branch: improve/axon-decision-workbench. The new workspace, durable review adapter, trajectory contract, portable exports and GitHub-only browser qualification are implemented locally. Publication/deployment of this redevelopment has NOT been approved. Do not treat the earlier release closure below as closure of this new task. Read docs/redevelopment-20261031.md and docs/decision-workspace.md. Preserve historical evidence and use the existing GitHub Pages destination. No desktop control or local browser execution; local files, terminal and HTTP checks are authorized. Integration fixtures use disposable GitHub databases only. Finish local candidate and recovery packaging before exact publication/CI/gated merge-deployment approval.
+
+# October 31, 2026 — AxonFDE redevelopment reopened by the owner
+
+The user explicitly requested highest-quality redevelopment of AxonFDE. This supersedes prior scope closure for this project only. Work on improve/axon-decision-workbench from current remote main 2df6516; preserve earlier releases, frozen metrics and unrelated projects. Read docs/redevelopment-20261031.md for acceptance. No desktop control, paid calls or personal-file cleanup. Public release still requires exact approval. Local source/terminal work is authorized. Database tests only against disposable instances.
+
+Audit finding: the LangGraph await_approval node currently only records a marker; it is not a real interrupt. The separate real ActionExecutor already enforces approval. Fix orchestration without weakening the executor or disguising benchmark simulation as actual authorized effects. Next blocks: trajectory contract/CI, genuine durable review, evidence-first decision workbench and full regression/release qualification.
+
 # CONTINUE — session handoff
 
 ## October 21, 2026: active complete-project release
