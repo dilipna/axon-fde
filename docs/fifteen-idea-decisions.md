@@ -1,11 +1,11 @@
 # Fifteen ideas — AxonFDE redevelopment decisions
 
-October 31, 2026. Feature names are not accomplishment claims. Public release and DB/browser qualification remain pending.
+October 31, 2026. Feature names are not accomplishment claims. Release status is recorded in the repository Actions and release PR; integrations are bounded by the evidence below.
 
 | Idea | Current decision and actual scope |
 |---|---|
 | 1 Context assembler | Existing deterministic citable digest retained. No new tokenizer or arbitrary context middleware claimed. |
-| 2 Durable workflow | New genuine review interrupt/resume, persisted proposal binding, fresh checks and database executor adapter. In-memory reconstruction tested; Postgres reconnection and executor restart tests pending CI. |
+| 2 Durable workflow | New genuine review interrupt/resume, persisted proposal binding, fresh checks and database executor adapter. In-memory reconstruction tested. Postgres reconnection, executor restart and refusal-audit persistence passed in the disposable-database CI run for dd6a8a5 (125 integration/end-to-end checks). |
 | 3 MCP | Deferred: no external scoped consumer requires a new protocol surface in this release. Existing typed tools remain. |
 | 4 Triage router | Deferred: two model nodes and offline cassettes do not establish request traffic or routing savings. |
 | 5 Corrective RAG | Public recorded-evidence lookup abstains and cites saved steps. This is not a new model-driven hybrid/self-correcting RAG engine. Existing backend grounding is retained. |

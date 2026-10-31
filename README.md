@@ -15,7 +15,7 @@ Image-based evidence and production fleet operation are not implemented claims.
 > and unmeasured work. No performance claim appears in this README until it is produced by a stored
 > benchmark run. Anything not yet measured is explicitly marked `PLACEHOLDER`.
 
-**October 31 redevelopment (local, not yet deployed):** a source-checked decision workspace,
+**October 31 decision-workspace redevelopment:** a source-checked decision workspace,
 versioned trajectory CI, genuine checkpoint review and the existing executor's database adapter.
 See [the acceptance and qualification status](docs/redevelopment-20261031.md) and
 [the fifteen-idea decisions](docs/fifteen-idea-decisions.md). No new fleet-performance
@@ -278,4 +278,4 @@ The story of how it was built - what broke, what the benchmark caught, and what 
 
 ### Decision-workspace engineering walkthrough
 
-See [the architecture, failure boundaries and reviewer journey](docs/decision-workspace.md) and [the fifteen-idea decisions](docs/fifteen-idea-decisions.md). Current redevelopment is local; database and hosted-browser qualification precede publication.
+See [the architecture, failure boundaries and reviewer journey](docs/decision-workspace.md) and [the fifteen-idea decisions](docs/fifteen-idea-decisions.md). Release qualification includes disposable-database and hosted-browser checks; see the repository Actions and release PR for the current verified status.
