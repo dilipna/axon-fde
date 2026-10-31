@@ -1,3 +1,9 @@
+# October 31, 2026 — AxonFDE redevelopment reopened by the owner
+
+The user explicitly requested highest-quality redevelopment of AxonFDE. This supersedes prior scope closure for this project only. Work on improve/axon-decision-workbench from current remote main 2df6516; preserve earlier releases, frozen metrics and unrelated projects. Read docs/redevelopment-20261031.md for acceptance. No desktop control, paid calls or personal-file cleanup. Public release still requires exact approval. Local source/terminal work is authorized. Database tests only against disposable instances.
+
+Audit finding: the LangGraph await_approval node currently only records a marker; it is not a real interrupt. The separate real ActionExecutor already enforces approval. Fix orchestration without weakening the executor or disguising benchmark simulation as actual authorized effects. Next blocks: trajectory contract/CI, genuine durable review, evidence-first decision workbench and full regression/release qualification.
+
 # CONTINUE — session handoff
 
 ## October 21, 2026: active complete-project release
