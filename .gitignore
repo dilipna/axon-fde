@@ -57,3 +57,9 @@ Thumbs.db
 
 # Local container volumes
 .docker-data/
+
+# Redevelopment browser evidence/runtime (GitHub runners only).
+e2e/node_modules/
+e2e-results/
+apps/control_tower/workbench-release.json
+site/ui/workbench-release.json

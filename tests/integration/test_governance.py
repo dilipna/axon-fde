@@ -20,7 +20,7 @@ from uuid import UUID
 import pytest
 import pytest_asyncio
 import sqlalchemy as sa
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from backend.app.actions.executor import (
     ActionExecutor,
@@ -892,3 +892,79 @@ async def test_the_approval_record_holds_what_the_approver_saw(
     assert payload["bound_context"]["risk"]["probability"] == 0.78
     assert payload["bound_context"]["risk"]["baseline_probability"] == 0.41
     assert payload["bound_context_hash"] == context.bound_hash()
+
+
+async def test_review_runtime_reconciles_committed_effect_after_adapter_restart(
+    governance: Governance,
+    app_engine: AsyncEngine,
+) -> None:
+    """Crash after effect commit but before graph receipt: retry is a ledger replay."""
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from backend.app.agents.review_runtime import DatabaseReviewRuntime
+    from backend.app.agents.state import IncidentState
+
+    approval = await governance.granted_approval()
+    context = governance.context()
+    await governance.session.commit()
+    sessions = async_sessionmaker(app_engine, expire_on_commit=False)
+    state = IncidentState(incident_id=context.incident_id)
+
+    async def current_context(_: IncidentState) -> ApprovalContext:
+        return context
+
+    def runtime() -> DatabaseReviewRuntime:
+        return DatabaseReviewRuntime(
+            sessions=sessions,
+            principal=FLEET_MANAGER,
+            load_context=current_context,
+            request_for=lambda _s, _c: REROUTE_REQUEST,
+            now=lambda: GRANTED_AT + timedelta(minutes=1),
+            audit_key=TEST_HMAC_KEY,
+        )
+
+    first = await runtime().execute(state, approval.id, context)
+    # Intentionally no graph checkpoint records first; reconstruct all adapters.
+    second = await runtime().execute(state, approval.id, context)
+    assert first["replayed"] is False
+    assert second["replayed"] is True
+    assert first["execution_id"] == second["execution_id"]
+    assert (
+        await governance.session.scalar(sa.select(sa.func.count()).select_from(ActionExecution))
+        == 1
+    )
+    assert (await governance.audit.verify()).valid
+
+
+async def test_review_runtime_retains_executor_refusal_audit_without_effect(
+    governance: Governance,
+    app_engine: AsyncEngine,
+) -> None:
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from backend.app.agents.review_runtime import DatabaseReviewRuntime
+    from backend.app.agents.state import IncidentState
+
+    approval = await governance.granted_approval()
+    context = governance.context()
+    await governance.session.commit()
+
+    async def current_context(_: IncidentState) -> ApprovalContext:
+        return context
+
+    runtime = DatabaseReviewRuntime(
+        sessions=async_sessionmaker(app_engine, expire_on_commit=False),
+        principal=Principal(subject="read-only@test", role=Role.VIEWER),
+        load_context=current_context,
+        request_for=lambda _s, _c: REROUTE_REQUEST,
+        now=lambda: GRANTED_AT + timedelta(minutes=1),
+        audit_key=TEST_HMAC_KEY,
+    )
+    with pytest.raises(ExecutionRefusedError):
+        await runtime.execute(IncidentState(incident_id=context.incident_id), approval.id, context)
+    assert (
+        await governance.session.scalar(sa.select(sa.func.count()).select_from(ActionExecution))
+        == 0
+    )
+    assert any("refused" in action for action in await audit_actions(governance.session))
+    assert (await governance.audit.verify()).valid

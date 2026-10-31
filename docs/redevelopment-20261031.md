@@ -19,3 +19,16 @@ Prioritize #2 durable workflow, #7 trajectory CI and #15 architecture teardown. 
 Historical C11 and the 24-case verification release remain unchanged. Nonconstant lying sensors and honest constant-sensor abstention remain limitations. Graph execution markers are not proof of external execution; real ActionExecutor retains authorization, binding, idempotency and persistence checks.
 
 Public changes still require the user's exact-release approval. Existing GitHub Pages is the intended destination; inspect current policy before proposing release. Do all local implementation and recovery preparation before requesting approval. No publication or deployment yet.
+
+## Local implementation checkpoint
+
+- Versioned trajectory contract now checks real graph runs and missing/reordered/unknown/repeated-node mutations. It distinguishes actual suspended review from incomplete execution.
+- ReviewGate persists a proposal binding before a genuine LangGraph interrupt, rejects boolean resume grants, reloads current context/approval, refuses stale/expired responses and uses checkpoint-bound incident lookup. Human waiting is excluded from compute wall time without resetting steps/tokens/tool counts.
+- DatabaseReviewRuntime uses the existing authenticated Principal, ApprovalService, ActionExecutor and audit chain. It commits an executor refusal before propagating it and relies on the approval-derived idempotency key. Three new integration cases are prepared for disposable CI: Postgres saver reconnection, effect-commit/adapter-restart replay and refusal-audit persistence. These have not run locally. The historical graph without ReviewGate remains explicitly advisory/cassette-only; it does not gain a fictional approval from a marker.
+- The public decision workspace uses already published synthetic recordings and the frozen verifier pack. Cost rehearsal is explicitly hypothetical and checked against backend-generated parity fixtures. Notes and rehearsal review remain browser-only; they do not issue backend approvals or side effects.
+- A non-finite cargo-value edge case found while building cross-language planning parity now rejects NaN/infinity before ranking.
+- Current verified local results: 792 full unit/cassette-agent tests passed before the later snapshot/planning additions; 80 affected Python checks and 57 Node checks subsequently passed. Full updated regression, database integration, hosted browser/visual and deployed qualification remain pending. Strict backend typing and all eleven architecture contracts passed at the backend checkpoint.
+
+## Operational limits retained
+
+A source fingerprint is consistency evidence, not an authenticity signature. The graph's review flag is not an authenticated transport. Application wiring must supply a verified Principal and fresh trusted context loader. A known expired/stale checkpoint refuses automatic continuation; an uncertain previously committed effect must be reconciled through the execution ledger, not inferred absent because review refused. The new runtime idempotency integration test covers a committed effect retried with its still-valid approval. No real carrier integration, multi-tenant access model, field sensor truth, production SLO or business savings is claimed.

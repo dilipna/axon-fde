@@ -41,9 +41,24 @@ def test_the_snapshot_shows_the_newest_published_run() -> None:
     assert snapshot["provenance"]["reproducible"] is True
 
 
-@pytest.mark.parametrize("name", ["index.html", "app.css", "app.js", "verification-release.json"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "index.html",
+        "workbench.html",
+        "app.css",
+        "app.js",
+        "verification-release.json",
+        "workbench.css",
+        "workbench.mjs",
+        "workbench-core.mjs",
+        "workbench-data.json",
+        "workbench-manifest.json",
+        "workbench-parity.json",
+    ],
+)
 def test_the_snapshot_page_is_the_current_page(name: str) -> None:
-    copy = SITE / name if name == "index.html" else SITE / "ui" / name
+    copy = SITE / name if name in {"index.html", "workbench.html"} else SITE / "ui" / name
     assert _text(copy) == _text(UI / name), (
         f"site/ carries an old {name}: re-run `uv run poe export-site`"
     )

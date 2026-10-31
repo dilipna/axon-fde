@@ -41,6 +41,10 @@ def mount_control_tower(app: FastAPI) -> None:
     def index() -> FileResponse:
         return FileResponse(UI_DIR / "index.html")
 
+    @app.get("/workbench.html", include_in_schema=False)
+    def workbench() -> FileResponse:
+        return FileResponse(UI_DIR / "workbench.html")
+
     # Mounted after the API routers, so a static file can never shadow an
     # endpoint: `/api/v1/...` is matched first whatever lands in this folder.
     app.mount("/ui", StaticFiles(directory=UI_DIR), name="control-tower")

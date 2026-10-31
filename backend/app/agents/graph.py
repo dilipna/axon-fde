@@ -50,8 +50,10 @@ from backend.app.agents.degradation import (
     templated_narrative,
 )
 from backend.app.agents.grounding import PermittedValues, check_grounding
+from backend.app.agents.review import ReviewGate
 from backend.app.agents.scoring import rule_priors, score_hypotheses
 from backend.app.agents.state import IncidentState, TraceEntry
+from backend.app.agents.trajectory import WORKFLOW_NODES
 from backend.app.decision.catalogue import FacilityOption
 from backend.app.decision.engine import rank_options
 from backend.app.decision.feasibility import assess_feasibility
@@ -66,22 +68,7 @@ __all__ = ["NODE_NAMES", "IncidentWorkflow", "build_graph"]
 #: The fourteen, in the order they run. Named here so a test can assert the
 #: graph has the nodes it claims to, rather than trusting the diagram in the
 #: docstring - which is the part most likely to drift.
-NODE_NAMES: tuple[str, ...] = (
-    "ingest",
-    "reconcile",
-    "resolve_envelope",
-    "assess_risk",
-    "propose_links",
-    "score_hypotheses",
-    "check_feasibility",
-    "rank_options",
-    "narrate",
-    "check_grounding",
-    "request_approval",
-    "await_approval",
-    "execute",
-    "verify",
-)
+NODE_NAMES: tuple[str, ...] = WORKFLOW_NODES
 
 #: Not one of the fourteen. It is where the graph goes when a budget runs out
 #: or a deterministic check rejects model output, and it is terminal.
@@ -328,11 +315,10 @@ class IncidentWorkflow:
     async def await_approval(self, state: IncidentState) -> dict[str, Any]:
         """Where the graph stops and waits for a person.
 
-        The node itself does nothing: it exists as a named interrupt point, so
-        that a resumed run resumes *here* rather than re-running the
-        deliberation that produced the request. Re-running it would re-ask the
-        model, cost money, and could produce a different recommendation than
-        the one the human is looking at.
+        Historical advisory/cassette marker only; it does not interrupt.
+        When build_graph receives ReviewGate, this node is replaced by the
+        genuine interrupt/validation node. Neither this marker nor a resume
+        payload is authorization to cause an external effect.
         """
         return {
             "trace": _trace("await_approval", "suspended pending a human decision"),
@@ -467,18 +453,35 @@ def _gate(workflow: IncidentWorkflow, next_node: str) -> Callable[[IncidentState
     return route
 
 
-def build_graph(workflow: IncidentWorkflow, *, checkpointer: Any = None) -> Any:
+def build_graph(
+    workflow: IncidentWorkflow, *, checkpointer: Any = None, review: ReviewGate | None = None
+) -> Any:
     """Wire the fourteen nodes, with a budget gate between each pair.
+
+    ``review`` enables genuine interrupt/resume using trusted approval and
+    execution adapters. Without it this is the historical advisory/cassette
+    graph: execute/verify are markers, not external effects or a human pause.
 
     ``checkpointer`` is passed in rather than constructed. A Postgres
     checkpointer in production and an in-memory one in a test then differ by
     one argument rather than by a branch, which is what stops the tested path
     and the deployed path drifting apart.
     """
+    if review is not None and checkpointer is None:
+        raise ValueError("review requires a checkpointer")
     graph: StateGraph[IncidentState, Any, Any, Any] = StateGraph(IncidentState)
 
     for name in NODE_NAMES:
-        graph.add_node(name, getattr(workflow, name))
+        review_nodes = (
+            {
+                "request_approval": review.prepare,
+                "await_approval": review.wait,
+                "execute": review.execute,
+            }
+            if review is not None
+            else {}
+        )
+        graph.add_node(name, review_nodes.get(name, getattr(workflow, name)))
     graph.add_node(ESCALATE, workflow.escalate)
 
     graph.add_edge(START, NODE_NAMES[0])

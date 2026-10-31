@@ -1,3 +1,7 @@
+## Active Axon decision-workspace implementation — October 31, 2026
+
+Current branch: improve/axon-decision-workbench. The new workspace, durable review adapter, trajectory contract, portable exports and GitHub-only browser qualification are implemented locally. Publication/deployment of this redevelopment has NOT been approved. Do not treat the earlier release closure below as closure of this new task. Read docs/redevelopment-20261031.md and docs/decision-workspace.md. Preserve historical evidence and use the existing GitHub Pages destination. No desktop control or local browser execution; local files, terminal and HTTP checks are authorized. Integration fixtures use disposable GitHub databases only. Finish local candidate and recovery packaging before exact publication/CI/gated merge-deployment approval.
+
 # October 31, 2026 — AxonFDE redevelopment reopened by the owner
 
 The user explicitly requested highest-quality redevelopment of AxonFDE. This supersedes prior scope closure for this project only. Work on improve/axon-decision-workbench from current remote main 2df6516; preserve earlier releases, frozen metrics and unrelated projects. Read docs/redevelopment-20261031.md for acceptance. No desktop control, paid calls or personal-file cleanup. Public release still requires exact approval. Local source/terminal work is authorized. Database tests only against disposable instances.

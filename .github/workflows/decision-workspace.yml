@@ -1,0 +1,48 @@
+name: Decision workspace
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Recompute recorded evidence and actual backend planning fixtures
+        run: |
+          python -m scripts.build_workbench_data --check
+          python -m scripts.sync_workbench_assets --check
+      - name: Check browser policy against backend arithmetic and grounding contracts
+        run: node --test tests/web/workbench.test.mjs
+      - name: Attach exact source identity
+        run: |
+          python scripts/site_identity.py
+          echo "AXON_EXPECTED_TREE=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_ENV"
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: e2e
+      - run: npm audit --audit-level=high
+        working-directory: e2e
+      - run: npx playwright install --with-deps chromium
+        working-directory: e2e
+      - run: npm test
+        working-directory: e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: axon-workspace-browser-evidence
+          path: e2e-results/

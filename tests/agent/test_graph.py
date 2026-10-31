@@ -32,6 +32,7 @@ from backend.app.agents.graph import (
 )
 from backend.app.agents.scoring import ProposedLink
 from backend.app.agents.state import IncidentState
+from backend.app.agents.trajectory import assess_trajectory
 from backend.app.decision.catalogue import FacilityOption
 from backend.app.domain.enums import EvidenceSource, Modality, RootCause
 from backend.app.domain.evidence import EntityRef, Evidence, Provenance
@@ -152,7 +153,10 @@ async def run(
         shipment_id="SH-2041",
         vehicle_id="AX-042",
     )
-    return await graph.ainvoke(state)
+    final = await graph.ainvoke(state)
+    verdict = assess_trajectory([entry["node"] for entry in final["trace"]])
+    assert verdict.valid, verdict.violations
+    return final
 
 
 # ---------------------------------------------------------------------------

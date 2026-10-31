@@ -1,0 +1,10 @@
+{
+  "name": "axon-workbench-browser-checks",
+  "private": true,
+  "scripts": {
+    "test": "playwright test --config playwright.config.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

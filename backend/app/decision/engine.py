@@ -38,6 +38,7 @@ that unless the engine says so.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import isfinite
 from typing import Any
 
 from backend.app.decision.catalogue import ACTION_COSTS, Feasibility
@@ -253,8 +254,8 @@ def rank_options(
     """
     if not 0.0 <= probability <= 1.0:
         raise ValueError(f"probability={probability} is outside [0, 1]")
-    if cargo_value_usd < 0:
-        raise ValueError(f"cargo_value_usd={cargo_value_usd} cannot be negative")
+    if not isfinite(cargo_value_usd) or cargo_value_usd < 0:
+        raise ValueError("cargo_value_usd must be finite and non-negative")
 
     approvals = permitted or {}
     options: list[ActionOption] = []

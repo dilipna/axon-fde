@@ -67,11 +67,23 @@ def export(out: Path = OUT) -> list[Path]:
         for scenario in sorted(scenarios):
             fetch(f"control/telemetry/{scenario}")
 
-    for name in ("app.css", "app.js", "verification-release.json"):
+    for name in (
+        "app.css",
+        "app.js",
+        "verification-release.json",
+        "workbench.css",
+        "workbench.mjs",
+        "workbench-core.mjs",
+        "workbench-data.json",
+        "workbench-manifest.json",
+        "workbench-parity.json",
+    ):
         shutil.copy2(UI / name, out / "ui" / name)
         written.append(out / "ui" / name)
     shutil.copy2(UI / "index.html", out / "index.html")
     written.append(out / "index.html")
+    shutil.copy2(UI / "workbench.html", out / "workbench.html")
+    written.append(out / "workbench.html")
     # GitHub Pages runs Jekyll by default, which ignores some paths; a static
     # site that is already built should be served as-is.
     (out / ".nojekyll").write_text("", encoding="utf-8")
