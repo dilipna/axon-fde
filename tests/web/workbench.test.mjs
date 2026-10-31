@@ -253,3 +253,23 @@ for (const [label, mutate] of [
       /warning facts|story source/,
     );
   });
+
+test("plain answers keep the original quote and cite the evidence instead of claiming recovery", () => {
+  const approval = answerRecorded("why was approval blocked?", data);
+  assert.ok(approval.explanation.includes("outdated approval"));
+  assert.ok(approval.text.includes("approval_stale"));
+  assert.ok(approval.citations.includes("trace.steps[11]"));
+  const outcome = answerRecorded("what did verification find?", data);
+  assert.ok(outcome.explanation.includes("cannot prove"));
+  assert.ok(outcome.text.includes("NOT rerouted"));
+  assert.equal(
+    answerRecorded("what is the real customer revenue?", data).explanation,
+    undefined,
+  );
+});
+test("plain audit answer preserves the unkeyed-chain limitation", () => {
+  const audit = answerRecorded("was the audit intact?", data);
+  assert.ok(audit.explanation.includes("unkeyed"));
+  assert.ok(audit.explanation.includes("partial tampering"));
+  assert.ok(audit.citations.includes("trace.steps[13]"));
+});

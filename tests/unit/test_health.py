@@ -71,5 +71,5 @@ def test_openapi_schema_is_generated(client):
     assert response.status_code == 200
 
     schema = response.json()
-    assert schema["info"]["title"] == "AxonFDE"
+    assert schema["info"]["title"] == "Coldpath"
     assert "/api/v1/health" in schema["paths"]

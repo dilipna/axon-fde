@@ -1,6 +1,6 @@
 ## Coldpath local candidate — implementation checkpoint
 
-Coldpath overview, four-chapter workspace and preserved engineering replay implemented. Node 65, affected Python 30, types/lint/11 architecture contracts, 15 HTTP paths and three static FastAPI routes passed. Browser suite expanded to 26 cases, pending GitHub-only CI and visual review. Loopback preview: http://127.0.0.1:3296/. This iteration has not been published or approved for public release. Finish exact source/recovery packaging and request approval once. Preserve browser note keys, source artifacts and backend behavior. No desktop/local browser control.
+Coldpath overview, four-chapter workspace and preserved engineering replay implemented. Node 67, affected Python 35, types/lint/11 architecture contracts, 15 HTTP paths and three static FastAPI routes passed. Browser suite expanded to 26 cases, pending GitHub-only CI and visual review. Loopback preview: http://127.0.0.1:3296/. This iteration has not been published or approved for public release. Finish exact source/recovery packaging and request approval once. Preserve browser note keys, source artifacts and backend behavior. No desktop/local browser control.
 
 ## Active Coldpath clarity iteration — October 31, 2026
 

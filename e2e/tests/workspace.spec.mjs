@@ -67,7 +67,14 @@ for (const width of [1440, 768, 390, 360])
       .getByRole("button", { name: "Why was it blocked?", exact: true })
       .click();
     await expect(page.locator("#answer")).toContainText("approval_stale");
-    await page.getByRole("link", { name: "Step 11 â†—", exact: true }).click();
+    await expect(page.locator(".answer-summary")).toContainText(
+      "outdated approval",
+    );
+    await expect(page.locator(".answer-original")).not.toHaveAttribute(
+      "open",
+      "",
+    );
+    await page.getByRole("link", { name: "Step 11 ↗", exact: true }).click();
     await expect(page.locator("#record-step-11")).toHaveAttribute("open", "");
     await page
       .locator("#notes")
@@ -80,7 +87,7 @@ for (const width of [1440, 768, 390, 360])
       page.waitForEvent("download"),
       page
         .getByRole("button", {
-          name: "Download evidence packet â†“",
+          name: "Download evidence packet ↓",
           exact: true,
         })
         .click(),
@@ -151,7 +158,7 @@ test("record search, source citations and unknown questions retain evidence boun
   await expect(page.locator("#answer")).toContainText("NOT rerouted");
   await expect(page.locator("#answer")).toContainText("incident reopened");
   await page.locator("#question").fill("What was the real customer revenue?");
-  await page.getByRole("button", { name: "Ask â†—", exact: true }).click();
+  await page.getByRole("button", { name: "Ask ↗", exact: true }).click();
   await expect(page.locator("#answer")).toContainText("does not establish");
 });
 test("planning changes invalidate rehearsal review and exclude unavailable options", async ({
@@ -205,13 +212,13 @@ test("frozen verifier cases show false confirmations alongside abstention costs"
   await expect(page.locator(".fault-box").first()).toContainText("confirmed");
   await expect(page.locator(".fault-box").last()).toContainText("inconclusive");
   await expect(page.locator("#fault-summary")).toContainText(
-    "false confirmations 6 â†’ 2",
+    "false confirmations 6 → 2",
   );
   await expect(page.locator("#fault-summary")).toContainText(
-    "missed recoveries 0 â†’ 4",
+    "missed recoveries 0 → 4",
   );
   await expect(page.locator("#fault-summary")).toContainText(
-    "abstentions 4 â†’ 12",
+    "abstentions 4 → 12",
   );
 });
 test("shift briefing exports user notes as safe literal text with original scope", async ({
@@ -223,7 +230,7 @@ test("shift briefing exports user notes as safe literal text with original scope
     page.waitForEvent("download"),
     page
       .getByRole("button", {
-        name: "Download my readable brief â†“",
+        name: "Download my readable brief ↓",
         exact: true,
       })
       .click(),
@@ -328,7 +335,7 @@ test("sharing and study links never include private notes or planning inputs", a
   await page.locator("#notes").fill("private note");
   await page.locator("[data-case=sensor]").click();
   await page
-    .getByRole("button", { name: "Copy study link â†—", exact: true })
+    .getByRole("button", { name: "Copy study link ↗", exact: true })
     .click();
   const link = await page.evaluate(() => navigator.clipboard.readText());
   expect(link).toContain("workbench.html#case=sensor");
@@ -415,7 +422,7 @@ for (const width of [1440, 768, 390, 360])
     );
     await expect(
       page.getByText(
-        "Interactive engineering demo Â· fictional shipments Â· recorded results",
+        "Interactive engineering demo · fictional shipments · recorded results",
       ),
     ).toBeVisible();
     await expect(

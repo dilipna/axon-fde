@@ -1096,3 +1096,21 @@ dialog .cp-eyebrow {
 .technical-details > #return-story {
   margin-top: 24px;
 }
+
+.answer-summary {
+  white-space: normal;
+}
+.answer-original {
+  margin: 15px 0;
+  color: var(--cp-muted);
+  font-size: 11px;
+}
+.answer-original summary {
+  cursor: pointer;
+  color: var(--cp-teal);
+  font-weight: 650;
+}
+.answer-original > div {
+  padding-top: 12px;
+  white-space: pre-wrap;
+}

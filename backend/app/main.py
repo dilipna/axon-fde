@@ -55,7 +55,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
 
     app = FastAPI(
-        title="AxonFDE",
+        title="Coldpath",
         description=(
             "Proactive decision intelligence and incident response for cold-chain logistics."
         ),

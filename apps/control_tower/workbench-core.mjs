@@ -172,6 +172,18 @@ export function answerRecorded(question, data, caseId = "compressor") {
       )
       .join("\n\n"),
     citations: steps.map((s) => `trace.steps[${s.number}]`),
+    explanation:
+      ids[0] === 9
+        ? "New readings arrived after the first approval. The evidence had changed, so the system blocked that outdated approval and required a fresh review. This recording used a simulated carrier; this website cannot authorize or dispatch an action."
+        : ids[0] === 13
+          ? /\baudit/.test(q)
+            ? "The saved run reports an intact audit chain. It was unkeyed in this recording, so it detects only partial tampering. That does not prove the cargo recovered: the temperature check still failed."
+            : getStory(data, "compressor")[3].copy
+          : ids[0] === 7
+            ? "The recorded comparison favored rerouting to cold storage over the other feasible responses under its cost assumptions. Those estimates explain the recommendation; they are not proof of real savings or a recovered shipment."
+            : ids[0] === 5
+              ? getStory(data, "compressor")[0].copy
+              : getStory(data, "compressor")[1].copy,
   };
 }
 export function planningKey(

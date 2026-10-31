@@ -68,9 +68,9 @@ function renderSignal() {
     p = ps[i];
   $("minute-value").textContent = String(p.minute);
   $("timeline-output").textContent = String(p.minute);
-  $("temperature-value").textContent = p.cargo_temp_c.toFixed(2) + " Â°C";
+  $("temperature-value").textContent = p.cargo_temp_c.toFixed(2) + " °C";
   $("ambient-value").textContent = Number.isFinite(p.ambient_temp_c)
-    ? p.ambient_temp_c.toFixed(1) + " Â°C"
+    ? p.ambient_temp_c.toFixed(1) + " °C"
     : "Not recorded";
   const chart = $("telemetry-chart");
   chart.replaceChildren(
@@ -95,7 +95,7 @@ function renderSignal() {
       svg(
         "text",
         { x: 38, y: y(t) + 4, "text-anchor": "end", class: "chart-label" },
-        t + "Â°",
+        t + "°",
       ),
     );
   }
@@ -178,7 +178,7 @@ function renderSteps() {
       li.append(
         el(
           "small",
-          `Source: original trace Â· step ${step.number} Â· line ${index + 1}`,
+          `Source: original trace · step ${step.number} · line ${index + 1}`,
           "source-ref",
         ),
       );
@@ -191,14 +191,24 @@ function renderSteps() {
 function ask(question) {
   const result = answerRecorded(question, data, caseId),
     answer = $("answer");
-  answer.replaceChildren(el("div", result.text));
+  answer.replaceChildren(
+    el("div", result.explanation || result.text, "answer-summary"),
+  );
+  if (result.explanation) {
+    const original = el("details", undefined, "answer-original");
+    original.append(
+      el("summary", "Read the original quoted answer"),
+      el("div", result.text),
+    );
+    answer.append(original);
+  }
   if (result.citations.length) {
     const refs = el("div", undefined, "answer-citations");
     refs.append(document.createTextNode("Recorded sources: "));
     for (const ref of result.citations) {
       const n = ref.match(/^trace.steps\[(\d+)\]$/);
       if (n) {
-        const a = el("a", "Step " + n[1] + " â†—");
+        const a = el("a", "Step " + n[1] + " ↗");
         a.href = "#record-step-" + n[1];
         a.addEventListener("click", (event) => {
           event.preventDefault();
@@ -229,7 +239,7 @@ function renderPlanning() {
       li.append(
         el(
           "span",
-          labels(option.id) + (option.feasible ? "" : " Â· unavailable"),
+          labels(option.id) + (option.feasible ? "" : " · unavailable"),
         ),
         el("b", option.feasible ? money(-option.ev) : "Excluded"),
       );
@@ -277,7 +287,7 @@ function renderFault() {
   const b = data.verification.before,
     a = data.verification.after;
   $("fault-summary").textContent =
-    `Entire frozen pack (${a.cases} cases): false confirmations ${b.false_confirmations} â†’ ${a.false_confirmations}; missed recoveries ${b.missed_recoveries} â†’ ${a.missed_recoveries}; abstentions ${b.abstentions} â†’ ${a.abstentions}. This is a tradeoff, not field accuracy.`;
+    `Entire frozen pack (${a.cases} cases): false confirmations ${b.false_confirmations} → ${a.false_confirmations}; missed recoveries ${b.missed_recoveries} → ${a.missed_recoveries}; abstentions ${b.abstentions} → ${a.abstentions}. This is a tradeoff, not field accuracy.`;
 }
 const notesKey = () =>
   `axon-workbench-notes-v1:${manifest.payload_sha256}:${caseId}`;
@@ -320,10 +330,9 @@ function renderStory(index, { moveCursor = true } = {}) {
   $("story-callout").textContent = current.callout;
   $("story-boundary").textContent = current.boundary;
   $("story-previous").disabled = chapter === 0;
-  $("story-next").textContent =
-    chapter === 3 ? "Start again â†º" : "Next step â†’";
+  $("story-next").textContent = chapter === 3 ? "Start again ↺" : "Next step →";
   $("story-evidence").textContent =
-    caseId === "sensor" ? "See the test cases â†—" : "Show me why â†—";
+    caseId === "sensor" ? "See the test cases ↗" : "Show me why ↗";
   if (moveCursor) {
     stop();
     $("timeline").value = String(Math.min(current.minute, points().length - 1));
@@ -340,15 +349,15 @@ function changeCase(next, initialChapter = 0) {
     b.setAttribute("aria-pressed", String(b.dataset.case === next));
   $("case-type").textContent =
     next === "compressor"
-      ? "Medicine delivery Â· recorded story"
-      : "Sensor reading Â· comparison study";
+      ? "Medicine delivery · recorded story"
+      : "Sensor reading · comparison study";
   $("case-title").textContent =
     next === "compressor"
       ? "The cooling is failing. The delivery needs a closer look."
       : "A sensor can report a number. Can we trust it?";
   $("case-description").textContent =
     next === "compressor"
-      ? "Follow one fictional medicine shipment from early warning to a reviewed responseâ€”and an outcome that still needed investigation."
+      ? "Follow one fictional medicine shipment from early warning to a reviewed response—and an outcome that still needed investigation."
       : "Explore a saved sensor-drift recording. There is no recorded approval, intervention or recovery for this second study.";
   $("fact-value").textContent =
     next === "compressor"
@@ -360,7 +369,7 @@ function changeCase(next, initialChapter = 0) {
       : "Finite readings can still be wrong. No field sensor-trust claim.";
   $("telemetry-scope").textContent =
     next === "compressor"
-      ? "Dashed reference limits: 2â€“8 Â°C, from the Bill of Lading described in recorded step 4. Full saved trajectory is visible; no new prediction is made."
+      ? "Dashed reference limits: 2–8 °C, from the Bill of Lading described in recorded step 4. Full saved trajectory is visible; no new prediction is made."
       : "Observed cargo channel only; simulator ground truth is not loaded. This telemetry-only study does not establish a contractual decision or intervention.";
   $("timeline").max = String(points().length - 1);
   $("timeline").value = String(
@@ -386,8 +395,8 @@ function changeCase(next, initialChapter = 0) {
       : "A single sensor channel cannot establish physical truth. This study does not contain a recorded approved response.";
   $("move-source").textContent =
     next === "compressor"
-      ? "See the original recommendation â†—"
-      : "Explore the sensor test cases â†—";
+      ? "See the original recommendation ↗"
+      : "Explore the sensor test cases ↗";
   renderStory(initialChapter);
 }
 function packet() {
@@ -450,10 +459,10 @@ async function start() {
     $("model-identity").textContent = model?.available
       ? "Recorded provider: " +
         String(model.vendor) +
-        " Â· Models: " +
+        " · Models: " +
         Object.entries(model.models || {})
           .map(([role, name]) => role + ": " + String(name))
-          .join(" Â· ")
+          .join(" · ")
       : "No model showcase is available in this recording.";
     $("model-grounding").textContent =
       model?.narrative_grounded === true
@@ -465,7 +474,7 @@ async function start() {
     $("recording-date").textContent =
       "Original recording: " +
       new Date(data.recorded_at).toISOString() +
-      " Â· fictional carrier data Â· fingerprint checked";
+      " · fictional carrier data · fingerprint checked";
     const proof = $("proof-details");
     for (const [label, value] of [
       ["Recording", data.recorded_at],
@@ -493,7 +502,7 @@ async function start() {
       const value = el("dd"),
         link = el(
           "a",
-          identity.source_commit.slice(0, 12) + " Â· inspect source â†—",
+          identity.source_commit.slice(0, 12) + " · inspect source ↗",
         );
       link.href =
         "https://github.com/dilipna/axon-fde/tree/" + identity.source_commit;
@@ -581,7 +590,7 @@ async function start() {
         localStorage.removeItem(notesKey());
       } catch {}
       $("notes").value = "";
-      $("notes-status").textContent = "This studyâ€™s notes are cleared.";
+      $("notes-status").textContent = "This study’s notes are cleared.";
     });
     $("question-form").addEventListener("submit", (event) => {
       event.preventDefault();
@@ -609,7 +618,7 @@ async function start() {
     });
     const brief = el(
       "button",
-      "Download my readable brief â†“",
+      "Download my readable brief ↓",
       "quiet full-width",
     );
     brief.id = "export-brief";
