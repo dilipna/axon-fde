@@ -1,3 +1,4 @@
+import { getStory } from "./story.mjs";
 /* Pure workbench contracts. The public UI never authorizes or executes a carrier action. */
 export async function sha256(text) {
   const bytes = new TextEncoder().encode(text.replace(/\r\n/g, "\n"));
@@ -56,6 +57,26 @@ export async function verifyBundle(manifest, text) {
       )
     )
       throw Error("Malformed trace record");
+  const facts = data.trace.facts;
+  if (
+    !facts ||
+    ![
+      facts.detected_at_minute,
+      facts.baseline_alarm_minute,
+      facts.lead_time_minutes,
+    ].every((value) => Number.isInteger(value) && value >= 0) ||
+    facts.baseline_alarm_minute - facts.detected_at_minute !==
+      facts.lead_time_minutes
+  )
+    throw Error("Inconsistent recorded warning facts");
+  const recordedNumbers = data.trace.steps.map((step) => step.number);
+  if (
+    new Set(recordedNumbers).size !== recordedNumbers.length ||
+    ![3, 4, 5, 8, 11, 12, 13].every((number) =>
+      recordedNumbers.includes(number),
+    )
+  )
+    throw Error("Missing or duplicate story source steps");
   return data;
 }
 export function rankPlanning(policy, probability, value, blocked = []) {
@@ -179,6 +200,15 @@ export function makePacket({
   const key = planningKey(planning, manifest.payload_sha256, caseId);
   return {
     schema: 1,
+    product_name: "Coldpath",
+    guided_summary: getStory(data, caseId).map(
+      ({ title, copy, boundary, sources }) => ({
+        title,
+        explanation: copy,
+        scope: boundary,
+        recorded_steps: sources,
+      }),
+    ),
     scope:
       "Recorded synthetic study and browser-only planning rehearsal; not live fleet data, backend approval or an executed action.",
     exported_at: new Date().toISOString(),
@@ -212,7 +242,7 @@ export function makeBrief(packet) {
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;");
   return [
-    "# AxonFDE shift brief",
+    "# Coldpath delivery brief",
     "",
     safe(packet.scope),
     "",
@@ -220,12 +250,26 @@ export function makeBrief(packet) {
     "Study: " + safe(packet.case_id),
     "Source fingerprint: " + safe(packet.source_fingerprint),
     "",
+    "## The story in plain language",
+    ...(packet.guided_summary || []).flatMap((step) => [
+      "",
+      "### " + safe(step.title),
+      safe(step.explanation),
+      safe(step.scope),
+    ]),
+    "",
     "## My notes",
     safe(packet.notes || "No notes added."),
     "",
     "## Planning rehearsal",
     "Risk assumption: " + safe(packet.planning.probability),
     "Cargo value assumption: " + safe(packet.planning.value),
+    "Unavailable responses: " +
+      safe(
+        packet.planning.blocked.length
+          ? packet.planning.blocked.join(", ")
+          : "None marked unavailable",
+      ),
     "Review: " + safe(packet.planning.review_status),
     "",
     "## Original record",

@@ -1,3 +1,4 @@
+import { getStory, readStudyLocation, studyHash } from "./story.mjs";
 import {
   verifyBundle,
   rankPlanning,
@@ -20,7 +21,8 @@ let data,
   caseId = "compressor",
   reviewKey = null,
   timer = null,
-  planningValid = false;
+  planningValid = false,
+  chapter = 0;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 function el(tag, text, className) {
   const n = document.createElement(tag);
@@ -66,9 +68,9 @@ function renderSignal() {
     p = ps[i];
   $("minute-value").textContent = String(p.minute);
   $("timeline-output").textContent = String(p.minute);
-  $("temperature-value").textContent = p.cargo_temp_c.toFixed(2) + " °C";
+  $("temperature-value").textContent = p.cargo_temp_c.toFixed(2) + " Â°C";
   $("ambient-value").textContent = Number.isFinite(p.ambient_temp_c)
-    ? p.ambient_temp_c.toFixed(1) + " °C"
+    ? p.ambient_temp_c.toFixed(1) + " Â°C"
     : "Not recorded";
   const chart = $("telemetry-chart");
   chart.replaceChildren(
@@ -93,7 +95,7 @@ function renderSignal() {
       svg(
         "text",
         { x: 38, y: y(t) + 4, "text-anchor": "end", class: "chart-label" },
-        t + "°",
+        t + "Â°",
       ),
     );
   }
@@ -116,7 +118,7 @@ function renderSignal() {
   );
   chart.append(
     svg("line", { x1: x(i), y1: 20, x2: x(i), y2: 215, class: "chart-cursor" }),
-    svg("circle", { cx: x(i), cy: y(p.cargo_temp_c), r: 5, fill: "#69d4ed" }),
+    svg("circle", { cx: x(i), cy: y(p.cargo_temp_c), r: 5, fill: "#166b54" }),
   );
   chart.append(
     svg(
@@ -176,7 +178,7 @@ function renderSteps() {
       li.append(
         el(
           "small",
-          `Source: original trace · step ${step.number} · line ${index + 1}`,
+          `Source: original trace Â· step ${step.number} Â· line ${index + 1}`,
           "source-ref",
         ),
       );
@@ -196,13 +198,11 @@ function ask(question) {
     for (const ref of result.citations) {
       const n = ref.match(/^trace.steps\[(\d+)\]$/);
       if (n) {
-        const a = el("a", "Step " + n[1] + " ↗");
+        const a = el("a", "Step " + n[1] + " â†—");
         a.href = "#record-step-" + n[1];
-        a.addEventListener("click", () => {
-          $("record-search").value = "";
-          renderSteps();
-          const d = $("record-step-" + n[1]);
-          if (d) d.open = true;
+        a.addEventListener("click", (event) => {
+          event.preventDefault();
+          openRecord(Number(n[1]));
         });
         refs.append(a, document.createTextNode("  "));
       } else refs.append(el("span", ref));
@@ -229,7 +229,7 @@ function renderPlanning() {
       li.append(
         el(
           "span",
-          labels(option.id) + (option.feasible ? "" : " · unavailable"),
+          labels(option.id) + (option.feasible ? "" : " Â· unavailable"),
         ),
         el("b", option.feasible ? money(-option.ev) : "Excluded"),
       );
@@ -238,6 +238,7 @@ function renderPlanning() {
     }
     $("practice-review").disabled = false;
     $("export").disabled = false;
+    if ($("export-brief")) $("export-brief").disabled = false;
     $("review-status").textContent =
       reviewKey === planningKey(p, manifest.payload_sha256, caseId)
         ? "Reviewed in this browser rehearsal only. No backend approval was granted."
@@ -249,6 +250,7 @@ function renderPlanning() {
     $("planning-error").textContent = error.message;
     $("practice-review").disabled = true;
     $("export").disabled = true;
+    if ($("export-brief")) $("export-brief").disabled = true;
     $("review-status").textContent =
       "Invalid assumptions. No planning decision or export is available.";
   }
@@ -275,7 +277,7 @@ function renderFault() {
   const b = data.verification.before,
     a = data.verification.after;
   $("fault-summary").textContent =
-    `Entire frozen pack (${a.cases} cases): false confirmations ${b.false_confirmations} → ${a.false_confirmations}; missed recoveries ${b.missed_recoveries} → ${a.missed_recoveries}; abstentions ${b.abstentions} → ${a.abstentions}. This is a tradeoff, not field accuracy.`;
+    `Entire frozen pack (${a.cases} cases): false confirmations ${b.false_confirmations} â†’ ${a.false_confirmations}; missed recoveries ${b.missed_recoveries} â†’ ${a.missed_recoveries}; abstentions ${b.abstentions} â†’ ${a.abstentions}. This is a tradeoff, not field accuracy.`;
 }
 const notesKey = () =>
   `axon-workbench-notes-v1:${manifest.payload_sha256}:${caseId}`;
@@ -290,7 +292,47 @@ function loadNotes() {
       "Browser storage is unavailable. Export your notes to keep them.";
   }
 }
-function changeCase(next) {
+function openRecord(number) {
+  $("technical-details").open = true;
+  $("record-search").value = "";
+  renderSteps();
+  const detail = $("record-step-" + number);
+  if (detail) {
+    detail.open = true;
+    detail.scrollIntoView({ block: "start" });
+  }
+}
+function renderStory(index, { moveCursor = true } = {}) {
+  chapter = Math.max(0, Math.min(3, index));
+  const chapters = getStory(data, caseId),
+    current = chapters[chapter];
+  document.querySelectorAll("[data-chapter]").forEach((button, i) => {
+    button.setAttribute("aria-pressed", String(i === chapter));
+    button.replaceChildren(
+      el("span", String(i + 1)),
+      document.createTextNode(chapters[i].label),
+    );
+  });
+  $("story-counter").textContent = String(chapter + 1) + " of 4";
+  $("story-kicker").textContent = current.kicker;
+  $("story-title").textContent = current.title;
+  $("story-copy").textContent = current.copy;
+  $("story-callout").textContent = current.callout;
+  $("story-boundary").textContent = current.boundary;
+  $("story-previous").disabled = chapter === 0;
+  $("story-next").textContent =
+    chapter === 3 ? "Start again â†º" : "Next step â†’";
+  $("story-evidence").textContent =
+    caseId === "sensor" ? "See the test cases â†—" : "Show me why â†—";
+  if (moveCursor) {
+    stop();
+    $("timeline").value = String(Math.min(current.minute, points().length - 1));
+    renderSignal();
+  }
+  history.replaceState(null, "", studyHash(caseId, chapter));
+}
+
+function changeCase(next, initialChapter = 0) {
   if (!["compressor", "sensor"].includes(next)) return;
   stop();
   caseId = next;
@@ -298,16 +340,16 @@ function changeCase(next) {
     b.setAttribute("aria-pressed", String(b.dataset.case === next));
   $("case-type").textContent =
     next === "compressor"
-      ? "Recorded end-to-end incident"
-      : "Recorded sensor comparison";
+      ? "Medicine delivery Â· recorded story"
+      : "Sensor reading Â· comparison study";
   $("case-title").textContent =
     next === "compressor"
-      ? `${data.trace.shipment_id} · Cooling failure`
-      : "Can one sensor establish physical truth?";
+      ? "The cooling is failing. The delivery needs a closer look."
+      : "A sensor can report a number. Can we trust it?";
   $("case-description").textContent =
     next === "compressor"
-      ? "Follow the fictional pharma shipment through conflicting documents, an early warning, a stale approval and a failed verification."
-      : "Compare the saved sensor-drift recording with the verifier’s explicit ambiguity cases. There is no recorded authorized intervention for this study.";
+      ? "Follow one fictional medicine shipment from early warning to a reviewed responseâ€”and an outcome that still needed investigation."
+      : "Explore a saved sensor-drift recording. There is no recorded approval, intervention or recovery for this second study.";
   $("fact-value").textContent =
     next === "compressor"
       ? data.trace.facts.lead_time_minutes + " min"
@@ -318,7 +360,7 @@ function changeCase(next) {
       : "Finite readings can still be wrong. No field sensor-trust claim.";
   $("telemetry-scope").textContent =
     next === "compressor"
-      ? "Dashed reference limits: 2–8 °C, from the Bill of Lading described in recorded step 4. Full saved trajectory is visible; no new prediction is made."
+      ? "Dashed reference limits: 2â€“8 Â°C, from the Bill of Lading described in recorded step 4. Full saved trajectory is visible; no new prediction is made."
       : "Observed cargo channel only; simulator ground truth is not loaded. This telemetry-only study does not establish a contractual decision or intervention.";
   $("timeline").max = String(points().length - 1);
   $("timeline").value = String(
@@ -330,7 +372,23 @@ function changeCase(next) {
   renderSteps();
   renderSignal();
   renderPlanning();
-  history.replaceState(null, "", "#case=" + caseId);
+  $("move-status").textContent =
+    next === "compressor"
+      ? "Proposed in the original recording"
+      : "More evidence needed";
+  $("move-title").textContent =
+    next === "compressor"
+      ? "Move the cargo to cold storage."
+      : "Check before calling it safe.";
+  $("move-copy").textContent =
+    next === "compressor"
+      ? "The saved comparison favored a cold-storage reroute. A person still had to review the current evidence. The later result did not establish a recovery."
+      : "A single sensor channel cannot establish physical truth. This study does not contain a recorded approved response.";
+  $("move-source").textContent =
+    next === "compressor"
+      ? "See the original recommendation â†—"
+      : "Explore the sensor test cases â†—";
+  renderStory(initialChapter);
 }
 function packet() {
   if (!planningValid)
@@ -392,10 +450,10 @@ async function start() {
     $("model-identity").textContent = model?.available
       ? "Recorded provider: " +
         String(model.vendor) +
-        " · Models: " +
+        " Â· Models: " +
         Object.entries(model.models || {})
           .map(([role, name]) => role + ": " + String(name))
-          .join(" · ")
+          .join(" Â· ")
       : "No model showcase is available in this recording.";
     $("model-grounding").textContent =
       model?.narrative_grounded === true
@@ -407,7 +465,7 @@ async function start() {
     $("recording-date").textContent =
       "Original recording: " +
       new Date(data.recorded_at).toISOString() +
-      " · fictional carrier data · fingerprint checked";
+      " Â· fictional carrier data Â· fingerprint checked";
     const proof = $("proof-details");
     for (const [label, value] of [
       ["Recording", data.recorded_at],
@@ -435,7 +493,7 @@ async function start() {
       const value = el("dd"),
         link = el(
           "a",
-          identity.source_commit.slice(0, 12) + " · inspect source ↗",
+          identity.source_commit.slice(0, 12) + " Â· inspect source â†—",
         );
       link.href =
         "https://github.com/dilipna/axon-fde/tree/" + identity.source_commit;
@@ -523,7 +581,7 @@ async function start() {
         localStorage.removeItem(notesKey());
       } catch {}
       $("notes").value = "";
-      $("notes-status").textContent = "This study’s notes are cleared.";
+      $("notes-status").textContent = "This studyâ€™s notes are cleared.";
     });
     $("question-form").addEventListener("submit", (event) => {
       event.preventDefault();
@@ -538,7 +596,7 @@ async function start() {
     $("export").addEventListener("click", () => {
       try {
         download(
-          "axon-" + caseId + "-decision-packet.json",
+          "coldpath-" + caseId + "-decision-packet.json",
           JSON.stringify(packet(), null, 2),
           "application/json",
         );
@@ -549,19 +607,27 @@ async function start() {
         tell(error.message);
       }
     });
-    const brief = el("button", "Download shift brief ↓", "quiet full-width");
+    const brief = el(
+      "button",
+      "Download my readable brief â†“",
+      "quiet full-width",
+    );
     brief.id = "export-brief";
     brief.addEventListener("click", () => {
       try {
         const p = packet();
         const text = makeBrief(p);
-        download("axon-" + caseId + "-shift-brief.md", text, "text/markdown");
+        download(
+          "coldpath-" + caseId + "-shift-brief.md",
+          text,
+          "text/markdown",
+        );
         tell("Shift brief downloaded.");
       } catch (error) {
         tell(error.message);
       }
     });
-    $("clear-notes").after(brief);
+    $("export").before(brief);
     $("share").addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(location.href);
@@ -579,11 +645,45 @@ async function start() {
         )
       ) {
         event.preventDefault();
+        $("technical-details").open = true;
         $("record-search").focus();
       }
     });
-    const requested = new URLSearchParams(location.hash.slice(1)).get("case");
-    changeCase(requested === "sensor" ? "sensor" : "compressor");
+    document
+      .querySelectorAll("[data-chapter]")
+      .forEach((button) =>
+        button.addEventListener("click", () =>
+          renderStory(Number(button.dataset.chapter)),
+        ),
+      );
+    $("return-story").addEventListener("click", () => {
+      $("story-title").focus({ preventScroll: true });
+      $("story-title").scrollIntoView({ block: "start" });
+    });
+    $("story-next").addEventListener("click", () =>
+      renderStory((chapter + 1) % 4),
+    );
+    $("story-previous").addEventListener("click", () =>
+      renderStory(chapter - 1),
+    );
+    $("story-evidence").addEventListener("click", () => {
+      const story = getStory(data, caseId)[chapter];
+      if (story.sources.length) openRecord(story.sources[0]);
+      else {
+        $("technical-details").open = true;
+        $("fault-case").focus();
+      }
+    });
+    $("move-source").addEventListener("click", (event) => {
+      event.preventDefault();
+      if (caseId === "compressor") openRecord(8);
+      else {
+        $("technical-details").open = true;
+        $("fault-case").focus();
+      }
+    });
+    const requested = readStudyLocation(location.hash);
+    changeCase(requested.caseId, requested.chapter);
     renderFault();
     renderPlanning();
   } catch (error) {

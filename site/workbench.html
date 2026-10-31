@@ -7,40 +7,49 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
     />
-    <title>AxonFDE — Decision workspace</title>
+    <title>Coldpath — Follow the delivery</title>
     <meta
       name="description"
-      content="Inspect recorded cold-chain evidence, rehearse a decision and export its assumptions. An evidence-first AI engineering demonstration."
+      content="A guided cold-chain delivery story: understand the warning, compare the next move and keep a source-linked brief."
     />
+    <link rel="stylesheet" href="ui/coldpath.css" />
     <link rel="stylesheet" href="ui/workbench.css" />
   </head>
-  <body>
-    <a class="skip" href="#workspace">Skip to workspace</a>
-    <header class="app-header">
-      <a class="brand" href="./"><span aria-hidden="true">✳</span> AxonFDE</a
-      ><span class="header-divider">/</span><strong>Decision workspace</strong
-      ><span class="read-only">Recorded study · no live fleet</span
-      ><button id="about-open" class="quiet">About this workspace</button>
+  <body class="cp-page">
+    <a class="cp-skip" href="#workspace">Skip to the delivery</a>
+    <header class="cp-header">
+      <a class="cp-brand" href="./"
+        ><span class="cp-mark" aria-hidden="true">c<span></span></span
+        >Coldpath<span class="cp-brand-dot">.</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="./">Overview</a><a href="engineering.html">Engineering</a
+        ><button id="about-open" class="quiet">About Coldpath</button>
+      </nav>
     </header>
     <div id="load-status" role="status" class="load-status">
-      Checking the recorded evidence fingerprint…
+      Getting the recorded story ready…
     </div>
     <noscript
       ><p class="load-status">
-        This interactive workspace needs JavaScript. You can still
-        <a href="ui/workbench-data.json"
-          >download the original recorded evidence</a
-        >
-        or <a href="./">read the project overview</a>.
+        This interactive story needs JavaScript. You can still
+        <a href="ui/workbench-data.json">download the original evidence</a> or
+        <a href="./">read the overview</a>.
       </p></noscript
     >
-    <div class="app-shell" id="app-shell" hidden>
-      <aside class="sidebar" aria-label="Study library">
-        <p class="eyebrow">YOUR INVESTIGATION DESK</p>
-        <h2>Start with a case.</h2>
-        <p class="muted small">
-          Two views of the same problem: acting on evidence you can defend.
-        </p>
+    <div id="app-shell" class="app-shell" hidden>
+      <main id="workspace" tabindex="-1">
+        <div class="workspace-heading">
+          <div>
+            <p class="cp-eyebrow">EXPLORE A RECORDED DELIVERY</p>
+            <h1>An alert is just the beginning.</h1>
+            <p class="muted">
+              Understand the warning. Follow the decision. Take the explanation
+              with you.
+            </p>
+          </div>
+          <span class="demo-label">Interactive demo · fictional data</span>
+        </div>
         <div class="case-list" role="group" aria-label="Choose a study">
           <button
             class="case-button"
@@ -49,92 +58,90 @@
           >
             <span class="case-icon" aria-hidden="true">↗</span
             ><span
-              ><b>Cooling failure</b
-              ><small>SH-2041 · recorded incident</small></span
-            ><span aria-hidden="true">›</span></button
+              ><b>Medicine delivery</b
+              ><small>A cooling problem, step by step</small></span
+            ></button
           ><button class="case-button" data-case="sensor" aria-pressed="false">
             <span class="case-icon" aria-hidden="true">≈</span
             ><span
               ><b>Can we trust the sensor?</b
-              ><small>Telemetry comparison study</small></span
-            ><span aria-hidden="true">›</span>
+              ><small>When a reading needs a second look</small></span
+            >
           </button>
         </div>
-        <div class="sidebar-note">
-          <span aria-hidden="true">⌁</span>
-          <h3>The evidence travels with you.</h3>
-          <p>
-            Export a decision packet with the original record, source
-            fingerprints, your notes and every planning assumption.
-          </p>
-        </div>
-        <a class="sidebar-link" href="./#safety">Explore the engineering ↗</a
-        ><a
-          class="sidebar-link"
-          href="https://github.com/dilipna/axon-fde"
-          target="_blank"
-          rel="noreferrer"
-          >Source & reproduction ↗</a
-        >
-        <p class="sidebar-foot">
-          A personal engineering project over fictional shipments and synthetic
-          telemetry. Recorded backend results are real local service outputs.
-        </p>
-      </aside>
-      <main id="workspace" tabindex="-1">
-        <div class="workspace-heading">
+        <p id="notice" class="notice" role="status" aria-live="polite"></p>
+        <div class="case-summary">
           <div>
-            <p class="eyebrow">EVIDENCE FIRST. HUMAN CONTROL.</p>
-            <h1>Make the next move defensible.</h1>
-            <p class="muted">
-              Inspect what happened. Challenge the assumptions. Keep the
-              receipt.
-            </p>
-          </div>
-          <div class="header-actions">
-            <button id="share" class="quiet">Copy study link ↗</button
-            ><button id="export" class="primary">
-              Export decision packet ↓
-            </button>
-          </div>
-        </div>
-        <p class="recording-date" id="recording-date"></p>
-        <p role="status" aria-live="polite" class="notice" id="notice"></p>
-        <section class="case-summary" aria-labelledby="case-title">
-          <div>
-            <span class="case-type" id="case-type"></span>
+            <span id="case-type" class="case-type"></span>
             <h2 id="case-title"></h2>
             <p id="case-description" class="muted"></p>
           </div>
           <div class="case-fact">
             <span id="fact-value"></span><small id="fact-label"></small>
           </div>
-        </section>
+        </div>
         <div class="workspace-columns">
           <div class="primary-column">
+            <section class="panel story-panel" aria-labelledby="story-title">
+              <div class="panel-top">
+                <p class="cp-eyebrow">THE STORY IN FOUR STEPS</p>
+                <span id="story-counter" class="fine"></span>
+              </div>
+              <div class="story-tabs" role="group" aria-label="Story chapters">
+                <button data-chapter="0" aria-pressed="true">
+                  <span>1</span>The warning</button
+                ><button data-chapter="1" aria-pressed="false">
+                  <span>2</span>The rules</button
+                ><button data-chapter="2" aria-pressed="false">
+                  <span>3</span>The decision</button
+                ><button data-chapter="3" aria-pressed="false">
+                  <span>4</span>The outcome
+                </button>
+              </div>
+              <div class="story-content" aria-live="polite">
+                <p id="story-kicker" class="story-kicker"></p>
+                <h2 id="story-title" tabindex="-1"></h2>
+                <p id="story-copy"></p>
+                <div id="story-callout" class="story-callout"></div>
+                <p id="story-boundary" class="fine"></p>
+              </div>
+              <div class="story-controls">
+                <button id="story-evidence" class="text-button">
+                  Show me why ↗
+                </button>
+                <div>
+                  <button
+                    id="story-previous"
+                    class="quiet"
+                    aria-label="Previous chapter"
+                  >
+                    ←</button
+                  ><button id="story-next" class="primary">Next step →</button>
+                </div>
+              </div>
+            </section>
             <section
               class="panel telemetry-panel"
               aria-labelledby="telemetry-title"
             >
               <div class="panel-top">
                 <div>
-                  <p class="eyebrow">01 / READ THE SIGNAL</p>
-                  <h2 id="telemetry-title">
-                    The recording, one minute at a time.
-                  </h2>
+                  <p class="cp-eyebrow">SEE THE SIGNAL</p>
+                  <h2 id="telemetry-title">The temperature, in context.</h2>
                 </div>
-                <span class="data-label">Recorded telemetry</span>
+                <span class="data-label">Recorded readings</span>
               </div>
               <div class="telemetry-stats">
                 <div>
-                  <small>Minute</small><strong id="minute-value"></strong>
+                  <small>Minutes into the recording</small
+                  ><strong id="minute-value"></strong>
                 </div>
                 <div>
-                  <small>Observed cargo temperature</small
+                  <small>Cargo temperature</small
                   ><strong id="temperature-value"></strong>
                 </div>
                 <div>
-                  <small>Ambient temperature</small
+                  <small>Outside temperature</small
                   ><strong id="ambient-value"></strong>
                 </div>
               </div>
@@ -146,14 +153,14 @@
               >
                 <title id="chart-title">Recorded cargo temperature</title>
                 <desc id="chart-description">
-                  Observed telemetry across the saved recording; this is not a
-                  forecast or live vehicle tracking.
+                  Saved observations, not a forecast or live map.
                 </desc>
               </svg>
               <div class="timeline-controls">
                 <button id="play" class="quiet">Play recorded timeline</button
                 ><label for="timeline"
-                  >Explore minute <output id="timeline-output"></output
+                  >Move through the recording
+                  <output id="timeline-output"></output
                   ><input
                     id="timeline"
                     type="range"
@@ -162,34 +169,19 @@
                     value="102"
                 /></label>
               </div>
-              <p class="fine" id="telemetry-scope"></p>
+              <p id="telemetry-scope" class="fine"></p>
             </section>
-            <section class="panel" aria-labelledby="record-title">
-              <div class="panel-top">
-                <div>
-                  <p class="eyebrow">02 / FOLLOW THE DECISION</p>
-                  <h2 id="record-title">What did the system establish?</h2>
-                </div>
-                <label class="compact-label"
-                  >Find in the record<input
-                    id="record-search"
-                    type="search"
-                    maxlength="120"
-                    placeholder="Try approval, document, failure…"
-                /></label>
-              </div>
-              <div id="record-steps" class="record-steps"></div>
-              <p class="fine">
-                The statements above are the original recorded service output.
-                Expanding a step does not run a new agent or dispatch an action.
-              </p>
-            </section>
-            <section class="panel" aria-labelledby="assistant-title">
-              <p class="eyebrow">ASK THE RECORD</p>
-              <h2 id="assistant-title">A straight answer, with its source.</h2>
+            <section
+              class="panel assistant-panel"
+              aria-labelledby="assistant-title"
+            >
+              <p class="cp-eyebrow">ASK ABOUT THIS DELIVERY</p>
+              <h2 id="assistant-title">
+                A simple question. A traceable answer.
+              </h2>
               <p class="muted small">
-                This evidence lookup quotes the saved record. It does not make
-                new model calls.
+                Answers quote the saved record and link back to it. No new AI
+                answer is invented here.
               </p>
               <div class="suggestions">
                 <button data-question="Why was the approval blocked?">
@@ -201,169 +193,233 @@
                 </button>
               </div>
               <form id="question-form">
-                <label for="question">Your question about this recording</label>
+                <label for="question">What would you like to understand?</label>
                 <div class="question-row">
                   <input
                     id="question"
                     maxlength="500"
                     required
-                    placeholder="Ask about the warning, options or approval…"
+                    placeholder="Ask about the warning, options or outcome…"
                   /><button class="primary" type="submit">Ask ↗</button>
                 </div>
               </form>
               <div id="answer" class="answer" aria-live="polite"></div>
-              <details class="recorded-model">
-                <summary>
-                  Model proposes. Rules decide. Inspect the recorded AI
-                  analysis.
-                </summary>
-                <p id="model-identity" class="fine"></p>
-                <p id="model-grounding" class="fine"></p>
-                <p id="model-narrative" class="model-narrative"></p>
-                <p class="fine">
-                  Original recorded model output, not a new response. Its text
-                  does not authenticate a person, grant approval or authorize an
-                  action.
-                </p>
-              </details>
-            </section>
-            <section class="panel" aria-labelledby="fault-title">
-              <p class="eyebrow">THE LIMITS ARE PART OF THE PRODUCT</p>
-              <h2 id="fault-title">What if the thermometer lies?</h2>
-              <p class="muted small">
-                Explore the original frozen 24-case verifier fault pack. These
-                are constructed cases, not field performance or new
-                measurements.
-              </p>
-              <label class="compact-label" for="fault-case"
-                >Choose a constructed case<select id="fault-case"></select
-              ></label>
-              <div class="fault-comparison" id="fault-comparison"></div>
-              <div id="fault-summary" class="fault-summary"></div>
-              <p class="fine">
-                Reducing false confirmations also increased missed recoveries
-                and abstention. Nonconstant lying sensors remain a known
-                limitation.
-              </p>
             </section>
           </div>
           <aside class="secondary-column">
-            <section
-              class="panel planning-panel"
-              aria-labelledby="planning-title"
-            >
-              <p class="eyebrow">03 / CHALLENGE THE ASSUMPTIONS</p>
-              <h2 id="planning-title">What would change the decision?</h2>
-              <span class="practice-label">Browser-only planning sandbox</span>
-              <p class="small muted">
-                Adjust a hypothetical risk and cargo value. Cost parameters come
-                from the actual Python policy; their values remain assumptions.
-              </p>
-              <label for="planning-risk"
-                >Assumed breach risk <output id="planning-risk-output"></output
-                ><input
-                  id="planning-risk"
-                  type="range"
-                  min="0"
-                  max="100"
-                  value="50" /></label
-              ><label for="planning-value"
-                >Cargo value (USD)<input
-                  id="planning-value"
-                  type="number"
-                  min="0"
-                  max="10000000"
-                  step="1000"
-                  value="184000"
-              /></label>
-              <fieldset>
-                <legend>Practice availability</legend>
-                <label class="check-label"
-                  ><input id="facility-unavailable" type="checkbox" /> Cold
-                  storage unavailable</label
-                ><label class="check-label"
-                  ><input id="trailer-unavailable" type="checkbox" /> Trailer
-                  swap unavailable</label
-                >
-              </fieldset>
-              <p id="planning-error" role="alert"></p>
-              <ol id="planning-options" class="planning-options"></ol>
-              <details>
-                <summary>How are these numbers calculated?</summary>
+            <section class="panel next-move-panel">
+              <p class="cp-eyebrow">THE NEXT MOVE</p>
+              <span id="move-status" class="move-status"></span>
+              <h2 id="move-title"></h2>
+              <p id="move-copy" class="muted small"></p>
+              <a href="#technical-details" id="move-source" class="text-button"
+                >See the original recommendation ↗</a
+              >
+              <div class="human-check">
+                <span aria-hidden="true">✓</span>
                 <p>
-                  Illustrative expected cost = direct cost + delay minutes ×
-                  $2.50 + assumed breach risk × residual-risk multiplier × cargo
-                  value. It excludes contractual penalties and reputational
-                  harm. The probability is not calibrated; these are not
-                  measured savings.
+                  <b>A person stays in control.</b><br />This website never
+                  approves or dispatches an action.
+                </p>
+              </div>
+              <details id="planning-drawer" class="planning-panel">
+                <summary>What if the circumstances were different?</summary>
+                <p class="practice-label">
+                  Practice only · not a real decision
+                </p>
+                <p class="small muted">
+                  Try another cargo value, risk assumption or available
+                  response. The amounts below are illustrative expected
+                  costs—not measured savings.
+                </p>
+                <label for="planning-risk"
+                  >Assumed chance of a temperature breach<output
+                    id="planning-risk-output"
+                  ></output
+                  ><input
+                    id="planning-risk"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="50" /></label
+                ><label for="planning-value"
+                  >Cargo value (USD)<input
+                    id="planning-value"
+                    type="number"
+                    min="0"
+                    max="10000000"
+                    step="1000"
+                    value="184000"
+                /></label>
+                <fieldset>
+                  <legend>Available responses</legend>
+                  <label class="check-label"
+                    ><input id="facility-unavailable" type="checkbox" />Cold
+                    storage unavailable</label
+                  ><label class="check-label"
+                    ><input id="trailer-unavailable" type="checkbox" />Trailer
+                    swap unavailable</label
+                  >
+                </fieldset>
+                <p id="planning-error" role="alert"></p>
+                <ol
+                  id="planning-options"
+                  class="planning-options"
+                  aria-label="Illustrative expected cost by option"
+                ></ol>
+                <details>
+                  <summary>How are the amounts calculated?</summary>
+                  <p>
+                    Direct cost + delay minutes × $2.50 + assumed breach risk ×
+                    residual-risk multiplier × cargo value. This leaves out
+                    contractual penalties and reputational harm. The probability
+                    is not calibrated.
+                  </p>
+                </details>
+                <button id="practice-review" class="quiet full-width">
+                  Mark these assumptions reviewed
+                </button>
+                <p id="review-status" class="fine" role="status"></p>
+                <p class="fine">
+                  Changing the study, source or inputs invalidates this
+                  browser-only review. It is not an authenticated backend
+                  approval.
                 </p>
               </details>
-              <button id="practice-review" class="quiet full-width">
-                Mark these assumptions reviewed
-              </button>
-              <p id="review-status" class="fine" role="status">
-                Not reviewed. This never grants a backend approval.
-              </p>
-              <p class="fine">
-                Source changes or changed assumptions invalidate this local
-                rehearsal review. The real backend separately authenticates
-                people and validates persisted approvals.
-              </p>
             </section>
-            <section class="panel" aria-labelledby="notes-title">
-              <p class="eyebrow">YOUR DECISION NOTEBOOK</p>
-              <h2 id="notes-title">Leave the next shift a clear trail.</h2>
+            <section class="panel notebook-panel" aria-labelledby="notes-title">
+              <p class="cp-eyebrow">YOUR TAKEAWAY</p>
+              <h2 id="notes-title">Leave a clearer handover.</h2>
+              <p class="muted small">
+                Keep what you learned, what you would check and what is still
+                uncertain.
+              </p>
               <label for="notes"
-                >Private notes for this study<textarea
+                >Your private notes<textarea
                   id="notes"
-                  rows="5"
+                  rows="4"
                   maxlength="10000"
-                  placeholder="What would you check before approving this? What is still uncertain?"
+                  placeholder="Before I approved this, I would check…"
                 ></textarea>
               </label>
               <p id="notes-status" class="fine" role="status"></p>
               <p class="fine">
-                Stored in this browser only and tied to this evidence version.
-                Included in your export; never sent to a model.
+                Browser only. Included in your download; never sent to a model.
               </p>
-              <button id="clear-notes" class="quiet">
-                Clear this study's notes
+              <button id="export" class="quiet full-width">
+                Download evidence packet ↓</button
+              ><button id="clear-notes" class="quiet full-width">
+                Clear this study's notes</button
+              ><button id="share" class="text-button full-width">
+                Copy study link ↗
               </button>
-            </section>
-            <section class="panel proof-panel" aria-labelledby="proof-title">
-              <p class="eyebrow">04 / KEEP THE PROOF</p>
-              <h2 id="proof-title">Inspect the source.</h2>
-              <p class="small muted">
-                The workspace checks the recorded bundle before rendering it.
-                Source hashes detect changed bytes; they are not an authenticity
-                signature.
-              </p>
-              <dl id="proof-details"></dl>
-              <details>
-                <summary>Original source fingerprints</summary>
-                <ul id="source-list" class="source-list"></ul>
-              </details>
-              <a
-                class="quiet link-button"
-                href="ui/workbench-data.json"
-                download="axon-recorded-evidence.json"
-                >Download recorded evidence ↓</a
-              ><a
-                class="quiet link-button"
-                href="ui/workbench-manifest.json"
-                download="axon-evidence-manifest.json"
-                >Download fingerprint manifest ↓</a
-              >
             </section>
           </aside>
         </div>
+        <details id="technical-details" class="technical-details">
+          <summary>
+            <span
+              ><b>Behind the explanation</b
+              ><small
+                >The original record, model output, test cases and source
+                fingerprints.</small
+              ></span
+            ><span aria-hidden="true">＋</span>
+          </summary>
+          <button id="return-story" class="text-button">
+            Back to the story ↑
+          </button>
+          <div class="technical-grid">
+            <section class="panel" aria-labelledby="record-title">
+              <div class="panel-top">
+                <div>
+                  <p class="cp-eyebrow">THE ORIGINAL RECORD</p>
+                  <h2 id="record-title">
+                    See what each conclusion is based on.
+                  </h2>
+                </div>
+                <label class="compact-label" for="record-search"
+                  >Find in the record<input
+                    id="record-search"
+                    type="search"
+                    maxlength="120"
+                    placeholder="Try approval, document, failure…"
+                /></label>
+              </div>
+              <div id="record-steps" class="record-steps"></div>
+              <p class="fine">
+                Original recorded output. Opening a step does not run a new
+                agent or dispatch an action.
+              </p>
+              <details class="recorded-model">
+                <summary>How did the AI explain it?</summary>
+                <p id="model-identity" class="fine"></p>
+                <p id="model-grounding" class="fine"></p>
+                <p id="model-narrative" class="model-narrative"></p>
+                <p class="fine">
+                  Saved model output. Its text cannot authenticate a person or
+                  authorize an action.
+                </p>
+              </details>
+            </section>
+            <div class="technical-side">
+              <section class="panel" aria-labelledby="fault-title">
+                <p class="cp-eyebrow">WHEN THE SYSTEM SHOULD BE CAUTIOUS</p>
+                <h2 id="fault-title">What if the thermometer is wrong?</h2>
+                <p class="muted small">
+                  Explore the original frozen 24-case fault pack. Fewer false
+                  confirmations can also mean more missed recoveries and
+                  uncertain answers.
+                </p>
+                <label for="fault-case"
+                  >Choose a constructed test case<select
+                    id="fault-case"
+                  ></select
+                ></label>
+                <div id="fault-comparison" class="fault-comparison"></div>
+                <div id="fault-summary" class="fault-summary"></div>
+                <p class="fine">
+                  These are constructed cases, not field accuracy. Nonconstant
+                  lying sensors remain a known limitation.
+                </p>
+              </section>
+              <section class="panel proof-panel" aria-labelledby="proof-title">
+                <p class="cp-eyebrow">KEEP THE EVIDENCE CHECKABLE</p>
+                <h2 id="proof-title">Inspect the source.</h2>
+                <p class="small muted">
+                  Fingerprints detect changed bytes; they are not an
+                  authenticity signature.
+                </p>
+                <p id="recording-date" class="fine"></p>
+                <dl id="proof-details"></dl>
+                <details>
+                  <summary>Original source fingerprints</summary>
+                  <ul id="source-list" class="source-list"></ul>
+                </details>
+                <a
+                  class="quiet link-button"
+                  href="ui/workbench-data.json"
+                  download="coldpath-recorded-evidence.json"
+                  >Download recorded evidence ↓</a
+                ><a
+                  class="quiet link-button"
+                  href="ui/workbench-manifest.json"
+                  download="coldpath-evidence-manifest.json"
+                  >Download fingerprint manifest ↓</a
+                ><a class="text-button" href="engineering.html"
+                  >Explore the complete engineering replay ↗</a
+                >
+              </section>
+            </div>
+          </div>
+        </details>
         <footer class="workspace-footer">
-          <strong>AxonFDE</strong
+          <a class="cp-brand" href="./"
+            >Coldpath<span class="cp-brand-dot">.</span></a
           ><span
-            >Recorded synthetic study. Historical benchmarks retain their
-            original scope. No live carrier action or new model call takes place
-            here.</span
-          ><a href="./">Return to the project ↗</a>
+            >A personal engineering project. Recorded synthetic data.<br />No
+            live fleet action or new model call takes place here.</span
+          ><a href="./">Back to the overview ↗</a>
         </footer>
       </main>
     </div>
@@ -376,25 +432,31 @@
           Close ×
         </button>
       </form>
-      <p class="eyebrow">WHAT THIS WORKSPACE DOES</p>
-      <h2>Three kinds of evidence. Clearly separated.</h2>
+      <p class="cp-eyebrow">MEET COLDPATH</p>
+      <h2>A delivery story you can check.</h2>
       <p>
-        <b>Recorded backend output:</b> the original incident run against local
-        PostgreSQL and SQL Server, over fictional logistics data.
+        <b>Cold-chain</b> means keeping medicines or food within the temperature
+        range required for delivery.
       </p>
       <p>
-        <b>Constructed verifier cases:</b> the frozen 24-case fault pack,
-        including failures and the cost of abstention.
+        <b>Coldpath</b> is an AI engineering project that organizes the
+        readings, rules and possible responses so a person can review the next
+        move.
       </p>
       <p>
-        <b>Your browser-only rehearsal:</b> hypothetical planning inputs and
-        notes. These are not a backend approval, a calibrated prediction or an
-        executed action.
+        <b>This website</b> is a guided recording over fictional data. Your
+        what-if inputs and notes stay in this browser. A rehearsal review is not
+        a backend approval.
       </p>
       <p>
-        The code separately implements checkpoint review, authorization,
-        idempotency and audit. The public static website provides a read-only
-        way to inspect the evidence.
+        The original backend separately implements authentication, durable
+        review, controlled execution and outcome checks. Its safeguards are
+        tested in disposable databases; this website does not operate a live
+        fleet.
+      </p>
+      <p class="fine">
+        Formerly AxonFDE. Historical source IDs and recordings retain their
+        original names and dates.
       </p>
     </dialog>
     <script type="module" src="ui/workbench.mjs"></script>

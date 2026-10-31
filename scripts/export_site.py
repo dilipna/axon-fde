@@ -68,6 +68,9 @@ def export(out: Path = OUT) -> list[Path]:
             fetch(f"control/telemetry/{scenario}")
 
     for name in (
+        "coldpath.css",
+        "story.mjs",
+        "overview.mjs",
         "app.css",
         "app.js",
         "verification-release.json",
@@ -84,6 +87,8 @@ def export(out: Path = OUT) -> list[Path]:
     written.append(out / "index.html")
     shutil.copy2(UI / "workbench.html", out / "workbench.html")
     written.append(out / "workbench.html")
+    shutil.copy2(UI / "engineering.html", out / "engineering.html")
+    written.append(out / "engineering.html")
     # GitHub Pages runs Jekyll by default, which ignores some paths; a static
     # site that is already built should be served as-is.
     (out / ".nojekyll").write_text("", encoding="utf-8")

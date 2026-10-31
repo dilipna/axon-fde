@@ -1,8 +1,15 @@
+import { engineeringDestination } from "../../apps/control_tower/overview.mjs";
+import {
+  getStory,
+  readStudyLocation,
+  studyHash,
+} from "../../apps/control_tower/story.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import {
   verifyBundle,
+  sha256,
   rankPlanning,
   answerRecorded,
   planningKey,
@@ -148,3 +155,101 @@ test("shift brief preserves scope and renders untrusted HTML as literal text", (
   assert.ok(!brief.includes("<script>"));
   assert.ok(brief.includes("not live"));
 });
+
+test("guided story derives warning times from evidence and preserves the failed result", () => {
+  const story = getStory(data, "compressor");
+  assert.equal(story.length, 4);
+  assert.ok(story[0].copy.includes(String(data.trace.facts.lead_time_minutes)));
+  assert.ok(story[3].copy.includes("failed"));
+  assert.ok(story[3].copy.includes("cannot prove"));
+  for (const chapter of story)
+    for (const source of chapter.sources)
+      assert.ok(data.trace.steps.some((step) => step.number === source));
+  const changed = structuredClone(data);
+  changed.trace.facts.lead_time_minutes = 17;
+  assert.ok(
+    getStory(changed, "compressor")[0].callout.startsWith("17 minutes"),
+  );
+  assert.throws(() => getStory(data, "unknown"));
+});
+test("sensor story does not invent approvals or a recorded intervention", () => {
+  const story = getStory(data, "sensor");
+  assert.equal(story.length, 4);
+  assert.ok(story.every((chapter) => chapter.sources.length === 0));
+  assert.ok(story[3].title.includes("no recorded intervention"));
+});
+test("shared story links round-trip case and chapter without private inputs", () => {
+  for (const caseId of ["compressor", "sensor"])
+    for (let chapter = 0; chapter < 4; chapter++)
+      assert.deepEqual(readStudyLocation(studyHash(caseId, chapter)), {
+        caseId,
+        chapter,
+      });
+  assert.deepEqual(readStudyLocation("#case=evil&chapter=999"), {
+    caseId: "compressor",
+    chapter: 0,
+  });
+  assert.deepEqual(readStudyLocation("#case=sensor&chapter=-1"), {
+    caseId: "sensor",
+    chapter: 0,
+  });
+  assert.throws(() => studyHash("compressor", NaN));
+  assert.throws(() => studyHash("invalid", 0));
+});
+test("readable exports retain the plain-language outcome and unavailable assumptions", () => {
+  const planning = { probability: 0.5, value: 100, blocked: ["trailer_swap"] };
+  const packet = makePacket({
+    data,
+    manifest,
+    caseId: "compressor",
+    planning,
+    notes: "A note",
+    reviewKey: null,
+  });
+  assert.equal(packet.product_name, "Coldpath");
+  assert.equal(packet.guided_summary.length, 4);
+  const brief = makeBrief(packet);
+  assert.ok(brief.startsWith("# Coldpath"));
+  assert.ok(brief.includes("cannot prove"));
+  assert.ok(brief.includes("Unavailable responses: trailer_swap"));
+});
+
+test("published engineering bookmarks retain their destination without open redirects", () => {
+  assert.equal(
+    engineeringDestination("#engineering"),
+    "engineering.html#engineering",
+  );
+  assert.equal(engineeringDestination("#replay"), "engineering.html#replay");
+  for (const hash of [
+    "#how",
+    "#case=sensor",
+    "#https://evil.test",
+    "#replay?next=https://evil.test",
+  ])
+    assert.equal(engineeringDestination(hash), null);
+});
+
+for (const [label, mutate] of [
+  ["missing warning facts", (copy) => delete copy.trace.facts],
+  [
+    "inconsistent warning interval",
+    (copy) => (copy.trace.facts.lead_time_minutes += 1),
+  ],
+  [
+    "missing cited story step",
+    (copy) =>
+      (copy.trace.steps = copy.trace.steps.filter(
+        (step) => step.number !== 13,
+      )),
+  ],
+])
+  test(`story refuses ${label} even when supplied with a matching manifest`, async () => {
+    const copy = structuredClone(data);
+    mutate(copy);
+    const body = JSON.stringify(copy);
+    const payloadHash = await sha256(body);
+    await assert.rejects(
+      () => verifyBundle({ ...manifest, payload_sha256: payloadHash }, body),
+      /warning facts|story source/,
+    );
+  });

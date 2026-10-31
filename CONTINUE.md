@@ -1,3 +1,11 @@
+## Coldpath local candidate — implementation checkpoint
+
+Coldpath overview, four-chapter workspace and preserved engineering replay implemented. Node 65, affected Python 30, types/lint/11 architecture contracts, 15 HTTP paths and three static FastAPI routes passed. Browser suite expanded to 26 cases, pending GitHub-only CI and visual review. Loopback preview: http://127.0.0.1:3296/. This iteration has not been published or approved for public release. Finish exact source/recovery packaging and request approval once. Preserve browser note keys, source artifacts and backend behavior. No desktop/local browser control.
+
+## Active Coldpath clarity iteration — October 31, 2026
+
+User requested one final substantial clarity/branding iteration after AxonFDE release 5fb0025b72c9e3a0c36af70283a438f6d98368a1 completed and deployed. New product name: Coldpath. Owned branch: improve/coldpath-clarity. Goal: plain-language overview, guided incident story, progressive engineering detail and coherent commercial presentation. Preserve backend, historical records/metrics, private notes and source identity. No desktop/local browser control; GitHub-only browser gates. Local implementation authorized; this new public release still needs exact-source approval after local qualification and recovery packaging. Previous release closures remain historical, not current task status.
+
 ## Authorized release qualification — October 31, 2026
 
 User approved dd6a8a52fe120f1d4cb4dda146aeaf16366b9fa2 publication, full CI with release-confined corrections, then gated merge/deployment to existing GitHub Pages and production verification. PR #2 is open. All 18 initial browser cases and screenshot review passed; disposable database integration passed 125 tests, including the three new durability/runtime cases. A documentation-only correction removes stale local-only status text. Run the corrected exact source through all CI gates before merge. Do not ask again for already authorized confined corrections. No merge/deployment has yet occurred. Keep the no-desktop-control restriction. Older local checkpoint notes below are historical, not a revocation of this approval.

@@ -1,8 +1,8 @@
 """Serving the control tower.
 
-A single static page, mounted at `/`. No build step, no bundler, no npm - the
-page is HTML, CSS and one module of vanilla JavaScript, which is a deliberate
-choice rather than a limitation.
+A static product overview, guided workspace and detailed engineering replay.
+No frontend build step or bundler: HTML, CSS and vanilla JavaScript modules
+are served directly, with the recorded evidence kept separate from UI copy.
 
 **Why no framework.** The UI reads three JSON endpoints and renders them. A
 toolchain would add a lockfile, a node version, a build task in CI and a
@@ -44,6 +44,10 @@ def mount_control_tower(app: FastAPI) -> None:
     @app.get("/workbench.html", include_in_schema=False)
     def workbench() -> FileResponse:
         return FileResponse(UI_DIR / "workbench.html")
+
+    @app.get("/engineering.html", include_in_schema=False)
+    def engineering() -> FileResponse:
+        return FileResponse(UI_DIR / "engineering.html")
 
     # Mounted after the API routers, so a static file can never shadow an
     # endpoint: `/api/v1/...` is matched first whatever lands in this folder.
