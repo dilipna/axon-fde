@@ -1,3 +1,4 @@
+import { getStory, readStudyLocation, studyHash } from "./story.mjs?v=coldpath-midnight-1";
 import {
   verifyBundle,
   rankPlanning,
@@ -5,7 +6,7 @@ import {
   planningKey,
   makePacket,
   makeBrief,
-} from "./workbench-core.mjs";
+} from "./workbench-core.mjs?v=coldpath-midnight-1";
 const $ = (id) => document.getElementById(id);
 const labels = (id) =>
   id.replaceAll("_", " ").replace(/^./, (s) => s.toUpperCase());
@@ -20,7 +21,8 @@ let data,
   caseId = "compressor",
   reviewKey = null,
   timer = null,
-  planningValid = false;
+  planningValid = false,
+  chapter = 0;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 function el(tag, text, className) {
   const n = document.createElement(tag);
@@ -116,7 +118,7 @@ function renderSignal() {
   );
   chart.append(
     svg("line", { x1: x(i), y1: 20, x2: x(i), y2: 215, class: "chart-cursor" }),
-    svg("circle", { cx: x(i), cy: y(p.cargo_temp_c), r: 5, fill: "#69d4ed" }),
+    svg("circle", { cx: x(i), cy: y(p.cargo_temp_c), r: 5, fill: "#D4FF24" }),
   );
   chart.append(
     svg(
@@ -189,7 +191,17 @@ function renderSteps() {
 function ask(question) {
   const result = answerRecorded(question, data, caseId),
     answer = $("answer");
-  answer.replaceChildren(el("div", result.text));
+  answer.replaceChildren(
+    el("div", result.explanation || result.text, "answer-summary"),
+  );
+  if (result.explanation) {
+    const original = el("details", undefined, "answer-original");
+    original.append(
+      el("summary", "Read the original quoted answer"),
+      el("div", result.text),
+    );
+    answer.append(original);
+  }
   if (result.citations.length) {
     const refs = el("div", undefined, "answer-citations");
     refs.append(document.createTextNode("Recorded sources: "));
@@ -198,11 +210,9 @@ function ask(question) {
       if (n) {
         const a = el("a", "Step " + n[1] + " ↗");
         a.href = "#record-step-" + n[1];
-        a.addEventListener("click", () => {
-          $("record-search").value = "";
-          renderSteps();
-          const d = $("record-step-" + n[1]);
-          if (d) d.open = true;
+        a.addEventListener("click", (event) => {
+          event.preventDefault();
+          openRecord(Number(n[1]));
         });
         refs.append(a, document.createTextNode("  "));
       } else refs.append(el("span", ref));
@@ -238,6 +248,7 @@ function renderPlanning() {
     }
     $("practice-review").disabled = false;
     $("export").disabled = false;
+    if ($("export-brief")) $("export-brief").disabled = false;
     $("review-status").textContent =
       reviewKey === planningKey(p, manifest.payload_sha256, caseId)
         ? "Reviewed in this browser rehearsal only. No backend approval was granted."
@@ -249,6 +260,7 @@ function renderPlanning() {
     $("planning-error").textContent = error.message;
     $("practice-review").disabled = true;
     $("export").disabled = true;
+    if ($("export-brief")) $("export-brief").disabled = true;
     $("review-status").textContent =
       "Invalid assumptions. No planning decision or export is available.";
   }
@@ -290,7 +302,46 @@ function loadNotes() {
       "Browser storage is unavailable. Export your notes to keep them.";
   }
 }
-function changeCase(next) {
+function openRecord(number) {
+  $("technical-details").open = true;
+  $("record-search").value = "";
+  renderSteps();
+  const detail = $("record-step-" + number);
+  if (detail) {
+    detail.open = true;
+    detail.scrollIntoView({ block: "start" });
+  }
+}
+function renderStory(index, { moveCursor = true } = {}) {
+  chapter = Math.max(0, Math.min(3, index));
+  const chapters = getStory(data, caseId),
+    current = chapters[chapter];
+  document.querySelectorAll("[data-chapter]").forEach((button, i) => {
+    button.setAttribute("aria-pressed", String(i === chapter));
+    button.replaceChildren(
+      el("span", String(i + 1)),
+      document.createTextNode(chapters[i].label),
+    );
+  });
+  $("story-counter").textContent = String(chapter + 1) + " of 4";
+  $("story-kicker").textContent = current.kicker;
+  $("story-title").textContent = current.title;
+  $("story-copy").textContent = current.copy;
+  $("story-callout").textContent = current.callout;
+  $("story-boundary").textContent = current.boundary;
+  $("story-previous").disabled = chapter === 0;
+  $("story-next").textContent = chapter === 3 ? "Start again ↺" : "Next step →";
+  $("story-evidence").textContent =
+    caseId === "sensor" ? "See the test cases ↗" : "Show me why ↗";
+  if (moveCursor) {
+    stop();
+    $("timeline").value = String(Math.min(current.minute, points().length - 1));
+    renderSignal();
+  }
+  history.replaceState(null, "", studyHash(caseId, chapter));
+}
+
+function changeCase(next, initialChapter = 0) {
   if (!["compressor", "sensor"].includes(next)) return;
   stop();
   caseId = next;
@@ -298,16 +349,16 @@ function changeCase(next) {
     b.setAttribute("aria-pressed", String(b.dataset.case === next));
   $("case-type").textContent =
     next === "compressor"
-      ? "Recorded end-to-end incident"
-      : "Recorded sensor comparison";
+      ? "Medicine delivery · recorded story"
+      : "Sensor reading · comparison study";
   $("case-title").textContent =
     next === "compressor"
-      ? `${data.trace.shipment_id} · Cooling failure`
-      : "Can one sensor establish physical truth?";
+      ? "The cooling is failing. The delivery needs a closer look."
+      : "A sensor can report a number. Can we trust it?";
   $("case-description").textContent =
     next === "compressor"
-      ? "Follow the fictional pharma shipment through conflicting documents, an early warning, a stale approval and a failed verification."
-      : "Compare the saved sensor-drift recording with the verifier’s explicit ambiguity cases. There is no recorded authorized intervention for this study.";
+      ? "Follow one fictional medicine shipment from early warning to a reviewed response—and an outcome that still needed investigation."
+      : "Explore a saved sensor-drift recording. There is no recorded approval, intervention or recovery for this second study.";
   $("fact-value").textContent =
     next === "compressor"
       ? data.trace.facts.lead_time_minutes + " min"
@@ -330,7 +381,23 @@ function changeCase(next) {
   renderSteps();
   renderSignal();
   renderPlanning();
-  history.replaceState(null, "", "#case=" + caseId);
+  $("move-status").textContent =
+    next === "compressor"
+      ? "Proposed in the original recording"
+      : "More evidence needed";
+  $("move-title").textContent =
+    next === "compressor"
+      ? "Move the cargo to cold storage."
+      : "Check before calling it safe.";
+  $("move-copy").textContent =
+    next === "compressor"
+      ? "The saved comparison favored a cold-storage reroute. A person still had to review the current evidence. The later result did not establish a recovery."
+      : "A single sensor channel cannot establish physical truth. This study does not contain a recorded approved response.";
+  $("move-source").textContent =
+    next === "compressor"
+      ? "See the original recommendation ↗"
+      : "Explore the sensor test cases ↗";
+  renderStory(initialChapter);
 }
 function packet() {
   if (!planningValid)
@@ -538,7 +605,7 @@ async function start() {
     $("export").addEventListener("click", () => {
       try {
         download(
-          "axon-" + caseId + "-decision-packet.json",
+          "coldpath-" + caseId + "-decision-packet.json",
           JSON.stringify(packet(), null, 2),
           "application/json",
         );
@@ -549,19 +616,27 @@ async function start() {
         tell(error.message);
       }
     });
-    const brief = el("button", "Download shift brief ↓", "quiet full-width");
+    const brief = el(
+      "button",
+      "Download my readable brief ↓",
+      "quiet full-width",
+    );
     brief.id = "export-brief";
     brief.addEventListener("click", () => {
       try {
         const p = packet();
         const text = makeBrief(p);
-        download("axon-" + caseId + "-shift-brief.md", text, "text/markdown");
+        download(
+          "coldpath-" + caseId + "-shift-brief.md",
+          text,
+          "text/markdown",
+        );
         tell("Shift brief downloaded.");
       } catch (error) {
         tell(error.message);
       }
     });
-    $("clear-notes").after(brief);
+    $("export").before(brief);
     $("share").addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(location.href);
@@ -579,11 +654,45 @@ async function start() {
         )
       ) {
         event.preventDefault();
+        $("technical-details").open = true;
         $("record-search").focus();
       }
     });
-    const requested = new URLSearchParams(location.hash.slice(1)).get("case");
-    changeCase(requested === "sensor" ? "sensor" : "compressor");
+    document
+      .querySelectorAll("[data-chapter]")
+      .forEach((button) =>
+        button.addEventListener("click", () =>
+          renderStory(Number(button.dataset.chapter)),
+        ),
+      );
+    $("return-story").addEventListener("click", () => {
+      $("story-title").focus({ preventScroll: true });
+      $("story-title").scrollIntoView({ block: "start" });
+    });
+    $("story-next").addEventListener("click", () =>
+      renderStory((chapter + 1) % 4),
+    );
+    $("story-previous").addEventListener("click", () =>
+      renderStory(chapter - 1),
+    );
+    $("story-evidence").addEventListener("click", () => {
+      const story = getStory(data, caseId)[chapter];
+      if (story.sources.length) openRecord(story.sources[0]);
+      else {
+        $("technical-details").open = true;
+        $("fault-case").focus();
+      }
+    });
+    $("move-source").addEventListener("click", (event) => {
+      event.preventDefault();
+      if (caseId === "compressor") openRecord(8);
+      else {
+        $("technical-details").open = true;
+        $("fault-case").focus();
+      }
+    });
+    const requested = readStudyLocation(location.hash);
+    changeCase(requested.caseId, requested.chapter);
     renderFault();
     renderPlanning();
   } catch (error) {

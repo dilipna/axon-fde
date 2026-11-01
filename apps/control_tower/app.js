@@ -1,4 +1,4 @@
-/* AxonFDE site.
+/* Coldpath site.
  *
  * Reads three endpoints and renders them. There is deliberately no fallback to
  * sample data anywhere in this file: if a fetch fails the section says what is
@@ -403,7 +403,7 @@ function startHero(points, facts) {
       state === "alarm"
         ? `Minute ${p.minute}: the standard alarm finally fires — the cargo is already too warm.`
         : state === "warn"
-        ? `Minute ${p.minute}: AxonFDE has warned. A standard alarm is still silent.`
+        ? `Minute ${p.minute}: Coldpath has warned. A standard alarm is still silent.`
         : `Minute ${p.minute}: every reading is inside the safe range. Nothing looks wrong yet.`;
   };
 
@@ -451,7 +451,7 @@ function renderChart(points, marks) {
 
   const step = hi - lo > 14 ? 4 : 2;
   for (let t = Math.ceil(lo / step) * step; t <= hi; t += step) {
-    svg.appendChild(mk("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#1a1a1a" }));
+    svg.appendChild(mk("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#253149" }));
   }
 
   /* The safe range as a band, so "in spec" is a region rather than a number
@@ -462,13 +462,13 @@ function renderChart(points, marks) {
       y: y(PERMITTED_MAX_C),
       width: W - pad.l - pad.r,
       height: Math.max(0, y(PERMITTED_MIN_C) - y(PERMITTED_MAX_C)),
-      fill: "rgba(255,255,255,.05)",
-      stroke: "rgba(255,255,255,.25)",
+      fill: "rgba(21,88,201,.12)",
+      stroke: "rgba(166,176,197,.25)",
       "stroke-dasharray": "2 4",
     })
   );
   for (const t of [PERMITTED_MIN_C, PERMITTED_MAX_C]) {
-    const label = mk("text", { x: 6, y: y(t) + 4, fill: "#8c8c8c", "font-size": "12", "font-family": "Arial" });
+    const label = mk("text", { x: 6, y: y(t) + 4, fill: "#A6B0C5", "font-size": "12", "font-family": "Arial" });
     label.textContent = `${t}°C`;
     svg.appendChild(label);
   }
@@ -477,9 +477,9 @@ function renderChart(points, marks) {
     .map((p, i) => `${i ? "L" : "M"}${x(p.minute).toFixed(1)},${y(p.cargo_temp_c).toFixed(1)}`)
     .join(" ");
   /* The whole trip faintly, and the part the replay has reached in white. */
-  svg.appendChild(mk("path", { d, fill: "none", stroke: "#3a3a3a", "stroke-width": 2, "stroke-linejoin": "round" }));
+  svg.appendChild(mk("path", { d, fill: "none", stroke: "#506078", "stroke-width": 2, "stroke-linejoin": "round" }));
   svg.appendChild(
-    mk("path", { d, fill: "none", stroke: "#ffffff", "stroke-width": 2.2, "stroke-linejoin": "round", "clip-path": "url(#played)" })
+    mk("path", { d, fill: "none", stroke: "#1558C9", "stroke-width": 2.2, "stroke-linejoin": "round", "clip-path": "url(#played)" })
   );
 
   marks.forEach((m, idx) => {
@@ -498,23 +498,23 @@ function renderChart(points, marks) {
      * one to the right - unless that would run off the chart. */
     const left = (idx === 0 && x(m.minute) - w - 6 > pad.l) || x(m.minute) + w + 6 > W - pad.r;
     const lx = left ? x(m.minute) - w - 6 : x(m.minute) + 6;
-    svg.appendChild(mk("rect", { x: lx, y: pad.t - 24, width: w, height: 20, rx: 10, fill: "#000", stroke: m.colour }));
-    const label = mk("text", { x: lx + 8, y: pad.t - 10, fill: "#fff", "font-size": "12", "font-weight": "700", "font-family": "Arial" });
+    svg.appendChild(mk("rect", { x: lx, y: pad.t - 24, width: w, height: 20, rx: 10, fill: "#030407", stroke: m.colour }));
+    const label = mk("text", { x: lx + 8, y: pad.t - 10, fill: "#F1F4FC", "font-size": "12", "font-weight": "700", "font-family": "Arial" });
     label.textContent = text;
     svg.appendChild(label);
   });
 
-  const axis = mk("text", { x: W - pad.r, y: H - 8, fill: "#8c8c8c", "font-size": "12", "text-anchor": "end", "font-family": "Arial" });
+  const axis = mk("text", { x: W - pad.r, y: H - 8, fill: "#A6B0C5", "font-size": "12", "text-anchor": "end", "font-family": "Arial" });
   axis.textContent = "minutes since departure";
   svg.appendChild(axis);
 
-  const head = mk("line", { y1: pad.t, y2: H - pad.b, stroke: "#fff", "stroke-opacity": 0.35, "stroke-width": 1 });
-  const dot = mk("circle", { r: 5, fill: "#fff", stroke: "#000", "stroke-width": 2 });
+  const head = mk("line", { y1: pad.t, y2: H - pad.b, stroke: "#F1F4FC", "stroke-opacity": 0.35, "stroke-width": 1 });
+  const dot = mk("circle", { r: 5, fill: "#F1F4FC", stroke: "#030407", "stroke-width": 2 });
   svg.append(head, dot);
 
   el("#legend").innerHTML = [
-    `<span><i class="swatch" style="background:#fff"></i>reported cargo temperature</span>`,
-    `<span><i class="swatch box" style="background:rgba(255,255,255,.08);border:1px dashed rgba(255,255,255,.4)"></i>safe range (${PERMITTED_MIN_C}–${PERMITTED_MAX_C} °C, from the signed shipping papers)</span>`,
+    `<span><i class="swatch" style="background:#F1F4FC"></i>reported cargo temperature</span>`,
+    `<span><i class="swatch box" style="background:rgba(21,88,201,.18);border:1px dashed rgba(166,176,197,.4)"></i>safe range (${PERMITTED_MIN_C}–${PERMITTED_MAX_C} °C, from the signed shipping papers)</span>`,
     ...marks
       .filter((m) => m.minute !== null && m.minute !== undefined)
       .map(
@@ -560,7 +560,7 @@ function attachCrosshair(svg, points, marks, g) {
       alarm != null && p.minute >= alarm
         ? "the standard alarm has fired"
         : detect != null && p.minute >= detect
-        ? "AxonFDE has already warned"
+        ? "Coldpath has already warned"
         : "no alert yet";
     tip.innerHTML =
       `<div class="t">minute ${p.minute}</div><div>reported <b>${p.cargo_temp_c.toFixed(2)} °C</b></div>` +
@@ -589,8 +589,8 @@ function detectionMarks(trace) {
       key: "axon",
       minute: Number(f.detected_at_minute),
       colour: "var(--cyan)",
-      label: "AxonFDE warns",
-      legend: "AxonFDE's early warning",
+      label: "Coldpath warns",
+      legend: "Coldpath's early warning",
     });
   }
   if (f.baseline_alarm_minute != null) {
@@ -650,7 +650,7 @@ function drawMap(trip, sites) {
   svg.innerHTML = "";
 
   /* A dotted field, for texture. */
-  const dots = mk("g", { fill: "#1c1c1c" });
+  const dots = mk("g", { fill: "#1F2C44" });
   for (let gx = 20; gx < 800; gx += 24) for (let gy = 20; gy < 380; gy += 24) dots.appendChild(mk("circle", { cx: gx, cy: gy, r: 1.3 }));
   svg.appendChild(dots);
 
@@ -662,7 +662,7 @@ function drawMap(trip, sites) {
     const pos = SITE_POS[s.id];
     if (!pos) continue;
     const [sx, sy] = pos;
-    svg.appendChild(mk("rect", { x: sx - 7, y: sy - 7, width: 14, height: 14, rx: 3, fill: s.full ? "#000" : "#fff", stroke: "#fff", "stroke-width": 2 }));
+    svg.appendChild(mk("rect", { x: sx - 7, y: sy - 7, width: 14, height: 14, rx: 3, fill: s.full ? "#030407" : "#F1F4FC", stroke: "#F1F4FC", "stroke-width": 2 }));
     const t = mk("text", { x: sx + 14, y: sy - 2, class: "map-city" });
     t.textContent = s.name;
     const t2 = mk("text", { x: sx + 14, y: sy + 14, class: "map-site" });
@@ -676,7 +676,7 @@ function drawMap(trip, sites) {
   /* Labels sit above-left of the origin and above-right of the destination,
    * clear of the route line, which leaves one and arrives at the other. */
   for (const [p, name, dx, dy] of [[start, trip.from, -8, -16], [end, trip.to, 14, -14]]) {
-    svg.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 7, fill: "#000", stroke: "#fff", "stroke-width": 3 }));
+    svg.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 7, fill: "#030407", stroke: "#F1F4FC", "stroke-width": 3 }));
     const t = mk("text", { x: p.x + dx, y: p.y + dy, class: "map-city" });
     t.textContent = name;
     svg.appendChild(t);
@@ -689,8 +689,8 @@ function drawMap(trip, sites) {
   const pin = mk("g", { class: "truck-pin" });
   pin.innerHTML =
     `<circle class="halo" r="16" stroke-width="3"/>` +
-    `<circle r="11" fill="#fff"/>` +
-    `<rect x="-6" y="-4" width="8" height="7" rx="1" fill="#000"/><rect x="2" y="-2" width="4" height="5" rx="1" fill="#000"/>`;
+    `<circle r="11" fill="#F1F4FC"/>` +
+    `<rect x="-6" y="-4" width="8" height="7" rx="1" fill="#030407"/><rect x="2" y="-2" width="4" height="5" rx="1" fill="#030407"/>`;
   svg.appendChild(pin);
 
   return { path: bg, done, pin, len };
@@ -720,7 +720,7 @@ function buildEvents(points, trace, trip) {
       minute: f.detected_at_minute,
       kind: "warn",
       text:
-        `AxonFDE warns: on its current trend this load will leave the safe range` +
+        `Coldpath warns: on its current trend this load will leave the safe range` +
         (p ? ` (now ${p.cargo_temp_c.toFixed(1)} °C)` : "") +
         `. ${rec ? `It recommends: ${rec}. ` : ""}A fleet manager is asked to approve.`,
     });
@@ -731,7 +731,7 @@ function buildEvents(points, trace, trip) {
       kind: "alarm",
       text:
         `The standard temperature alarm finally fires — the cargo is already above ${PERMITTED_MAX_C} °C.` +
-        (f.detected_at_minute != null ? ` AxonFDE had warned ${f.baseline_alarm_minute - f.detected_at_minute} minutes earlier.` : ""),
+        (f.detected_at_minute != null ? ` Coldpath had warned ${f.baseline_alarm_minute - f.detected_at_minute} minutes earlier.` : ""),
     });
   }
   return events.sort((a, b) => a.minute - b.minute);
@@ -793,7 +793,7 @@ function startReplay(points, trace) {
       state === "alarm"
         ? "Standard alarm: cargo out of range"
         : state === "warn"
-        ? "AxonFDE warning · standard alarm silent"
+        ? "Coldpath warning · standard alarm silent"
         : "All readings in range · no alert";
 
     if (map.len) {
@@ -952,7 +952,7 @@ function sparkline(points, key, colour) {
     mk("rect", {
       x: x(SLOPE_FROM), y: pad,
       width: Math.max(1, x(SLOPE_TO) - x(SLOPE_FROM)), height: H - 2 * pad,
-      fill: "rgba(255,255,255,.08)",
+      fill: "rgba(21,88,201,.18)",
     })
   );
   svg.appendChild(
@@ -988,7 +988,7 @@ function renderComparison(loaded) {
     const charts = document.createElement("div");
     charts.className = "cmp-charts";
     for (const [key, colour, unit, dp, title] of [
-      ["cargo_temp_c", "#ffffff", "°C / min", 3, "Cargo temperature"],
+      ["cargo_temp_c", "#1558C9", "°C / min", 3, "Cargo temperature"],
       ["compressor_rpm", "var(--cyan)", "rpm / min", 1, "Cooling unit speed"],
     ]) {
       const value = slope(points, key);

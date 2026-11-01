@@ -1,8 +1,12 @@
-# AxonFDE
+# Coldpath
 
-**Proactive decision intelligence for cold-chain logistics.**
+**A clearer next move for temperature-sensitive deliveries.**
 
-AxonFDE is a personal engineering project over simulated cold-chain logistics data.
+Coldpath (formerly AxonFDE) turns a recorded logistics incident into a guided story: notice the warning, understand the rule, review the response and check the outcome. [Explore the overview](https://dilipna.github.io/axon-fde/) or [open the guided workspace](https://dilipna.github.io/axon-fde/workbench.html). The existing repository, AXON_ configuration names and historical evidence identifiers are preserved for compatibility.
+
+See [the clarity/branding design and acceptance](docs/coldpath-experience.md). Deployment status is established by the release PR and Actions, not by a fabricated live-fleet claim.
+
+Coldpath is a personal engineering project over simulated cold-chain logistics data.
 It combines recorded telemetry, a seeded SQL Server ERP and document evidence to
 investigate incidents, compare interventions, obtain approval for consequential
 actions, and verify outcomes. PostgreSQL, SQL Server and the application workflow

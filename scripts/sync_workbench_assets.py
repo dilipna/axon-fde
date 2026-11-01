@@ -7,8 +7,11 @@ import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ROOT_ASSETS = ("index.html", "workbench.html")
+ROOT_ASSETS = ("index.html", "workbench.html", "engineering.html")
 UI_ASSETS = (
+    "coldpath.css",
+    "story.mjs",
+    "overview.mjs",
     "app.css",
     "app.js",
     "verification-release.json",

@@ -43,12 +43,32 @@ for (const width of [1440, 768, 390, 360])
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("./");
     await page
-      .getByRole("link", { name: "Open the decision workspace", exact: true })
+      .getByRole("link", { name: "Explore a delivery", exact: true })
       .click();
     await expect(
-      page.getByRole("heading", { name: "Make the next move defensible." }),
+      page.getByRole("heading", { name: "An alert is just the beginning." }),
     ).toBeVisible();
     await expect(page.locator("#fact-value")).toHaveText("35 min");
+    expect(
+      await page
+        .locator("body")
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(3, 4, 7)");
+    expect(
+      await page
+        .locator('[data-chapter="0"]')
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(21, 88, 201)");
+    expect(
+      await page
+        .locator("#export-brief")
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(212, 255, 36)");
+    expect(
+      await page
+        .locator("#export-brief")
+        .evaluate((node) => getComputedStyle(node).color),
+    ).toBe("rgb(3, 4, 7)");
     await expect(page.locator("#fact-label")).toContainText(
       "Not a fleet average",
     );
@@ -67,6 +87,13 @@ for (const width of [1440, 768, 390, 360])
       .getByRole("button", { name: "Why was it blocked?", exact: true })
       .click();
     await expect(page.locator("#answer")).toContainText("approval_stale");
+    await expect(page.locator(".answer-summary")).toContainText(
+      "outdated approval",
+    );
+    await expect(page.locator(".answer-original")).not.toHaveAttribute(
+      "open",
+      "",
+    );
     await page.getByRole("link", { name: "Step 11 ↗", exact: true }).click();
     await expect(page.locator("#record-step-11")).toHaveAttribute("open", "");
     await page
@@ -79,7 +106,10 @@ for (const width of [1440, 768, 390, 360])
     const [download] = await Promise.all([
       page.waitForEvent("download"),
       page
-        .getByRole("button", { name: "Export decision packet ↓", exact: true })
+        .getByRole("button", {
+          name: "Download evidence packet ↓",
+          exact: true,
+        })
         .click(),
     ]);
     const packet = JSON.parse(await fs.readFile(await download.path(), "utf8"));
@@ -105,7 +135,7 @@ for (const width of [1440, 768, 390, 360])
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    await page.getByRole("button", { name: /Cooling failure/ }).click();
+    await page.getByRole("button", { name: /Medicine delivery/ }).click();
     await expect(page.locator("#notes")).toHaveValue(
       "Check facility capacity before approving.",
     );
@@ -141,6 +171,7 @@ test("record search, source citations and unknown questions retain evidence boun
   page,
 }) => {
   await open(page);
+  await page.locator("#technical-details > summary").click();
   await page.locator("#record-search").fill("approval_stale");
   await expect(page.locator("#record-steps details")).toHaveCount(1);
   await page.getByRole("button", { name: "Did it work?", exact: true }).click();
@@ -154,6 +185,7 @@ test("planning changes invalidate rehearsal review and exclude unavailable optio
   page,
 }) => {
   await open(page);
+  await page.locator("#planning-drawer > summary").click();
   await page
     .getByRole("button", {
       name: "Mark these assumptions reviewed",
@@ -192,6 +224,7 @@ test("frozen verifier cases show false confirmations alongside abstention costs"
   page,
 }) => {
   await open(page);
+  await page.locator("#technical-details > summary").click();
   await expect(page.locator("#fault-case option")).toHaveCount(24);
   await page
     .locator("#fault-case")
@@ -216,7 +249,10 @@ test("shift briefing exports user notes as safe literal text with original scope
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page
-      .getByRole("button", { name: "Download shift brief ↓", exact: true })
+      .getByRole("button", {
+        name: "Download my readable brief ↓",
+        exact: true,
+      })
       .click(),
   ]);
   const text = await fs.readFile(await download.path(), "utf8");
@@ -258,6 +294,7 @@ test("untrusted source text stays literal under strict content policy", async ({
     window.__executed = false;
   });
   await open(page);
+  await page.locator("#technical-details > summary").click();
   await page.locator("#record-search").fill("onerror");
   await page.locator("#record-step-11 summary").click();
   await expect(page.locator("#record-step-11")).toContainText("<img src=x");
@@ -269,7 +306,7 @@ test("workspace information and model record are keyboard accessible", async ({
 }) => {
   await open(page);
   await page
-    .getByRole("button", { name: "About this workspace", exact: true })
+    .getByRole("button", { name: "About Coldpath", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("dialog")).toContainText(
@@ -277,6 +314,7 @@ test("workspace information and model record are keyboard accessible", async ({
   );
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
+  await page.locator("#technical-details > summary").click();
   await page.locator(".recorded-model summary").focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#model-identity")).toContainText(
@@ -336,6 +374,7 @@ test("reading and rehearsal never issue write requests or external model calls",
     }),
   );
   await open(page);
+  await page.locator("#planning-drawer > summary").click();
   await page.locator("#planning-value").fill("200000");
   await page.locator("#practice-review").click();
   await page
@@ -356,7 +395,7 @@ for (const width of [1440, 768, 390])
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("./");
+    await page.goto("engineering.html");
     await expect(page.locator("#timeline .tstep").first()).toBeVisible();
     await expect(page.locator("#claim-grid .claim").first()).toBeVisible();
     await page.locator("#r-play").click();
@@ -388,3 +427,136 @@ for (const width of [1440, 768, 390])
     });
     expect(errors).toEqual([]);
   });
+
+for (const width of [1440, 768, 390, 360])
+  test(`Coldpath overview is understandable and usable at ${width}px`, async ({
+    page,
+  }, info) => {
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("./");
+    await expect(page).toHaveTitle(/Coldpath/);
+    expect(
+      await page
+        .locator("body")
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(3, 4, 7)");
+    expect(
+      await page
+        .locator(".cp-delivery-art")
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(21, 88, 201)");
+    expect(
+      await page
+        .getByRole("link", { name: "Explore a delivery", exact: true })
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(212, 255, 36)");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      "A delivery at risk.",
+    );
+    await expect(
+      page.getByText(
+        "Interactive engineering demo · fictional shipments · recorded results",
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Explore a delivery", exact: false }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: info.outputPath(`coldpath-overview-${width}.png`),
+      fullPage: true,
+    });
+    await page
+      .getByRole("link", { name: "See the honest outcome", exact: false })
+      .click();
+    await expect(page.locator("#story-title")).toContainText(
+      "incident reopened",
+    );
+    expect(errors).toEqual([]);
+  });
+test("guided story advances, reveals its source, wraps and preserves the failed outcome", async ({
+  page,
+}) => {
+  await open(page);
+  await expect(page.locator("#story-previous")).toBeDisabled();
+  await expect(page.locator("#technical-details")).not.toHaveAttribute(
+    "open",
+    "",
+  );
+  await expect(page.locator("#story-copy")).toContainText("35 minutes");
+  await page.locator("#story-next").click();
+  await expect(page.locator("#story-title")).toContainText("temperature limit");
+  await page.locator("#story-evidence").click();
+  await expect(page.locator("#technical-details")).toHaveAttribute("open", "");
+  await expect(page.locator("#record-step-3")).toHaveAttribute("open", "");
+  await page.locator("#return-story").click();
+  await expect(page.locator("#story-title")).toBeFocused();
+  await page.locator("#story-next").click();
+  await expect(page.locator("#story-copy")).toContainText("outdated approval");
+  await page.locator("#story-next").click();
+  await expect(page.locator("#story-copy")).toContainText("cannot prove");
+  await expect(page.locator("#story-title")).toContainText("incident reopened");
+  await page.reload();
+  await expect(page.locator("#story-counter")).toHaveText("4 of 4");
+  await page.locator("#story-next").click();
+  await expect(page.locator("#story-counter")).toHaveText("1 of 4");
+});
+test("beginner view keeps advanced controls optional and keeps existing notes", async ({
+  page,
+}) => {
+  await page.addInitScript(
+    ({ fingerprint }) =>
+      localStorage.setItem(
+        `axon-workbench-notes-v1:${fingerprint}:compressor`,
+        "A note from before the rename.",
+      ),
+    { fingerprint: manifest.payload_sha256 },
+  );
+  await open(page);
+  await expect(page.locator("#notes")).toHaveValue(
+    "A note from before the rename.",
+  );
+  await expect(page.locator("#record-search")).toBeHidden();
+  await expect(page.locator("#planning-value")).toBeHidden();
+  await expect(page.locator("#story-title")).toBeVisible();
+  await page.locator("#story-evidence").click();
+  await expect(page.locator("#record-step-5")).toHaveAttribute("open", "");
+  await page.locator("[data-case=sensor]").click();
+  await expect(page.locator("#notes")).toHaveValue("");
+  await page.locator('[data-chapter="3"]').click();
+  await expect(page.locator("#story-title")).toContainText(
+    "no recorded intervention",
+  );
+});
+test("chapter links preserve the chosen study without claiming a sensor recovery", async ({
+  page,
+}) => {
+  await page.goto("workbench.html#case=sensor&chapter=3");
+  await expect(page.locator("#app-shell")).toBeVisible();
+  await expect(page.locator("#story-counter")).toHaveText("4 of 4");
+  await expect(page.locator("#story-title")).toContainText(
+    "no recorded intervention",
+  );
+  await expect(page.locator("#move-title")).toContainText(
+    "Check before calling it safe",
+  );
+  await page.locator("#story-evidence").click();
+  await expect(page.locator("#fault-case")).toBeFocused();
+});
+
+test("existing evidence bookmarks still reach the preserved engineering page", async ({
+  page,
+}) => {
+  await page.goto("./#engineering");
+  await expect(page).toHaveURL(/engineering\.html#engineering$/);
+  await expect(page.locator("#engineering")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Coldpath home", exact: true }),
+  ).toContainText("Coldpath");
+});

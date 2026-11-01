@@ -46,6 +46,10 @@ def test_the_snapshot_shows_the_newest_published_run() -> None:
     [
         "index.html",
         "workbench.html",
+        "engineering.html",
+        "coldpath.css",
+        "story.mjs",
+        "overview.mjs",
         "app.css",
         "app.js",
         "verification-release.json",
@@ -58,7 +62,11 @@ def test_the_snapshot_shows_the_newest_published_run() -> None:
     ],
 )
 def test_the_snapshot_page_is_the_current_page(name: str) -> None:
-    copy = SITE / name if name in {"index.html", "workbench.html"} else SITE / "ui" / name
+    copy = (
+        SITE / name
+        if name in {"index.html", "workbench.html", "engineering.html"}
+        else SITE / "ui" / name
+    )
     assert _text(copy) == _text(UI / name), (
         f"site/ carries an old {name}: re-run `uv run poe export-site`"
     )
