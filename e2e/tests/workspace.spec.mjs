@@ -49,6 +49,26 @@ for (const width of [1440, 768, 390, 360])
       page.getByRole("heading", { name: "An alert is just the beginning." }),
     ).toBeVisible();
     await expect(page.locator("#fact-value")).toHaveText("35 min");
+    expect(
+      await page
+        .locator("body")
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(3, 4, 7)");
+    expect(
+      await page
+        .locator('[data-chapter="0"]')
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(21, 88, 201)");
+    expect(
+      await page
+        .locator("#export-brief")
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(212, 255, 36)");
+    expect(
+      await page
+        .locator("#export-brief")
+        .evaluate((node) => getComputedStyle(node).color),
+    ).toBe("rgb(3, 4, 7)");
     await expect(page.locator("#fact-label")).toContainText(
       "Not a fleet average",
     );
@@ -417,6 +437,21 @@ for (const width of [1440, 768, 390, 360])
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("./");
     await expect(page).toHaveTitle(/Coldpath/);
+    expect(
+      await page
+        .locator("body")
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(3, 4, 7)");
+    expect(
+      await page
+        .locator(".cp-delivery-art")
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(21, 88, 201)");
+    expect(
+      await page
+        .getByRole("link", { name: "Explore a delivery", exact: true })
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    ).toBe("rgb(212, 255, 36)");
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       "A delivery at risk.",
     );
@@ -521,5 +556,7 @@ test("existing evidence bookmarks still reach the preserved engineering page", a
   await page.goto("./#engineering");
   await expect(page).toHaveURL(/engineering\.html#engineering$/);
   await expect(page.locator("#engineering")).toBeVisible();
-  await expect(page.locator(".logo")).toContainText("Coldpath");
+  await expect(
+    page.getByRole("link", { name: "Coldpath home", exact: true }),
+  ).toContainText("Coldpath");
 });

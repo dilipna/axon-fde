@@ -1,3 +1,7 @@
+## Active user-directed midnight theme revision — PR #3
+
+User explicitly requested #030407 / #1558C9 / #D4FF24 while the approved Coldpath PR #3 was unmerged. Replace the warm candidate in the existing approved release workflow; do not merge 2706b39. Keep the plain guided story, source evidence, private notes and backend safeguards. All backend CI passed on the prior source; browser had 25 passes and one ambiguous-logo test selector, now corrected. Revised exact source needs all full CI, 26 browser cases, screenshot review, then gated merge/existing-Pages deployment and public verification. No new hosting, paid services or desktop/local-browser control. This current user steering supersedes the earlier warm-theme candidate notes below.
+
 ## Coldpath local candidate — implementation checkpoint
 
 Coldpath overview, four-chapter workspace and preserved engineering replay implemented. Node 67, affected Python 35, types/lint/11 architecture contracts, 15 HTTP paths and three static FastAPI routes passed. Browser suite expanded to 26 cases, pending GitHub-only CI and visual review. Loopback preview: http://127.0.0.1:3296/. This iteration has not been published or approved for public release. Finish exact source/recovery packaging and request approval once. Preserve browser note keys, source artifacts and backend behavior. No desktop/local browser control.

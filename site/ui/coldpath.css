@@ -1,30 +1,32 @@
 /* Coldpath: a plain-language product surface over inspectable engineering. */
 :root {
-  color-scheme: light;
-  --cp-bg: #f6f7f2;
-  --cp-paper: #fff;
-  --cp-ink: #18382e;
-  --cp-muted: #586b62;
-  --cp-line: #dce3da;
-  --cp-teal: #166b54;
-  --cp-soft: #e8f0e5;
-  --cp-amber: #9c531d;
+  color-scheme: dark;
+  --cp-bg: #030407;
+  --cp-blue: #1558c9;
+  --cp-blue-ink: #a8c5ff;
+  --cp-paper: #0b0f18;
+  --cp-ink: #f1f4fc;
+  --cp-muted: #a6b0c5;
+  --cp-line: #263148;
+  --cp-accent: #d4ff24;
+  --cp-soft: #101b31;
+  --cp-amber: #d4ff24;
   --bg: var(--cp-bg);
   --surface: var(--cp-paper);
-  --surface-2: #eef2e9;
+  --surface-2: #111a2b;
   --line: var(--cp-line);
-  --line-hi: #bac9bd;
+  --line-hi: #3a4b6a;
   --text: var(--cp-ink);
   --text-dim: var(--cp-muted);
-  --text-faint: #68796f;
-  --cyan: #166b54;
-  --cyan-ink: #166b54;
-  --amber: #a15c1f;
-  --amber-ink: #8f4c16;
-  --rose: #b44a45;
-  --rose-ink: #a33d3a;
-  --good: #357747;
-  --good-ink: #28633a;
+  --text-faint: #a6b0c5;
+  --cyan: #1558c9;
+  --cyan-ink: #d4ff24;
+  --amber: #d4ff24;
+  --amber-ink: #d4ff24;
+  --rose: #f07b91;
+  --rose-ink: #ffa8b7;
+  --good: #d4ff24;
+  --good-ink: #d4ff24;
   --font: "Aptos", "Segoe UI", Arial, sans-serif;
 }
 * {
@@ -58,7 +60,7 @@
   touch-action: manipulation;
 }
 .cp-page :focus-visible {
-  outline: 3px solid #a66528;
+  outline: 3px solid #d4ff24;
   outline-offset: 4px;
 }
 .cp-skip {
@@ -66,7 +68,7 @@
   top: -100px;
   left: 20px;
   z-index: 100;
-  background: white;
+  background: var(--cp-paper);
   padding: 12px;
 }
 .cp-skip:focus {
@@ -98,7 +100,7 @@
   white-space: nowrap;
 }
 .cp-brand-dot {
-  color: var(--cp-teal);
+  color: var(--cp-accent);
   margin-left: -6px;
 }
 .cp-mark {
@@ -106,7 +108,7 @@
   display: inline-block;
   width: 30px;
   height: 30px;
-  border: 7px solid var(--cp-teal);
+  border: 7px solid var(--cp-accent);
   border-right-color: transparent;
   border-radius: 50%;
   position: relative;
@@ -117,7 +119,7 @@
   position: absolute;
   width: 7px;
   height: 7px;
-  background: #cc8a45;
+  background: #1558c9;
   right: -6px;
   top: 5px;
   border-radius: 50%;
@@ -141,10 +143,10 @@
   align-items: center;
   justify-content: center;
   gap: 22px;
-  border: 1px solid var(--cp-teal);
+  border: 1px solid var(--cp-accent);
   border-radius: 9px;
-  background: var(--cp-teal);
-  color: white !important;
+  background: var(--cp-accent);
+  color: #030407 !important;
   padding: 15px 22px;
   text-decoration: none;
   font-size: 15px;
@@ -153,7 +155,7 @@
   min-height: 46px;
 }
 .cp-button:hover {
-  background: #10543f;
+  background: #e2ff75;
 }
 .cp-button-small {
   padding: 10px 16px;
@@ -177,7 +179,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #57936a;
+  background: #d4ff24;
   margin-right: 7px;
 }
 .cp-hero {
@@ -197,7 +199,7 @@
 }
 .cp-hero h1 em {
   font-style: normal;
-  color: var(--cp-teal);
+  color: var(--cp-accent);
 }
 .cp-lede {
   font-size: 18px;
@@ -217,11 +219,11 @@
   color: var(--cp-muted);
 }
 .cp-delivery-art {
-  background: #e8eddf;
+  background: #1558c9;
   border-radius: 28px;
   padding: 28px;
   position: relative;
-  border: 1px solid #dbe3d3;
+  border: 1px solid #3677e5;
 }
 .cp-art-top {
   display: flex;
@@ -237,9 +239,9 @@
 }
 .cp-status-pill {
   padding: 5px 9px;
-  background: #fff4df;
-  color: #85511b;
-  border: 1px solid #e9d4a9;
+  background: #d4ff24;
+  color: #030407;
+  border: 1px solid #d4ff24;
   border-radius: 50px;
   font-size: 10px;
   font-weight: 650;
@@ -255,18 +257,18 @@
 .cp-route-point {
   height: 16px;
   width: 16px;
-  border: 4px solid var(--cp-teal);
-  background: #e8eddf;
+  border: 4px solid var(--cp-accent);
+  background: #1558c9;
   border-radius: 50%;
   z-index: 1;
   flex-shrink: 0;
 }
 .cp-route-destination {
-  border-color: #b7803c;
+  border-color: #d4ff24;
 }
 .cp-route-line {
   flex: 1;
-  border-top: 2px dashed #b1c2ad;
+  border-top: 2px dashed #9dbaff;
 }
 .cp-truck {
   position: absolute;
@@ -281,32 +283,32 @@
   display: flex;
   align-items: center;
   gap: 18px;
-  background: white;
+  background: var(--cp-paper);
   color: var(--cp-ink);
   font-size: 18px;
   font-weight: 750;
   padding: 12px 17px;
-  border: 1px solid #cdd7c7;
+  border: 1px solid #29579f;
   border-radius: 9px 3px 3px 5px;
-  box-shadow: 0 12px 18px #243f3020;
+  box-shadow: 0 12px 18px #03040766;
   height: 62px;
   letter-spacing: -0.5px;
 }
 .cp-trailer b {
-  color: #b2c6ac;
+  color: #d4ff24;
 }
 .cp-cab {
   height: 44px;
   width: 44px;
-  background: var(--cp-teal);
-  border: 7px solid var(--cp-teal);
+  background: var(--cp-accent);
+  border: 7px solid var(--cp-accent);
   border-top-right-radius: 18px;
   position: relative;
 }
 .cp-cab:before {
   content: "";
   position: absolute;
-  background: #d4e7db;
+  background: #030407;
   width: 22px;
   height: 14px;
   border-top-right-radius: 11px;
@@ -317,7 +319,7 @@
   width: 16px;
   height: 16px;
   background: var(--cp-ink);
-  border: 4px solid #526a5b;
+  border: 4px solid #6687bc;
   border-radius: 50%;
   position: absolute;
   bottom: -8px;
@@ -346,10 +348,10 @@
   margin-top: 4px;
 }
 .cp-signal-card {
-  background: white;
+  background: var(--cp-paper);
   padding: 22px;
   border-radius: 15px;
-  border: 1px solid #dce4d4;
+  border: 1px solid #243a64;
   margin-top: 25px;
 }
 .cp-signal-card strong {
@@ -365,20 +367,20 @@
   overflow: visible;
 }
 .cp-signal-path {
-  stroke: var(--cp-teal);
+  stroke: var(--cp-accent);
   stroke-width: 3;
   fill: none;
   stroke-dasharray: 400;
   animation: cp-draw 2s ease both;
 }
 .cp-signal-limit {
-  stroke: #c18d42;
+  stroke: #a6b0c5;
   stroke-dasharray: 5 5;
   stroke-width: 1;
   fill: none;
 }
 .cp-signal-card circle {
-  fill: var(--cp-teal);
+  fill: var(--cp-accent);
   stroke: white;
   stroke-width: 3;
 }
@@ -395,7 +397,7 @@
   margin-top: 20px;
 }
 .cp-art-caption > span {
-  border: 1px solid #bfceb7;
+  border: 1px solid #82aafa;
   border-radius: 50%;
   padding: 5px 12px;
   font-size: 22px;
@@ -461,7 +463,7 @@
   padding-top: 23px;
 }
 .cp-step-number {
-  color: var(--cp-teal);
+  color: var(--cp-accent);
   font-size: 14px;
   font-weight: 700;
 }
@@ -485,7 +487,7 @@
   grid-template-columns: 1.2fr 0.8fr;
   gap: 65px;
   border: 1px solid var(--cp-line);
-  background: #edf1e7;
+  background: #0b1224;
   border-radius: 22px;
   padding-top: 45px;
   padding-bottom: 45px;
@@ -501,10 +503,10 @@
   margin-top: 12px;
 }
 .cp-mini-brief {
-  background: white;
+  background: var(--cp-paper);
   transform: rotate(2deg);
-  border: 1px solid #d9e0d2;
-  box-shadow: 0 15px 35px #1d40290b;
+  border: 1px solid #324866;
+  box-shadow: 0 15px 35px #00000070;
   border-radius: 10px;
   padding: 30px;
 }
@@ -525,7 +527,7 @@
 }
 .cp-mini-brief li:before {
   content: "✓";
-  color: var(--cp-teal);
+  color: var(--cp-accent);
   margin-right: 10px;
 }
 .cp-brief-tag {
@@ -565,15 +567,15 @@
 }
 /* The preserved engineering replay shares the product's readable light palette. */
 .nav {
-  background: rgba(246, 247, 242, 0.96);
+  background: rgba(3, 4, 7, 0.94);
   backdrop-filter: blur(12px);
 }
 .scene {
   border-radius: 20px;
-  background: #000;
+  background: #030407;
 }
 .btn:hover {
-  background: #244f3e;
+  background: #e2ff75;
   color: white;
 }
 .btn-ghost:hover {
@@ -783,5 +785,279 @@
 @media (max-width: 420px) {
   .cp-header nav > a:not(.cp-button) {
     display: none;
+  }
+}
+
+/* Midnight / cobalt / lime: deliberate emphasis, with quiet evidence surfaces. */
+.cp-page {
+  background: #030407;
+}
+.cp-brand {
+  font-weight: 850;
+}
+.cp-brand-dot {
+  color: #d4ff24;
+}
+.cp-mark {
+  border-color: #d4ff24;
+  border-right-color: transparent;
+}
+.cp-mark span {
+  background: #1558c9;
+}
+.cp-header {
+  border-bottom: 1px solid #202a3c;
+}
+.cp-header nav > a:not(.cp-button):hover {
+  color: #d4ff24;
+}
+.cp-page .cp-button {
+  background: #d4ff24;
+  border-color: #d4ff24;
+  color: #030407 !important;
+  box-shadow: 0 5px 0 #8daa08;
+}
+.cp-page .cp-button:hover {
+  background: #e2ff75;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 #8daa08;
+}
+.cp-page .cp-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #8daa08;
+}
+.cp-hero {
+  padding-top: 75px;
+  padding-bottom: 90px;
+  position: relative;
+}
+.cp-hero h1 {
+  font-family: "Arial Black", "Aptos Display", "Segoe UI", Arial, sans-serif;
+  font-weight: 900;
+  line-height: 1.03;
+  letter-spacing: -3.3px;
+}
+.cp-hero h1 em {
+  color: #d4ff24;
+}
+.cp-hero .cp-eyebrow {
+  color: #b6c6e2;
+}
+.cp-hero .cp-lede {
+  color: #b1bcd0;
+}
+.cp-text-link {
+  color: #d4ff24 !important;
+}
+.cp-demo-note {
+  color: #9aa8c1;
+}
+.cp-delivery-art {
+  background-color: #1558c9;
+  background-image:
+    linear-gradient(#ffffff0c 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff0c 1px, transparent 1px);
+  background-size: 42px 42px;
+  border: 1px solid #3c7ae7;
+  border-radius: 18px;
+  box-shadow: 0 28px 70px #00000080;
+  transform: rotate(-2deg);
+}
+.cp-delivery-art .cp-label {
+  color: #e3ecff;
+}
+.cp-status-pill {
+  background: #d4ff24;
+  border-color: #d4ff24;
+  color: #030407;
+}
+.cp-art-route .cp-route-point {
+  background: #1558c9;
+  border-color: #d4ff24;
+  box-shadow: 0 0 0 7px #ffffff12;
+}
+.cp-route-line {
+  border-color: #c8dbff;
+}
+.cp-trailer {
+  background: #030407;
+  color: #d4ff24;
+  border-color: #030407;
+  box-shadow: 0 12px 18px #03040755;
+  letter-spacing: -0.8px;
+}
+.cp-trailer b {
+  color: #d4ff24;
+}
+.cp-cab {
+  background: #d4ff24;
+  border-color: #d4ff24;
+}
+.cp-cab:before {
+  background: #030407;
+}
+.cp-truck i {
+  background: #030407;
+  border-color: #8da6d0;
+}
+.cp-route-labels {
+  color: white;
+}
+.cp-route-labels small {
+  color: #dae6ff;
+}
+.cp-signal-card {
+  background: #070d1a;
+  border-color: #3c72c9;
+  box-shadow: 0 14px 24px #03040730;
+}
+.cp-signal-card .cp-label {
+  color: #a6b0c5;
+}
+.cp-signal-path {
+  stroke: #d4ff24;
+}
+.cp-signal-card circle {
+  fill: #d4ff24;
+  stroke: #030407;
+}
+.cp-signal-limit {
+  stroke: #6e86af;
+}
+.cp-art-caption p,
+.cp-art-caption b {
+  color: white;
+}
+.cp-art-caption > span {
+  border-color: #94baff;
+  color: #d4ff24;
+}
+.cp-value-strip {
+  border-color: #293348;
+}
+.cp-value-strip > div + div {
+  border-left-color: #293348;
+}
+.cp-value-strip b {
+  font-size: 18px;
+  letter-spacing: -0.3px;
+}
+.cp-value-strip span {
+  color: #a6b0c5;
+}
+.cp-how h2,
+.cp-story-banner h2,
+.cp-proof-intro h2 {
+  font-family: "Arial Black", "Aptos Display", "Segoe UI", Arial, sans-serif;
+  font-weight: 850;
+  letter-spacing: -1.8px;
+}
+.cp-how-grid article {
+  border-top: 2px solid #1558c9;
+  padding-top: 26px;
+}
+.cp-step-number {
+  display: block;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1;
+  color: #d4ff24;
+  letter-spacing: -1.5px;
+}
+.cp-how-grid h3 {
+  margin-top: 22px;
+}
+.cp-how-grid a {
+  color: #d4ff24;
+}
+.cp-story-banner {
+  background: #0b1224;
+  border-color: #2a426f;
+  border-radius: 16px;
+}
+.cp-story-banner .cp-eyebrow {
+  color: #a8c5ff;
+}
+.cp-mini-brief {
+  background: #d4ff24;
+  border-color: #d4ff24;
+  color: #030407;
+  box-shadow: 0 20px 45px #00000050;
+}
+.cp-mini-brief .cp-label,
+.cp-mini-brief .cp-brief-tag,
+.cp-mini-brief ul,
+.cp-mini-brief li:before {
+  color: #253000;
+}
+.cp-mini-brief li {
+  border-color: #03040725;
+}
+.cp-proof-intro {
+  border-bottom: 0;
+}
+.cp-footer {
+  border-top-color: #293348;
+}
+.cp-footer > a:last-child {
+  color: #d4ff24;
+}
+.nav {
+  background: rgba(3, 4, 7, 0.94);
+}
+.btn {
+  background: #d4ff24;
+  color: #030407;
+  border-color: #d4ff24;
+}
+.btn:hover {
+  background: #e2ff75;
+  color: #030407;
+}
+.btn-ghost {
+  background: transparent;
+  color: #f1f4fc;
+  border-color: #3a4b6a;
+}
+.btn-ghost:hover {
+  background: #111a2b;
+  color: white;
+}
+@media (min-width: 1051px) {
+  .cp-hero h1 {
+    font-size: 78px;
+  }
+  .cp-hero {
+    gap: 60px;
+  }
+}
+@media (max-width: 760px) {
+  .cp-delivery-art {
+    transform: none;
+  }
+  .cp-hero {
+    padding-top: 43px;
+    padding-bottom: 50px;
+  }
+  .cp-hero h1 {
+    letter-spacing: -2px;
+  }
+  .cp-hero .cp-lede {
+    font-size: 16px;
+  }
+  .cp-story-banner h2 {
+    font-size: 30px;
+  }
+}
+@media (max-width: 420px) {
+  .cp-hero h1 {
+    font-size: 45px;
+    letter-spacing: -2px;
+  }
+  .cp-art-caption {
+    font-size: 11px;
+  }
+  .cp-step-number {
+    font-size: 30px;
   }
 }

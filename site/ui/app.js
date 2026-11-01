@@ -451,7 +451,7 @@ function renderChart(points, marks) {
 
   const step = hi - lo > 14 ? 4 : 2;
   for (let t = Math.ceil(lo / step) * step; t <= hi; t += step) {
-    svg.appendChild(mk("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#dce3da" }));
+    svg.appendChild(mk("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#253149" }));
   }
 
   /* The safe range as a band, so "in spec" is a region rather than a number
@@ -462,13 +462,13 @@ function renderChart(points, marks) {
       y: y(PERMITTED_MAX_C),
       width: W - pad.l - pad.r,
       height: Math.max(0, y(PERMITTED_MIN_C) - y(PERMITTED_MAX_C)),
-      fill: "rgba(22,107,84,.05)",
-      stroke: "rgba(24,56,46,.2)",
+      fill: "rgba(21,88,201,.12)",
+      stroke: "rgba(166,176,197,.25)",
       "stroke-dasharray": "2 4",
     })
   );
   for (const t of [PERMITTED_MIN_C, PERMITTED_MAX_C]) {
-    const label = mk("text", { x: 6, y: y(t) + 4, fill: "#586b62", "font-size": "12", "font-family": "Arial" });
+    const label = mk("text", { x: 6, y: y(t) + 4, fill: "#A6B0C5", "font-size": "12", "font-family": "Arial" });
     label.textContent = `${t}°C`;
     svg.appendChild(label);
   }
@@ -477,9 +477,9 @@ function renderChart(points, marks) {
     .map((p, i) => `${i ? "L" : "M"}${x(p.minute).toFixed(1)},${y(p.cargo_temp_c).toFixed(1)}`)
     .join(" ");
   /* The whole trip faintly, and the part the replay has reached in white. */
-  svg.appendChild(mk("path", { d, fill: "none", stroke: "#a9bbaa", "stroke-width": 2, "stroke-linejoin": "round" }));
+  svg.appendChild(mk("path", { d, fill: "none", stroke: "#506078", "stroke-width": 2, "stroke-linejoin": "round" }));
   svg.appendChild(
-    mk("path", { d, fill: "none", stroke: "#166b54", "stroke-width": 2.2, "stroke-linejoin": "round", "clip-path": "url(#played)" })
+    mk("path", { d, fill: "none", stroke: "#1558C9", "stroke-width": 2.2, "stroke-linejoin": "round", "clip-path": "url(#played)" })
   );
 
   marks.forEach((m, idx) => {
@@ -498,23 +498,23 @@ function renderChart(points, marks) {
      * one to the right - unless that would run off the chart. */
     const left = (idx === 0 && x(m.minute) - w - 6 > pad.l) || x(m.minute) + w + 6 > W - pad.r;
     const lx = left ? x(m.minute) - w - 6 : x(m.minute) + 6;
-    svg.appendChild(mk("rect", { x: lx, y: pad.t - 24, width: w, height: 20, rx: 10, fill: "#f6f7f2", stroke: m.colour }));
-    const label = mk("text", { x: lx + 8, y: pad.t - 10, fill: "#18382e", "font-size": "12", "font-weight": "700", "font-family": "Arial" });
+    svg.appendChild(mk("rect", { x: lx, y: pad.t - 24, width: w, height: 20, rx: 10, fill: "#030407", stroke: m.colour }));
+    const label = mk("text", { x: lx + 8, y: pad.t - 10, fill: "#F1F4FC", "font-size": "12", "font-weight": "700", "font-family": "Arial" });
     label.textContent = text;
     svg.appendChild(label);
   });
 
-  const axis = mk("text", { x: W - pad.r, y: H - 8, fill: "#586b62", "font-size": "12", "text-anchor": "end", "font-family": "Arial" });
+  const axis = mk("text", { x: W - pad.r, y: H - 8, fill: "#A6B0C5", "font-size": "12", "text-anchor": "end", "font-family": "Arial" });
   axis.textContent = "minutes since departure";
   svg.appendChild(axis);
 
-  const head = mk("line", { y1: pad.t, y2: H - pad.b, stroke: "#18382e", "stroke-opacity": 0.35, "stroke-width": 1 });
-  const dot = mk("circle", { r: 5, fill: "#18382e", stroke: "#f6f7f2", "stroke-width": 2 });
+  const head = mk("line", { y1: pad.t, y2: H - pad.b, stroke: "#F1F4FC", "stroke-opacity": 0.35, "stroke-width": 1 });
+  const dot = mk("circle", { r: 5, fill: "#F1F4FC", stroke: "#030407", "stroke-width": 2 });
   svg.append(head, dot);
 
   el("#legend").innerHTML = [
-    `<span><i class="swatch" style="background:#18382e"></i>reported cargo temperature</span>`,
-    `<span><i class="swatch box" style="background:rgba(22,107,84,.08);border:1px dashed rgba(24,56,46,.4)"></i>safe range (${PERMITTED_MIN_C}–${PERMITTED_MAX_C} °C, from the signed shipping papers)</span>`,
+    `<span><i class="swatch" style="background:#F1F4FC"></i>reported cargo temperature</span>`,
+    `<span><i class="swatch box" style="background:rgba(21,88,201,.18);border:1px dashed rgba(166,176,197,.4)"></i>safe range (${PERMITTED_MIN_C}–${PERMITTED_MAX_C} °C, from the signed shipping papers)</span>`,
     ...marks
       .filter((m) => m.minute !== null && m.minute !== undefined)
       .map(
@@ -650,7 +650,7 @@ function drawMap(trip, sites) {
   svg.innerHTML = "";
 
   /* A dotted field, for texture. */
-  const dots = mk("g", { fill: "#c4d1c2" });
+  const dots = mk("g", { fill: "#1F2C44" });
   for (let gx = 20; gx < 800; gx += 24) for (let gy = 20; gy < 380; gy += 24) dots.appendChild(mk("circle", { cx: gx, cy: gy, r: 1.3 }));
   svg.appendChild(dots);
 
@@ -662,7 +662,7 @@ function drawMap(trip, sites) {
     const pos = SITE_POS[s.id];
     if (!pos) continue;
     const [sx, sy] = pos;
-    svg.appendChild(mk("rect", { x: sx - 7, y: sy - 7, width: 14, height: 14, rx: 3, fill: s.full ? "#f6f7f2" : "#18382e", stroke: "#18382e", "stroke-width": 2 }));
+    svg.appendChild(mk("rect", { x: sx - 7, y: sy - 7, width: 14, height: 14, rx: 3, fill: s.full ? "#030407" : "#F1F4FC", stroke: "#F1F4FC", "stroke-width": 2 }));
     const t = mk("text", { x: sx + 14, y: sy - 2, class: "map-city" });
     t.textContent = s.name;
     const t2 = mk("text", { x: sx + 14, y: sy + 14, class: "map-site" });
@@ -676,7 +676,7 @@ function drawMap(trip, sites) {
   /* Labels sit above-left of the origin and above-right of the destination,
    * clear of the route line, which leaves one and arrives at the other. */
   for (const [p, name, dx, dy] of [[start, trip.from, -8, -16], [end, trip.to, 14, -14]]) {
-    svg.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 7, fill: "#f6f7f2", stroke: "#18382e", "stroke-width": 3 }));
+    svg.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 7, fill: "#030407", stroke: "#F1F4FC", "stroke-width": 3 }));
     const t = mk("text", { x: p.x + dx, y: p.y + dy, class: "map-city" });
     t.textContent = name;
     svg.appendChild(t);
@@ -689,8 +689,8 @@ function drawMap(trip, sites) {
   const pin = mk("g", { class: "truck-pin" });
   pin.innerHTML =
     `<circle class="halo" r="16" stroke-width="3"/>` +
-    `<circle r="11" fill="#18382e"/>` +
-    `<rect x="-6" y="-4" width="8" height="7" rx="1" fill="#f6f7f2"/><rect x="2" y="-2" width="4" height="5" rx="1" fill="#f6f7f2"/>`;
+    `<circle r="11" fill="#F1F4FC"/>` +
+    `<rect x="-6" y="-4" width="8" height="7" rx="1" fill="#030407"/><rect x="2" y="-2" width="4" height="5" rx="1" fill="#030407"/>`;
   svg.appendChild(pin);
 
   return { path: bg, done, pin, len };
@@ -952,7 +952,7 @@ function sparkline(points, key, colour) {
     mk("rect", {
       x: x(SLOPE_FROM), y: pad,
       width: Math.max(1, x(SLOPE_TO) - x(SLOPE_FROM)), height: H - 2 * pad,
-      fill: "rgba(22,107,84,.08)",
+      fill: "rgba(21,88,201,.18)",
     })
   );
   svg.appendChild(
@@ -988,7 +988,7 @@ function renderComparison(loaded) {
     const charts = document.createElement("div");
     charts.className = "cmp-charts";
     for (const [key, colour, unit, dp, title] of [
-      ["cargo_temp_c", "#166b54", "°C / min", 3, "Cargo temperature"],
+      ["cargo_temp_c", "#1558C9", "°C / min", 3, "Cargo temperature"],
       ["compressor_rpm", "var(--cyan)", "rpm / min", 1, "Cooling unit speed"],
     ]) {
       const value = slope(points, key);

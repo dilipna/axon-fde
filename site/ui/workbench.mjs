@@ -1,4 +1,4 @@
-import { getStory, readStudyLocation, studyHash } from "./story.mjs?v=coldpath-1";
+import { getStory, readStudyLocation, studyHash } from "./story.mjs?v=coldpath-midnight-1";
 import {
   verifyBundle,
   rankPlanning,
@@ -6,7 +6,7 @@ import {
   planningKey,
   makePacket,
   makeBrief,
-} from "./workbench-core.mjs?v=coldpath-1";
+} from "./workbench-core.mjs?v=coldpath-midnight-1";
 const $ = (id) => document.getElementById(id);
 const labels = (id) =>
   id.replaceAll("_", " ").replace(/^./, (s) => s.toUpperCase());
@@ -118,7 +118,7 @@ function renderSignal() {
   );
   chart.append(
     svg("line", { x1: x(i), y1: 20, x2: x(i), y2: 215, class: "chart-cursor" }),
-    svg("circle", { cx: x(i), cy: y(p.cargo_temp_c), r: 5, fill: "#166b54" }),
+    svg("circle", { cx: x(i), cy: y(p.cargo_temp_c), r: 5, fill: "#D4FF24" }),
   );
   chart.append(
     svg(
