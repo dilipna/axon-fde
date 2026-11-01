@@ -1137,8 +1137,8 @@ dialog .cp-eyebrow {
   color: #d4ff24;
 }
 .workspace-heading h1 {
-  font-family: "Arial Black", "Aptos Display", "Segoe UI", Arial, sans-serif;
-  font-weight: 850;
+  font-family: var(--font-display);
+  font-weight: 700;
   letter-spacing: -1.6px;
 }
 .demo-label {

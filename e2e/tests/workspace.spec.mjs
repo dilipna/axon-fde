@@ -32,6 +32,22 @@ test.beforeEach(async ({ page, baseURL }) => {
   );
   await page.emulateMedia({ reducedMotion: "reduce" });
 });
+async function expectTypography(page) {
+  const typography = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const headline = document.querySelector("h1");
+    return {
+      displayLoaded: document.fonts.check('700 24px "Space Grotesk"'),
+      bodyLoaded: document.fonts.check('400 16px "Manrope"'),
+      heading: getComputedStyle(headline).fontFamily,
+      body: getComputedStyle(document.body).fontFamily,
+    };
+  });
+  expect(typography.displayLoaded).toBe(true);
+  expect(typography.bodyLoaded).toBe(true);
+  expect(typography.heading).toContain("Space Grotesk");
+  expect(typography.body).toContain("Manrope");
+}
 async function open(page) {
   await page.goto("workbench.html");
   await expect(page.locator("#app-shell")).toBeVisible();
@@ -139,6 +155,7 @@ for (const width of [1440, 768, 390, 360])
     await expect(page.locator("#notes")).toHaveValue(
       "Check facility capacity before approving.",
     );
+    await expectTypography(page);
     await page.screenshot({
       path: info.outputPath(`workspace-${width}.png`),
       fullPage: true,
@@ -424,6 +441,7 @@ for (const width of [1440, 768, 390])
       expect(await response.json()).toEqual(saved);
     }
     await page.locator("#engineering").scrollIntoViewIfNeeded();
+    await expectTypography(page);
     await page.screenshot({
       path: info.outputPath(`original-engineering-${width}.png`),
     });
@@ -470,6 +488,7 @@ for (const width of [1440, 768, 390, 360])
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
+    await expectTypography(page);
     await page.screenshot({
       path: info.outputPath(`coldpath-overview-${width}.png`),
       fullPage: true,

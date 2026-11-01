@@ -10,6 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 ROOT_ASSETS = ("index.html", "workbench.html", "engineering.html")
 UI_ASSETS = (
     "coldpath.css",
+    "fonts/SpaceGrotesk-Variable.ttf",
+    "fonts/SpaceGrotesk-OFL.txt",
+    "fonts/Manrope-Variable.ttf",
+    "fonts/Manrope-OFL.txt",
     "story.mjs",
     "overview.mjs",
     "app.css",
@@ -30,11 +34,14 @@ def sync(*, check: bool = False) -> None:
             source = ROOT / "apps/control_tower" / name
             target = destination / name
             if check:
-                if not target.exists() or source.read_text(encoding="utf-8") != target.read_text(
-                    encoding="utf-8"
+                if not target.exists() or (
+                    source.read_bytes() != target.read_bytes()
+                    if source.suffix == ".ttf"
+                    else source.read_text(encoding="utf-8") != target.read_text(encoding="utf-8")
                 ):
                     raise ValueError("Static UI is stale: " + name)
             else:
+                target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
 
 

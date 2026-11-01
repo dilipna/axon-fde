@@ -1,3 +1,18 @@
+/* Self-hosted OFL fonts: no third-party request is needed to render the UI. */
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("fonts/SpaceGrotesk-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Manrope";
+  src: url("fonts/Manrope-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
 /* Coldpath: a plain-language product surface over inspectable engineering. */
 :root {
   color-scheme: dark;
@@ -27,7 +42,8 @@
   --rose-ink: #ffa8b7;
   --good: #d4ff24;
   --good-ink: #d4ff24;
-  --font: "Aptos", "Segoe UI", Arial, sans-serif;
+  --font: "Manrope", "Segoe UI", Arial, sans-serif;
+  --font-display: "Space Grotesk", "Segoe UI", Arial, sans-serif;
 }
 * {
   box-sizing: border-box;
@@ -793,7 +809,7 @@
   background: #030407;
 }
 .cp-brand {
-  font-weight: 850;
+  font-weight: 700;
 }
 .cp-brand-dot {
   color: #d4ff24;
@@ -832,10 +848,10 @@
   position: relative;
 }
 .cp-hero h1 {
-  font-family: "Arial Black", "Aptos Display", "Segoe UI", Arial, sans-serif;
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-weight: 700;
   line-height: 1.03;
-  letter-spacing: -3.3px;
+  letter-spacing: -0.055em;
 }
 .cp-hero h1 em {
   color: #d4ff24;
@@ -948,8 +964,8 @@
 .cp-how h2,
 .cp-story-banner h2,
 .cp-proof-intro h2 {
-  font-family: "Arial Black", "Aptos Display", "Segoe UI", Arial, sans-serif;
-  font-weight: 850;
+  font-family: var(--font-display);
+  font-weight: 700;
   letter-spacing: -1.8px;
 }
 .cp-how-grid article {
@@ -959,7 +975,7 @@
 .cp-step-number {
   display: block;
   font-size: 36px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   color: #d4ff24;
   letter-spacing: -1.5px;
@@ -1088,4 +1104,28 @@
   transform: none;
   background: #111a2b;
   color: #a6b0c5;
+}
+
+/* Geometric display type, with quieter reading text for sources and briefs. */
+h1,
+h2,
+h3,
+h4,
+.cp-brand,
+.logo,
+.workspace-brand,
+.cp-button,
+.primary,
+.chapter-button,
+.cp-eyebrow {
+  font-family: var(--font-display);
+}
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 700;
+}
+body {
+  font-synthesis: none;
 }

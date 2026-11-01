@@ -69,6 +69,10 @@ def export(out: Path = OUT) -> list[Path]:
 
     for name in (
         "coldpath.css",
+        "fonts/SpaceGrotesk-Variable.ttf",
+        "fonts/SpaceGrotesk-OFL.txt",
+        "fonts/Manrope-Variable.ttf",
+        "fonts/Manrope-OFL.txt",
         "story.mjs",
         "overview.mjs",
         "app.css",
@@ -81,6 +85,7 @@ def export(out: Path = OUT) -> list[Path]:
         "workbench-manifest.json",
         "workbench-parity.json",
     ):
+        (out / "ui" / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(UI / name, out / "ui" / name)
         written.append(out / "ui" / name)
     shutil.copy2(UI / "index.html", out / "index.html")
