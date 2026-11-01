@@ -15,6 +15,7 @@ Dockerfile text eol=lf
 *.cmd     text eol=crlf
 
 # Binary assets: never touch.
+*.ttf     binary
 *.png     binary
 *.jpg     binary
 *.jpeg    binary
