@@ -692,3 +692,90 @@ test("cached older engineering markup receives a safe readiness message before p
     release();
   }
 });
+
+for (const width of [1440, 390]) {
+  test(`illustration motion runs, pauses by keyboard and rests offscreen at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("./");
+    const art = page.locator(".cp-delivery-art");
+    await art.scrollIntoViewIfNeeded();
+    await expect(art).toHaveAttribute("data-motion", "running");
+    await expect(art).toHaveAttribute("data-in-view", "true");
+    const truck = art.locator(".cp-truck");
+    const firstPosition = await truck.evaluate(
+      (node) => getComputedStyle(node).translate,
+    );
+    await expect
+      .poll(() => truck.evaluate((node) => getComputedStyle(node).translate))
+      .not.toBe(firstPosition);
+    const toggle = page.getByRole("button", {
+      name: "Pause illustration",
+      exact: true,
+    });
+    await toggle.focus();
+    await toggle.press("Enter");
+    await expect(art).toHaveAttribute("data-motion", "paused");
+    await expect(
+      page.getByRole("button", { name: "Play illustration", exact: true }),
+    ).toBeVisible();
+    expect(
+      await truck.evaluate((node) => getComputedStyle(node).animationPlayState),
+    ).toBe("paused");
+    await page
+      .getByRole("button", { name: "Play illustration", exact: true })
+      .click();
+    await expect(art).toHaveAttribute("data-motion", "running");
+    expect(
+      await truck.evaluate((node) => getComputedStyle(node).animationPlayState),
+    ).toBe("running");
+    await page.locator("footer").scrollIntoViewIfNeeded();
+    await expect(art).toHaveAttribute("data-in-view", "false");
+    expect(
+      await truck.evaluate((node) => getComputedStyle(node).animationPlayState),
+    ).toBe("paused");
+    await art.scrollIntoViewIfNeeded();
+    await expect(art).toHaveAttribute("data-in-view", "true");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(art).toHaveAttribute("data-motion", "paused");
+    await expect(
+      page.getByRole("button", { name: "Motion reduced", exact: true }),
+    ).toBeDisabled();
+    expect(
+      await art.evaluate(
+        (node) =>
+          node
+            .getAnimations({ subtree: true })
+            .filter((animation) => animation.playState === "running").length,
+      ),
+    ).toBe(0);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
+}
+test("illustration respects reduced motion from the initial load", async ({
+  page,
+}) => {
+  await page.goto("./");
+  const art = page.locator(".cp-delivery-art");
+  await expect(art).toHaveAttribute("data-motion", "paused");
+  await expect(
+    page.getByRole("button", { name: "Motion reduced", exact: true }),
+  ).toBeDisabled();
+  expect(
+    await art.evaluate(
+      (node) =>
+        node
+          .getAnimations({ subtree: true })
+          .filter((animation) => animation.playState === "running").length,
+    ),
+  ).toBe(0);
+  await expect(
+    art.getByText("Illustration · not live telemetry", { exact: true }),
+  ).toBeVisible();
+});

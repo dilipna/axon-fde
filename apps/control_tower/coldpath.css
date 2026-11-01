@@ -387,7 +387,6 @@
   stroke-width: 3;
   fill: none;
   stroke-dasharray: 400;
-  animation: cp-draw 2s ease both;
 }
 .cp-signal-limit {
   stroke: #a6b0c5;
@@ -1128,4 +1127,121 @@ h4 {
 }
 body {
   font-synthesis: none;
+}
+
+/* Decorative delivery motion is explicit, pausable and inactive off screen. */
+.cp-motion-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  color: #e3ecff;
+  font-size: 10px;
+}
+.cp-motion-toolbar button {
+  border: 1px solid #a8c5ff;
+  border-radius: 30px;
+  background: #030407;
+  color: #d4ff24;
+  min-height: 38px;
+  padding: 7px 12px;
+  font: 600 11px var(--font);
+  cursor: pointer;
+}
+.cp-motion-toolbar button:disabled {
+  color: #dae6ff;
+  cursor: default;
+}
+.cp-route-line {
+  height: 2px;
+  border: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    #c8dbff 0 7px,
+    transparent 7px 13px
+  );
+  background-size: 26px 2px;
+  animation: cp-route-flow 1.4s linear infinite paused;
+}
+.cp-truck {
+  animation: cp-delivery-drift 7s ease-in-out infinite alternate paused;
+}
+.cp-truck i {
+  background: conic-gradient(
+    #030407 0deg 160deg,
+    #d4ff24 160deg 195deg,
+    #030407 195deg
+  );
+  animation: cp-wheel-roll 2s linear infinite paused;
+}
+.cp-trailer b {
+  display: inline-block;
+  animation: cp-cooling-fan 9s linear infinite paused;
+}
+.cp-signal-sweep {
+  fill: none;
+  stroke: #f1f4fc;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 18 400;
+  stroke-dashoffset: 420;
+  animation: cp-signal-flow 5s linear infinite paused;
+  opacity: 0;
+}
+.cp-delivery-art[data-motion="running"] .cp-signal-sweep {
+  opacity: 1;
+}
+.cp-delivery-art[data-motion="running"][data-in-view="true"][data-page-active="true"]
+  :is(.cp-route-line, .cp-truck, .cp-truck i, .cp-trailer b, .cp-signal-sweep) {
+  animation-play-state: running;
+}
+@keyframes cp-delivery-drift {
+  from {
+    translate: -12px 0;
+  }
+  to {
+    translate: 16px -3px;
+  }
+}
+@keyframes cp-route-flow {
+  to {
+    background-position: 26px 0;
+  }
+}
+@keyframes cp-wheel-roll {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes cp-cooling-fan {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes cp-signal-flow {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .cp-how-grid article,
+  .cp-mini-brief {
+    transition:
+      translate 220ms ease,
+      box-shadow 220ms ease;
+  }
+  .cp-how-grid article:is(:hover, :focus-within) {
+    translate: 0 -5px;
+  }
+  .cp-mini-brief:hover {
+    translate: 0 -4px;
+    box-shadow: 0 16px 40px #d4ff2418;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-signal-sweep {
+    display: none;
+  }
 }
