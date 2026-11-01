@@ -398,6 +398,8 @@ for (const width of [1440, 768, 390])
     await page.goto("engineering.html");
     await expect(page.locator("#timeline .tstep").first()).toBeVisible();
     await expect(page.locator("#claim-grid .claim").first()).toBeVisible();
+    await expect(page.locator("#r-play")).toBeEnabled({ timeout: 20000 });
+    await expect(page.locator("#replay")).toHaveAttribute("aria-busy", "false");
     await page.locator("#r-play").click();
     await expect(page.locator("#r-play")).toContainText("Pause");
     await page.locator("#r-restart").click();
@@ -559,4 +561,115 @@ test("existing evidence bookmarks still reach the preserved engineering page", a
   await expect(
     page.getByRole("link", { name: "Coldpath home", exact: true }),
   ).toContainText("Coldpath");
+});
+
+test("engineering replay stays disabled until its recorded readings and handlers are ready", async ({
+  page,
+}, info) => {
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  let intercepted = false;
+  await page.route(
+    "**/api/v1/control/telemetry/compressor_degradation_pharma_01",
+    async (route) => {
+      intercepted = true;
+      await gate;
+      await route.continue();
+    },
+  );
+  try {
+    await page.goto("engineering.html", { waitUntil: "domcontentloaded" });
+    await expect.poll(() => intercepted, { timeout: 20000 }).toBe(true);
+    for (const id of ["r-play", "r-restart", "r-speed", "r-scrub"])
+      await expect(page.locator("#" + id)).toBeDisabled();
+    await expect(page.locator("#replay")).toHaveAttribute("aria-busy", "true");
+    await expect(page.locator("#replay-readiness")).toContainText(
+      "Loading the recorded readings",
+    );
+    await page
+      .locator("#replay")
+      .screenshot({ path: info.outputPath("replay-loading.png") });
+    release();
+    await expect(page.locator("#r-play")).toBeEnabled({ timeout: 20000 });
+    await expect(page.locator("#replay-readiness")).toContainText(
+      "Recorded replay ready",
+    );
+    await page.locator("#r-play").click();
+    await expect(page.locator("#r-play")).toContainText("Pause");
+    await page.locator("#r-play").click();
+    await expect(page.locator("#r-play")).toContainText("Play");
+    await page
+      .locator("#replay")
+      .screenshot({ path: info.outputPath("replay-ready.png") });
+  } finally {
+    release();
+  }
+});
+test("unavailable recorded readings keep every replay control disabled without invented data", async ({
+  page,
+}, info) => {
+  await page.route(
+    "**/api/v1/control/telemetry/compressor_degradation_pharma_01",
+    (route) =>
+      route.fulfill({
+        status: 503,
+        json: {
+          detail: "Recorded telemetry unavailable for the failure-path check",
+        },
+      }),
+  );
+  await page.goto("engineering.html");
+  await expect(page.locator("#replay-readiness")).toContainText(
+    "Recorded readings are unavailable",
+  );
+  await expect(page.locator("#replay")).toHaveAttribute("aria-busy", "false");
+  for (const id of ["r-play", "r-restart", "r-speed", "r-scrub"])
+    await expect(page.locator("#" + id)).toBeDisabled();
+  await expect(page.locator("#g-temp")).toHaveText("—");
+  await page
+    .locator("#replay")
+    .screenshot({ path: info.outputPath("replay-unavailable.png") });
+});
+
+test("cached older engineering markup receives a safe readiness message before playback", async ({
+  page,
+}) => {
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  let intercepted = false;
+  await page.route("**/engineering.html", async (route) => {
+    const response = await route.fetch();
+    let html = await response.text();
+    html = html
+      .replace(/<p\s+id="replay-readiness"[\s\S]*?<\/p>/, "")
+      .replace(/\sdisabled(?:="")?/g, "");
+    await route.fulfill({ response, body: html });
+  });
+  await page.route(
+    "**/api/v1/control/telemetry/compressor_degradation_pharma_01",
+    async (route) => {
+      intercepted = true;
+      await gate;
+      await route.continue();
+    },
+  );
+  try {
+    await page.goto("engineering.html", { waitUntil: "domcontentloaded" });
+    await expect.poll(() => intercepted, { timeout: 20000 }).toBe(true);
+    await expect(page.locator("#replay-readiness")).toHaveCount(1);
+    await expect(page.locator("#replay-readiness")).toContainText(
+      "Loading the recorded readings",
+    );
+    await expect(page.locator("#r-play")).toBeDisabled();
+    release();
+    await expect(page.locator("#r-play")).toBeEnabled({ timeout: 20000 });
+    await page.locator("#r-play").click();
+    await expect(page.locator("#r-play")).toContainText("Pause");
+  } finally {
+    release();
+  }
 });

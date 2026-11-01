@@ -737,6 +737,25 @@ function buildEvents(points, trace, trip) {
   return events.sort((a, b) => a.minute - b.minute);
 }
 
+function setReplayState(state) {
+  const ready=state==="ready";
+  for(const selector of ["#r-play","#r-restart","#r-speed","#r-scrub"])el(selector).disabled=!ready;
+  el("#replay").setAttribute("aria-busy",String(state==="loading"));
+  el("#replay").dataset.replayState=state;
+  let readiness=el("#replay-readiness");
+  if(!readiness){
+    // Older cached page markup has these controls but no readiness message.
+    readiness=document.createElement("p");readiness.id="replay-readiness";
+    readiness.setAttribute("role","status");readiness.setAttribute("aria-live","polite");
+    el("#replay .controls").before(readiness);
+  }
+  readiness.textContent=ready
+    ? "Recorded replay ready. Play, pause or drag to explore."
+    : state==="loading"
+      ? "Loading the recorded readings. Playback will be available when they are ready."
+      : "Recorded readings are unavailable. Reload to try again; playback remains disabled.";
+}
+
 function startReplay(points, trace) {
   const trip = parseTrip(trace);
   const sites = parseSites(trace);
@@ -860,9 +879,11 @@ function startReplay(points, trace) {
     /* No autoplay: show the moment that matters. */
     minute = f.baseline_alarm_minute ?? last;
     render();
+    setReplayState("ready");
     return;
   }
   render();
+  setReplayState("ready");
   const io = new IntersectionObserver(
     (entries) => {
       if (entries.some((e) => e.isIntersecting)) {
@@ -1113,6 +1134,7 @@ function revealOnScroll() {
 /* ── Boot ─────────────────────────────────────────────────────────── */
 
 (async function main() {
+  setReplayState("loading");
   el("#env-range").textContent = `${PERMITTED_MIN_C.toFixed(0)} and ${PERMITTED_MAX_C.toFixed(0)} °C`;
 
   /* Settled, not all-or-nothing: a missing demo trace must not blank the
@@ -1128,6 +1150,7 @@ function revealOnScroll() {
   if (trace.status !== "fulfilled") {
     for (const sel of ["#timeline", "#legend", "#feed", "#hyps"]) showEmpty(el(sel), trace.reason);
     el("#replay-sub").textContent = "No recorded run to replay yet.";
+    setReplayState("unavailable");
     revealOnScroll();
     return;
   }
@@ -1143,6 +1166,7 @@ function revealOnScroll() {
   } catch (err) {
     showEmpty(el("#legend"), err);
     showEmpty(el("#feed"), err);
+    setReplayState("unavailable");
   }
 
   try {

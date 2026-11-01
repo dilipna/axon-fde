@@ -8,8 +8,8 @@
       name="description"
       content="Coldpath predicts when a refrigerated shipment is about to spoil, before the temperature alarm fires, and acts only with a human's approval."
     />
-    <link rel="stylesheet" href="ui/app.css?v=coldpath-midnight-1" />
-    <link rel="stylesheet" href="ui/coldpath.css?v=coldpath-midnight-1" />
+    <link rel="stylesheet" href="ui/app.css?v=coldpath-midnight-2" />
+    <link rel="stylesheet" href="ui/coldpath.css?v=coldpath-midnight-2" />
   </head>
   <body>
     <!-- ── Navigation ─────────────────────────────────────────────────────── -->
@@ -477,7 +477,12 @@
       </section>
 
       <!-- ── Live replay ────────────────────────────────────────────────────── -->
-      <section class="section" id="replay">
+      <section
+        class="section"
+        id="replay"
+        aria-busy="true"
+        data-replay-state="loading"
+      >
         <p class="kicker">Live replay</p>
         <h2>One shipment, minute by minute.</h2>
         <p class="sub" id="replay-sub">Loading the recorded run…</p>
@@ -527,20 +532,25 @@
                 ><span class="v" id="g-codes">—</span>
               </div>
             </div>
+            <p id="replay-readiness" role="status" aria-live="polite">
+              Loading the recorded readings. Playback will be available when
+              they are ready.
+            </p>
             <div class="controls">
-              <button class="btn btn-small" id="r-play" type="button">
+              <button class="btn btn-small" id="r-play" type="button" disabled>
                 ▶ Play
               </button>
               <button
                 class="btn btn-small btn-ghost"
                 id="r-restart"
                 type="button"
+                disabled
               >
                 ↺ Restart
               </button>
               <label class="speed"
                 >Speed
-                <select id="r-speed">
+                <select id="r-speed" disabled>
                   <option value="4">4 min / s</option>
                   <option value="8" selected>8 min / s</option>
                   <option value="20">20 min / s</option>
@@ -550,6 +560,7 @@
             <input
               type="range"
               id="r-scrub"
+              disabled
               min="0"
               max="239"
               value="0"
@@ -791,6 +802,6 @@
       </p>
     </footer>
 
-    <script type="module" src="ui/app.js?v=coldpath-midnight-1"></script>
+    <script type="module" src="ui/app.js?v=coldpath-midnight-2"></script>
   </body>
 </html>
