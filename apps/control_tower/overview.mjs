@@ -100,6 +100,22 @@ if (typeof document !== "undefined") {
     };
     opener.hidden = false;
     opener.addEventListener("click", show);
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key !== "Tab") return;
+      const controls = [
+        ...dialog.querySelectorAll("button:not(:disabled), a[href]"),
+      ].filter((node) => !node.hidden);
+      const first = controls[0],
+        last = controls.at(-1);
+      if (
+        (!event.shiftKey && document.activeElement === last) ||
+        (event.shiftKey && document.activeElement === first)
+      ) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
+    });
+
     dialog
       .querySelectorAll("[data-intro-close]")
       .forEach((button) => button.addEventListener("click", close));
