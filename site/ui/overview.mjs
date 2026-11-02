@@ -68,3 +68,66 @@ if (typeof document !== "undefined") {
     render();
   }
 }
+
+// A session-scoped introduction; no account, tracking or persistent user data.
+if (typeof document !== "undefined") {
+  const dialog = document.querySelector("#intro-dialog");
+  const opener = document.querySelector("[data-intro-open]");
+  if (dialog && opener && typeof dialog.showModal === "function") {
+    const key = "coldpath-intro-v1";
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem(key) === "seen";
+    } catch {
+      /* Storage may be unavailable. */
+    }
+    const remember = () => {
+      try {
+        sessionStorage.setItem(key, "seen");
+      } catch {
+        /* Dismissal must still work. */
+      }
+    };
+    const show = () => {
+      if (!dialog.open) {
+        dialog.showModal();
+        document.documentElement.classList.add("cp-intro-active");
+      }
+    };
+    const close = () => {
+      remember();
+      dialog.close();
+    };
+    opener.hidden = false;
+    opener.addEventListener("click", show);
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key !== "Tab") return;
+      const controls = [
+        ...dialog.querySelectorAll("button:not(:disabled), a[href]"),
+      ].filter((node) => !node.hidden);
+      const first = controls[0],
+        last = controls.at(-1);
+      if (
+        (!event.shiftKey && document.activeElement === last) ||
+        (event.shiftKey && document.activeElement === first)
+      ) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
+    });
+
+    dialog
+      .querySelectorAll("[data-intro-close]")
+      .forEach((button) => button.addEventListener("click", close));
+    dialog
+      .querySelector("[data-intro-dismiss]")
+      .addEventListener("click", close);
+    dialog.addEventListener("close", () => {
+      remember();
+      document.documentElement.classList.remove("cp-intro-active");
+      opener.focus({ preventScroll: true });
+    });
+    // Preserve direct evidence bookmarks and the existing engineering redirects.
+    if (!seen && !window.location.hash) show();
+  }
+}
