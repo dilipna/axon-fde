@@ -7,41 +7,73 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
     />
-    <title>Coldpath — Live simulation</title>
+    <title>Axon Services — Operations</title>
     <link rel="stylesheet" href="ui/coldpath.css?v=live-1" />
-    <link rel="stylesheet" href="ui/live.css?v=live-1" />
+    <link rel="stylesheet" href="ui/live.css?v=axon-1" />
   </head>
-  <body class="cp-page cp-live">
+  <body class="cp-page cp-live axon-portal">
     <a class="cp-skip" href="#live-main">Skip to live workspace</a>
-    <header class="cp-header">
-      <a class="cp-brand" href="./"
-        >Coldpath<span class="cp-brand-dot">.</span></a
+    <aside class="axon-sidebar" aria-label="Axon Services navigation">
+      <a class="axon-logo" href="./"
+        ><span aria-hidden="true">A</span>
+        <div>AXON SERVICES<small>OPERATIONS PLATFORM</small></div></a
       >
-      <nav aria-label="Main navigation">
-        <a href="workbench.html">Evidence workspace</a
-        ><a href="./#engagement">Case study</a>
+      <div class="axon-tenant">
+        <b>Hyderabad operations</b><span>Dispatch workspace</span>
+      </div>
+      <nav aria-label="Operations">
+        <button data-view="overview" aria-current="page">
+          ◫ <span>Overview</span></button
+        ><button data-view="shipments">▤ <span>Shipments</span></button
+        ><button data-view="exceptions">
+          ◇ <span>Exceptions</span><b id="exception-nav-count">0</b></button
+        ><button data-view="activity">⌁ <span>Activity log</span></button
+        ><button data-view="handover">↗ <span>Shift handover</span></button
+        ><button data-view="settings">
+          ⚙ <span>Workspace settings</span>
+        </button>
       </nav>
-    </header>
+      <div class="axon-sidebar-foot">
+        <b>Training workspace</b>
+        <p>Simulated telemetry · local session</p>
+        <a href="workbench.html">Recorded evidence ↗</a>
+      </div>
+    </aside>
+    <div class="axon-topbar">
+      <div>
+        <span>Axon Services</span><span aria-hidden="true"> / </span
+        ><b id="view-title">Overview</b>
+      </div>
+      <span class="axon-environment">Training environment</span>
+    </div>
     <main id="live-main" class="live-wrap">
       <div class="live-heading">
         <div>
-          <p class="cp-eyebrow">OPERATIONS / LIVE SIMULATION</p>
-          <h1>Your fleet. A moving picture.</h1>
-          <p>Fresh readings, visible decisions and outcomes you can follow.</p>
+          <p class="cp-eyebrow">AXON SERVICES / CONTROL TOWER</p>
+          <h1>Operations overview</h1>
+          <p>
+            Track shipment conditions, prioritize exceptions and keep every
+            response accountable.
+          </p>
         </div>
         <span class="live-badge" id="run-status"
           >Starting simulated stream</span
         >
       </div>
       <div class="live-disclosure">
-        <b>SIMULATED · browser-local</b
+        <b>Training workspace</b
         ><span
-          >Generated now, not a recording. One second = one simulated minute.
-          Rule-based decisions; no model calls or real dispatch. Runs while this
-          tab is visible.</span
-        >
+          >Simulated telemetry; no carrier connection. Changes and responses
+          apply to this session.</span
+        ><button id="open-settings" type="button">
+          Environment details ↗
+        </button>
       </div>
-      <section class="live-toolbar" aria-label="Simulation controls">
+      <section
+        class="live-toolbar"
+        aria-label="Simulation controls"
+        data-portal-view="overview settings"
+      >
         <button id="pause-run" class="cp-button">Pause stream</button
         ><label
           >Speed<select id="run-speed">
@@ -60,21 +92,109 @@
         ><span id="run-clock" role="timer">Minute 0</span>
       </section>
       <p id="live-notice" role="status" aria-live="polite"></p>
-      <div class="live-metrics">
-        <div><span>Simulated shipments</span><b>3</b></div>
+      <div class="live-metrics" data-portal-view="overview">
+        <div><span>Shipments monitored</span><b>3</b></div>
         <div><span>Need review</span><b id="review-count">0</b></div>
         <div><span>Verified recoveries</span><b id="recovery-count">0</b></div>
         <div><span>Samples generated</span><b id="sample-count">0</b></div>
       </div>
-      <div class="live-grid">
-        <section class="live-panel">
+      <section
+        class="live-panel axon-register"
+        data-portal-view="overview shipments exceptions"
+        aria-labelledby="register-title"
+      >
+        <div class="live-panel-heading">
+          <div>
+            <p class="axon-kicker">DISPATCH REGISTER</p>
+            <h2 id="register-title">Shipment register</h2>
+          </div>
+          <span id="register-count"></span>
+        </div>
+        <div class="axon-filters">
+          <label
+            >Search shipments<input
+              id="shipment-search"
+              type="search"
+              placeholder="Shipment ID or cargo"
+              maxlength="100" /></label
+          ><label
+            >Status<select id="shipment-filter">
+              <option value="all">All shipments</option>
+              <option value="review">Needs review</option>
+              <option value="monitoring">Monitoring</option>
+              <option value="recovered">Recovery verified</option>
+            </select></label
+          ><button id="clear-filters">Clear filters</button>
+        </div>
+        <div class="axon-table-wrap">
+          <table class="axon-table">
+            <thead>
+              <tr>
+                <th>Shipment / cargo</th>
+                <th>Temperature</th>
+                <th>Permitted range</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="shipment-rows"></tbody>
+          </table>
+        </div>
+        <p id="register-empty" class="live-hint" hidden>
+          No shipments match these filters.
+        </p>
+        <p class="live-hint">
+          Select a shipment to inspect its telemetry and response history. IDs
+          beginning SIM identify generated records.
+        </p>
+      </section>
+      <section
+        class="live-panel axon-handover"
+        data-portal-view="handover"
+        hidden
+      >
+        <p class="axon-kicker">SHIFT CONTINUITY</p>
+        <h2>Shift handover</h2>
+        <p class="live-hint">
+          Notes are stored only in this browser, linked to the selected shipment
+          and run seed. Export to share; no team synchronization is connected.
+        </p>
+        <label
+          >Shipment<select id="handover-shipment">
+            <option value="SIM-101">SIM-101 · Medicine delivery</option>
+            <option value="SIM-102">SIM-102 · Fresh produce</option>
+            <option value="SIM-103">SIM-103 · Frozen cargo</option>
+          </select></label
+        ><label
+          >Handover note<textarea
+            id="handover-note"
+            maxlength="5000"
+            rows="8"
+            placeholder="Current issue, actions taken and next shift follow-up…"
+          ></textarea>
+        </label>
+        <div class="decision-actions">
+          <button id="save-handover">Save handover</button
+          ><button id="download-handover">Download handover</button>
+        </div>
+        <p id="handover-status" role="status"></p>
+      </section>
+      <div
+        class="live-grid"
+        data-portal-view="overview shipments exceptions activity"
+      >
+        <section
+          class="live-panel"
+          data-portal-view="overview shipments exceptions"
+        >
           <div class="live-panel-heading">
             <h2>Shipment monitor</h2>
-            <span>Click a shipment to investigate</span>
+            <span>Condition monitoring</span>
           </div>
           <div
             id="fleet-list"
             class="fleet-list"
+            hidden
             role="group"
             aria-label="Simulated shipments"
           ></div>
@@ -84,7 +204,7 @@
               <span id="selected-status"></span>
             </div>
             <label
-              >Inject a fault<select id="fault-select">
+              >Training condition<select id="fault-select">
                 <option value="none">Normal cooling</option>
                 <option value="cooling">Cooling failure</option>
                 <option value="door">Door left open</option>
@@ -92,8 +212,8 @@
               </select></label
             >
             <p class="live-hint">
-              Start with Cooling failure. Watch the warning develop, prepare a
-              response, then approve it to observe recovery.
+              Review the selected shipment below. Change training conditions to
+              evaluate a response.
             </p>
             <svg
               id="live-chart"
@@ -119,7 +239,7 @@
             </div>
           </div>
         </section>
-        <aside class="live-panel">
+        <aside class="live-panel" data-portal-view="overview activity">
           <h2>Event stream</h2>
           <p class="live-hint">
             State changes and human actions, newest first. The latest 80 events
@@ -128,8 +248,8 @@
           <ol id="live-events" aria-label="Simulation event history"></ol>
         </aside>
       </div>
-      <details class="live-method">
-        <summary>How this simulation works</summary>
+      <details class="live-method" data-portal-view="settings" open hidden>
+        <summary>Environment & data controls</summary>
         <p>
           A deterministic first-order thermal model generates readings from the
           seed, cooling state and injected fault. It is an educational browser
@@ -150,6 +270,6 @@
         <a href="workbench.html">Open recorded evidence</a>.</noscript
       >
     </main>
-    <script type="module" src="ui/live.mjs?v=live-1"></script>
+    <script type="module" src="ui/live.mjs?v=axon-1"></script>
   </body>
 </html>

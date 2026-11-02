@@ -61,10 +61,7 @@ for (const width of [1440, 768, 390, 360])
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("./");
-    await page
-      .getByRole("link", { name: "Explore a delivery", exact: true })
-      .click();
+    await page.goto("workbench.html");
     await expect(
       page.getByRole("heading", { name: "Cold-chain operations." }),
     ).toBeVisible();
@@ -457,77 +454,6 @@ for (const width of [1440, 768, 390])
     expect(errors).toEqual([]);
   });
 
-for (const width of [1440, 768, 390, 360])
-  test(`Coldpath overview is understandable and usable at ${width}px`, async ({
-    page,
-  }, info) => {
-    const errors = [];
-    page.on("pageerror", (error) => errors.push(error.message));
-    await page.setViewportSize({ width, height: 1000 });
-    await page.goto("./");
-    await expect(page).toHaveTitle(/Coldpath/);
-    expect(
-      await page
-        .locator("body")
-        .evaluate((node) => getComputedStyle(node).backgroundColor),
-    ).toBe("rgb(3, 4, 7)");
-    expect(
-      await page
-        .locator(".cp-delivery-art")
-        .evaluate((node) => getComputedStyle(node).backgroundColor),
-    ).toBe("rgb(21, 88, 201)");
-    expect(
-      await page
-        .getByRole("link", { name: "Explore a delivery", exact: true })
-        .evaluate((node) => getComputedStyle(node).backgroundColor),
-    ).toBe("rgb(20, 38, 84)");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      "An operations problem.",
-    );
-    await expect(
-      page.getByText(
-        "Interactive engineering demo · fictional shipments · recorded results",
-      ),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "Explore a delivery", exact: false }),
-    ).toBeVisible();
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-    await expect(page.locator(".cp-brief-cards article")).toHaveCount(3);
-    await expect(page.locator(".cp-client-context")).toContainText(
-      "AXON TRUCK SERVICES",
-    );
-    await expect(page.locator(".cp-client-context")).toContainText(
-      "Hyderabad, India",
-    );
-    const cards = await page.locator(".cp-brief-cards").boundingBox();
-    expect(cards.y).toBeLessThan(1000);
-    await expect(page.locator("#solution-title")).toContainText(
-      "With its reasoning.",
-    );
-    await expect(page.locator("#validation")).toContainText(
-      "Missed recoveries rose from 0 to 4",
-    );
-    await expect(page.locator("#validation")).toContainText(
-      "failed verification",
-    );
-    await expectTypography(page);
-    await page.screenshot({
-      path: info.outputPath(`coldpath-overview-${width}.png`),
-      fullPage: true,
-    });
-    await page
-      .getByRole("link", { name: "See the honest outcome", exact: false })
-      .click();
-    await expect(page.locator("#story-title")).toContainText(
-      "incident reopened",
-    );
-    expect(errors).toEqual([]);
-  });
 test("guided story advances, reveals its source, wraps and preserves the failed outcome", async ({
   page,
 }) => {
@@ -605,8 +531,8 @@ test("existing evidence bookmarks still reach the preserved engineering page", a
   await expect(page).toHaveURL(/engineering\.html#engineering$/);
   await expect(page.locator("#engineering")).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Coldpath home", exact: true }),
-  ).toContainText("Coldpath");
+    page.getByRole("link", { name: "Axon Services home", exact: true }),
+  ).toContainText("Axon Services");
 });
 
 test("engineering replay stays disabled until its recorded readings and handlers are ready", async ({
@@ -720,239 +646,6 @@ test("cached older engineering markup receives a safe readiness message before p
   }
 });
 
-for (const width of [1440, 390]) {
-  test(`illustration motion runs, pauses by keyboard and rests offscreen at ${width}px`, async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width, height: 1000 });
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto("./");
-    const art = page.locator(".cp-delivery-art");
-    await art.scrollIntoViewIfNeeded();
-    await expect(art).toHaveAttribute("data-motion", "running");
-    await expect(art).toHaveAttribute("data-in-view", "true");
-    const truck = art.locator(".cp-truck");
-    const firstPosition = await truck.evaluate(
-      (node) => getComputedStyle(node).translate,
-    );
-    await expect
-      .poll(() => truck.evaluate((node) => getComputedStyle(node).translate))
-      .not.toBe(firstPosition);
-    const toggle = page.getByRole("button", {
-      name: "Pause illustration",
-      exact: true,
-    });
-    await toggle.focus();
-    await toggle.press("Enter");
-    await expect(art).toHaveAttribute("data-motion", "paused");
-    await expect(
-      page.getByRole("button", { name: "Play illustration", exact: true }),
-    ).toBeVisible();
-    expect(
-      await truck.evaluate((node) => getComputedStyle(node).animationPlayState),
-    ).toBe("paused");
-    await page
-      .getByRole("button", { name: "Play illustration", exact: true })
-      .click();
-    await expect(art).toHaveAttribute("data-motion", "running");
-    expect(
-      await truck.evaluate((node) => getComputedStyle(node).animationPlayState),
-    ).toBe("running");
-    await page.locator("footer").scrollIntoViewIfNeeded();
-    await expect(art).toHaveAttribute("data-in-view", "false");
-    expect(
-      await truck.evaluate((node) => getComputedStyle(node).animationPlayState),
-    ).toBe("paused");
-    await art.scrollIntoViewIfNeeded();
-    await expect(art).toHaveAttribute("data-in-view", "true");
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await expect(art).toHaveAttribute("data-motion", "paused");
-    await expect(
-      page.getByRole("button", { name: "Motion reduced", exact: true }),
-    ).toBeDisabled();
-    expect(
-      await art.evaluate(
-        (node) =>
-          node
-            .getAnimations({ subtree: true })
-            .filter((animation) => animation.playState === "running").length,
-      ),
-    ).toBe(0);
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-  });
-}
-test("illustration respects reduced motion from the initial load", async ({
-  page,
-}) => {
-  await page.goto("./");
-  const art = page.locator(".cp-delivery-art");
-  await expect(art).toHaveAttribute("data-motion", "paused");
-  await expect(
-    page.getByRole("button", { name: "Motion reduced", exact: true }),
-  ).toBeDisabled();
-  expect(
-    await art.evaluate(
-      (node) =>
-        node
-          .getAnimations({ subtree: true })
-          .filter((animation) => animation.playState === "running").length,
-    ),
-  ).toBe(0);
-  await expect(
-    art.getByText("Illustration · not live telemetry", { exact: true }),
-  ).toBeVisible();
-});
-
-test("FDE case study connects the opening brief to the solution and original proof", async ({
-  page,
-}) => {
-  await page.goto("./");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "An operations problem.An engineered response.",
-  );
-  await page
-    .getByRole("link", { name: "See what I built", exact: false })
-    .click();
-  await expect(page).toHaveURL(/#solution$/);
-  await expect(page.locator("#solution-title")).toBeInViewport();
-  await page
-    .getByRole("link", {
-      name: "Walk through my engineering decisions",
-      exact: false,
-    })
-    .click();
-  const review = page.locator(".cp-decision-list details").nth(2);
-  await review.locator("summary").focus();
-  await review.locator("summary").press("Enter");
-  await expect(review).toHaveAttribute("open", "");
-  await expect(review).toContainText("checkpointed LangGraph interrupt");
-  await expect(review).toContainText("separate from this backend path");
-  await expect(
-    page.getByRole("link", {
-      name: "Inspect the review and restart contracts",
-      exact: false,
-    }),
-  ).toHaveAttribute(
-    "href",
-    "https://github.com/dilipna/axon-fde/blob/main/docs/decision-workspace.md",
-  );
-  const verification = page.locator(".cp-decision-list details").nth(3);
-  await verification.locator("summary").click();
-  await expect(verification).toHaveAttribute("open", "");
-  await page
-    .getByRole("link", {
-      name: "See the incident that stayed unresolved",
-      exact: false,
-    })
-    .click();
-  await expect(page.locator("#story-title")).toContainText("incident reopened");
-  await page.getByRole("link", { name: "Case study", exact: true }).click();
-  await expect(page).toHaveURL(/#engagement$/);
-  await expect(page.locator("#case-study-title")).toBeInViewport();
-});
-
-for (const width of [1440, 768, 390, 360])
-  test(`Intro overlapped cards are readable and dismissible at ${width}px`, async ({
-    page,
-  }, info) => {
-    await page.setViewportSize({ width, height: 1000 });
-    await page.goto("./");
-    const dialog = page.getByRole("dialog", { name: /A clearer route/ });
-    await expect(dialog).toBeVisible();
-    await expect(dialog.locator(".cp-intro-card")).toHaveCount(3);
-    for (const title of [
-      "Why I developed this",
-      "The solution",
-      "How to use it",
-    ])
-      await expect(
-        dialog.getByRole("heading", { name: title, exact: true }),
-      ).toBeVisible();
-    await expect(dialog).toContainText("synthetic shipment records");
-    const geometry = await dialog.evaluate((node) => ({
-      width: node.clientWidth,
-      scroll: node.scrollWidth,
-      modal: node.matches(":modal"),
-    }));
-    expect(geometry.modal).toBe(true);
-    expect(geometry.scroll).toBeLessThanOrEqual(geometry.width + 1);
-    await documentFonts(page);
-    await page.screenshot({ path: info.outputPath(`intro-${width}.png`) });
-    await dialog
-      .getByRole("button", { name: "Read the case study" })
-      .scrollIntoViewIfNeeded();
-    if (width < 600)
-      await page.screenshot({
-        path: info.outputPath(`intro-${width}-bottom.png`),
-      });
-    await dialog.getByRole("button", { name: "Read the case study" }).click();
-    await expect(dialog).not.toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Start here", exact: true }),
-    ).toBeFocused();
-    await page.reload();
-    await expect(dialog).not.toBeVisible();
-    await page.getByRole("button", { name: "Start here", exact: true }).click();
-    await expect(dialog).toBeVisible();
-    await dialog
-      .getByRole("link", { name: "Open operations workspace" })
-      .click();
-    await expect(page.locator("#run-status")).toContainText("simulated");
-  });
-async function documentFonts(page) {
-  await page.evaluate(() => document.fonts.ready);
-}
-
-test("Intro traps keyboard focus, closes with Escape and respects direct bookmarks", async ({
-  page,
-}) => {
-  await page.goto("./");
-  const dialog = page.locator("#intro-dialog");
-  await expect(dialog).toBeVisible();
-  await expect(
-    dialog.getByRole("button", { name: "Close introduction" }),
-  ).toBeFocused();
-  for (let i = 0; i < 6; i++) {
-    await page.keyboard.press("Tab");
-    expect(
-      await dialog.evaluate((node) => node.contains(document.activeElement)),
-    ).toBe(true);
-  }
-  await page.keyboard.press("Escape");
-  await expect(dialog).not.toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Start here", exact: true }),
-  ).toBeFocused();
-  await page.evaluate(() => sessionStorage.clear());
-  await page.goto("./#solution");
-  await expect(dialog).not.toBeVisible();
-  await expect(page.locator("#solution")).toBeInViewport();
-});
-
-test("Intro dismissal works when browser storage is unavailable", async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    Storage.prototype.getItem = () => {
-      throw new DOMException("Blocked", "SecurityError");
-    };
-    Storage.prototype.setItem = () => {
-      throw new DOMException("Blocked", "SecurityError");
-    };
-  });
-  const errors = [];
-  page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
-  await expect(page.locator("#intro-dialog")).toBeVisible();
-  await page.getByRole("button", { name: "Close introduction" }).click();
-  await expect(page.locator("#intro-dialog")).not.toBeVisible();
-  expect(errors).toEqual([]);
-});
-
 test("Operations inbox search and section navigation work without invented records", async ({
   page,
 }) => {
@@ -986,7 +679,9 @@ for (const width of [1440, 768, 390, 360])
     await expect(page.locator("#run-status")).toContainText(
       "Streaming · simulated",
     );
-    await expect(page.locator(".live-disclosure")).toContainText("SIMULATED");
+    await expect(page.locator(".live-disclosure")).toContainText(
+      /simulated telemetry/i,
+    );
     await page.clock.runFor(12000);
     await expect(page.locator("#run-clock")).toHaveText("Minute 13");
     await page.locator("#pause-run").click();
@@ -1025,3 +720,93 @@ for (const width of [1440, 768, 390, 360])
     await page.locator("#reset-run").click();
     await expect(page.locator("#live-notice")).toContainText("Seed must");
   });
+
+for (const width of [1440, 768, 390, 360])
+  test(`Axon Services portal home and register at ${width}px`, async ({
+    page,
+  }, info) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.clock.install();
+    await page.goto("./");
+    await expect(page).toHaveTitle(/Axon Services/);
+    await expect(
+      page.getByRole("heading", { name: "Operations overview" }),
+    ).toBeVisible();
+    await expect(page.locator("#shipment-rows tr")).toHaveCount(3);
+    await expect(page.locator("#intro-dialog")).toHaveCount(0);
+    await expect(page.locator(".axon-sidebar")).not.toContainText(
+      /case study|portfolio/i,
+    );
+    await page.clock.runFor(10000);
+    await page.locator("#pause-run").click();
+    await page.getByLabel("Search shipments").fill("SIM-102");
+    await expect(page.locator("#shipment-rows tr")).toHaveCount(1);
+    await page.getByLabel("Search shipments").fill("missing");
+    await expect(page.locator("#register-empty")).toBeVisible();
+    await page.locator("#clear-filters").click();
+    await expect(page.locator("#shipment-rows tr")).toHaveCount(3);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.evaluate(() => {
+      document.activeElement?.blur();
+      scrollTo(0, 0);
+    });
+    await page.screenshot({
+      path: info.outputPath(`axon-portal-${width}.png`),
+      fullPage: true,
+    });
+    await page.locator('[data-view="exceptions"]').click();
+    await expect(page.locator("#shipment-rows tr")).toHaveCount(1);
+    await page
+      .getByRole("button", { name: "Acknowledge", exact: true })
+      .click();
+    await expect(page.locator("#shipment-rows")).toContainText(
+      "Acknowledged · open",
+    );
+    await expect(page.locator("#exception-nav-count")).toHaveText("1");
+    await page.locator('[data-view="activity"]').click();
+    await expect(page.locator("#live-events")).toContainText(
+      "condition remains open",
+    );
+  });
+test("Axon Services handover stores text safely and exports without a team-delivery claim", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await page.locator('[data-view="handover"]').click();
+  await page
+    .locator("#handover-note")
+    .fill("<img src=x onerror=alert(1)> Check reefer on arrival.");
+  await page.locator("#save-handover").click();
+  await expect(page.locator("#handover-status")).toContainText(
+    "saved on this browser",
+  );
+  await page.reload();
+  await page.locator('[data-view="handover"]').click();
+  await expect(page.locator("#handover-note")).toHaveValue(/<img src=x/);
+  await expect(page.locator(".axon-handover img")).toHaveCount(0);
+  const waiting = page.waitForEvent("download");
+  await page.locator("#download-handover").click();
+  expect((await waiting).suggestedFilename()).toBe(
+    "axon-services-handover.txt",
+  );
+});
+test("Axon Services handover handles denied browser storage", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Storage.prototype.setItem = () => {
+      throw Error("blocked");
+    };
+  });
+  await page.goto("./");
+  await page.locator('[data-view="handover"]').click();
+  await page.locator("#handover-note").fill("Shift note");
+  await page.locator("#save-handover").click();
+  await expect(page.locator("#handover-status")).toContainText(
+    "Storage unavailable",
+  );
+});
