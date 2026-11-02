@@ -7,641 +7,269 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
     />
-    <title>Coldpath — Forward deployed engineering case study</title>
-    <meta
-      name="description"
-      content="Dilip Nallamasa’s forward deployed engineering case study: framing a logistics problem, integrating legacy data, building a reviewable decision workflow and validating it with inspectable evidence."
-    />
-    <link
-      rel="preload"
-      href="ui/fonts/SpaceGrotesk-Variable.ttf"
-      as="font"
-      type="font/ttf"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="ui/fonts/Manrope-Variable.ttf"
-      as="font"
-      type="font/ttf"
-      crossorigin
-    />
-    <link rel="stylesheet" href="ui/coldpath.css?v=coldpath-intro-1" />
+    <title>Axon Services — Operations</title>
+    <link rel="stylesheet" href="ui/coldpath.css?v=live-1" />
+    <link rel="stylesheet" href="ui/live.css?v=axon-1" />
   </head>
-  <body class="cp-page" id="top">
-    <a class="cp-skip" href="#main">Skip to the project</a>
-    <header class="cp-header">
-      <a class="cp-brand" href="./" aria-label="Coldpath home"
-        ><span class="cp-mark" aria-hidden="true">c<span></span></span
-        >Coldpath<span class="cp-brand-dot">.</span></a
+  <body class="cp-page cp-live axon-portal">
+    <a class="cp-skip" href="#live-main">Skip to live workspace</a>
+    <aside class="axon-sidebar" aria-label="Axon Services navigation">
+      <a class="axon-logo" href="./"
+        ><span aria-hidden="true">A</span>
+        <div>AXON SERVICES<small>OPERATIONS PLATFORM</small></div></a
       >
-      <nav aria-label="Main navigation">
-        <button class="cp-intro-reopen" type="button" data-intro-open hidden>
-          Start here</button
-        ><a href="#engagement">Case study</a><a href="#solution">Solution</a
-        ><a href="engineering.html">Engineering</a
-        ><a class="cp-button cp-button-small" href="live.html"
-          >Open workspace <span aria-hidden="true">↗</span></a
-        >
+      <div class="axon-tenant">
+        <b>Hyderabad operations</b><span>Dispatch workspace</span>
+      </div>
+      <nav aria-label="Operations">
+        <button data-view="overview" aria-current="page">
+          ◫ <span>Overview</span></button
+        ><button data-view="shipments">▤ <span>Shipments</span></button
+        ><button data-view="exceptions">
+          ◇ <span>Exceptions</span><b id="exception-nav-count">0</b></button
+        ><button data-view="activity">⌁ <span>Activity log</span></button
+        ><button data-view="handover">↗ <span>Shift handover</span></button
+        ><button data-view="settings">
+          ⚙ <span>Workspace settings</span>
+        </button>
       </nav>
-    </header>
-
-    <dialog
-      class="cp-intro"
-      id="intro-dialog"
-      aria-labelledby="intro-title"
-      aria-describedby="intro-description"
-    >
-      <div class="cp-intro-heading">
+      <div class="axon-sidebar-foot">
+        <b>Training workspace</b>
+        <p>Simulated telemetry · local session</p>
+        <a href="workbench.html">Recorded evidence ↗</a>
+      </div>
+    </aside>
+    <div class="axon-topbar">
+      <div>
+        <span>Axon Services</span><span aria-hidden="true"> / </span
+        ><b id="view-title">Overview</b>
+      </div>
+      <span class="axon-environment">Training environment</span>
+    </div>
+    <main id="live-main" class="live-wrap">
+      <div class="live-heading">
         <div>
-          <p class="cp-eyebrow">COLDPATH / THE PROJECT IN THREE CARDS</p>
-          <h2 id="intro-title">
-            A clearer route from<br /><em>problem to solution.</em>
-          </h2>
-          <p id="intro-description">
-            Why I built it. What it does. Where you can try it.
+          <p class="cp-eyebrow">AXON SERVICES / CONTROL TOWER</p>
+          <h1>Operations overview</h1>
+          <p>
+            Track shipment conditions, prioritize exceptions and keep every
+            response accountable.
           </p>
         </div>
-        <button
-          class="cp-intro-close"
-          type="button"
-          data-intro-close
-          aria-label="Close introduction"
-          autofocus
+        <span class="live-badge" id="run-status"
+          >Starting simulated stream</span
         >
-          ✕
+      </div>
+      <div class="live-disclosure">
+        <b>Training workspace</b
+        ><span
+          >Simulated telemetry; no carrier connection. Changes and responses
+          apply to this session.</span
+        ><button id="open-settings" type="button">
+          Environment details ↗
         </button>
       </div>
-      <div class="cp-intro-deck">
-        <article class="cp-intro-card cp-intro-why">
-          <span class="cp-intro-number" aria-hidden="true">01</span>
-          <span class="cp-intro-topic">THE REASON</span>
-          <h3>Why I developed this</h3>
-          <p>
-            An alert tells you something is wrong. It does not tell you what to
-            do next.
-          </p>
-          <p>
-            I built Coldpath to turn scattered shipment records, cargo rules and
-            sensor readings into a decision a person can understand and review.
-          </p>
-          <div class="cp-intro-foot">
-            <b>AXON TRUCK SERVICES</b
-            ><span>Engagement context · Hyderabad, India</span>
-          </div>
-        </article>
-        <article class="cp-intro-card cp-intro-solution">
-          <span class="cp-intro-number" aria-hidden="true">02</span>
-          <span class="cp-intro-topic">THE RESPONSE</span>
-          <h3>The solution</h3>
-          <p>One connected workflow. Evidence at every step.</p>
-          <ol>
-            <li>Bring the right information together.</li>
-            <li>Explain conflicts and compare options.</li>
-            <li>Require human review before action.</li>
-            <li>Check whether the response helped.</li>
-          </ol>
-          <div class="cp-intro-foot">
-            <b>Built to be inspected</b
-            ><span>Integration → reasoning → review → verification</span>
-          </div>
-        </article>
-        <article class="cp-intro-card cp-intro-usage">
-          <span class="cp-intro-number" aria-hidden="true">03</span>
-          <span class="cp-intro-topic">YOUR FIRST LOOK</span>
-          <h3>How to use it</h3>
-          <p>
-            Start with one medicine delivery. Follow the warning all the way to
-            its outcome.
-          </p>
-          <ol>
-            <li>Open the demo and follow its four steps.</li>
-            <li>Ask a question or change an assumption.</li>
-            <li>Inspect the sources and download your brief.</li>
-          </ol>
-          <div class="cp-intro-foot">
-            <b>No setup. No account.</b
-            ><span>A recorded walkthrough you can explore.</span>
-          </div>
-        </article>
-      </div>
-      <div class="cp-intro-bottom">
-        <p>
-          Public demo: synthetic shipment records. No customer systems or live
-          fleet actions.
-        </p>
-        <div>
-          <button class="cp-intro-secondary" type="button" data-intro-close>
-            Read the case study</button
-          ><a class="cp-button" data-intro-dismiss href="live.html"
-            >Open operations workspace <span aria-hidden="true">↗</span></a
-          >
-        </div>
-      </div>
-    </dialog>
-    <main id="main">
       <section
-        class="cp-engagement cp-wrap"
-        id="engagement"
-        aria-labelledby="case-study-title"
+        class="live-toolbar"
+        aria-label="Simulation controls"
+        data-portal-view="overview settings"
       >
-        <div class="cp-engagement-top">
+        <button id="pause-run" class="cp-button">Pause stream</button
+        ><label
+          >Speed<select id="run-speed">
+            <option value="1000">1× · 1 minute/sec</option>
+            <option value="250">4× · 4 minutes/sec</option>
+          </select></label
+        ><label
+          >Run seed<input
+            id="run-seed"
+            type="number"
+            min="1"
+            max="999999"
+            value="42" /></label
+        ><button id="reset-run">Reset run</button
+        ><button id="export-run">Download run</button
+        ><span id="run-clock" role="timer">Minute 0</span>
+      </section>
+      <p id="live-notice" role="status" aria-live="polite"></p>
+      <div class="live-metrics" data-portal-view="overview">
+        <div><span>Shipments monitored</span><b>3</b></div>
+        <div><span>Need review</span><b id="review-count">0</b></div>
+        <div><span>Verified recoveries</span><b id="recovery-count">0</b></div>
+        <div><span>Samples generated</span><b id="sample-count">0</b></div>
+      </div>
+      <section
+        class="live-panel axon-register"
+        data-portal-view="overview shipments exceptions"
+        aria-labelledby="register-title"
+      >
+        <div class="live-panel-heading">
           <div>
-            <p class="cp-eyebrow">
-              <span class="cp-status-dot"></span>FORWARD DEPLOYED ENGINEERING ·
-              DILIP NALLAMASA
-            </p>
-            <h1 id="case-study-title">
-              An operations problem.<br /><em>An engineered response.</em>
-            </h1>
-            <p class="cp-case-lede">
-              I built Coldpath to connect shipment evidence, explain the next
-              move and keep consequential decisions under human control. This
-              case study follows my work from problem framing to integration,
-              workflow engineering, evaluation and deployment.
-            </p>
+            <p class="axon-kicker">DISPATCH REGISTER</p>
+            <h2 id="register-title">Shipment register</h2>
           </div>
-          <aside class="cp-client-context" aria-label="Engagement context">
-            <span class="cp-label">ENGAGEMENT CONTEXT</span>
-            <b>AXON TRUCK SERVICES</b>
-            <span>Hyderabad, India</span>
-            <p>
-              The public walkthrough uses synthetic shipment records. Customer
-              systems and operational data are not connected to this website.
-            </p>
-          </aside>
+          <span id="register-count"></span>
         </div>
-        <div class="cp-brief-cards" aria-label="Why I built Coldpath">
-          <article>
-            <span class="cp-card-index">01 / THE PROBLEM</span>
-            <h2>An alarm leaves the decision unfinished.</h2>
-            <p>
-              A dispatcher still needs the shipment rules, equipment context and
-              response options. The engineering brief was to turn those
-              scattered clues into a timely, reviewable decision.
-            </p>
-            <a href="#brief-problem"
-              >Understand the problem <span aria-hidden="true">↘</span></a
-            >
-          </article>
-          <article class="cp-brief-solution">
-            <span class="cp-card-index">02 / MY SOLUTION</span>
-            <h2>One evidence-backed decision workflow.</h2>
-            <p>
-              Connect legacy data and documents, identify conflicts, compare
-              responses, require a bound human approval and check the outcome.
-            </p>
-            <a href="#solution"
-              >See what I built <span aria-hidden="true">↘</span></a
-            >
-          </article>
-          <article>
-            <span class="cp-card-index">03 / THE PROOF</span>
-            <h2>Inspect the decision. Test the safeguards.</h2>
-            <p>
-              Follow the recorded incident, change a planning assumption and
-              inspect the failure cases. The evidence includes what did not
-              work.
-            </p>
-            <a href="#validation"
-              >Inspect the evidence <span aria-hidden="true">↘</span></a
-            >
-          </article>
+        <div class="axon-filters">
+          <label
+            >Search shipments<input
+              id="shipment-search"
+              type="search"
+              placeholder="Shipment ID or cargo"
+              maxlength="100" /></label
+          ><label
+            >Status<select id="shipment-filter">
+              <option value="all">All shipments</option>
+              <option value="review">Needs review</option>
+              <option value="monitoring">Monitoring</option>
+              <option value="recovered">Recovery verified</option>
+            </select></label
+          ><button id="clear-filters">Clear filters</button>
         </div>
-        <div class="cp-case-actions">
-          <a class="cp-button" href="workbench.html"
-            >Explore a delivery <span aria-hidden="true">→</span></a
-          >
-          <a class="cp-text-link" href="#delivery-plan"
-            >Walk through my engineering decisions ↓</a
-          >
-          <span>Case study → working demo → source evidence</span>
+        <div class="axon-table-wrap">
+          <table class="axon-table">
+            <thead>
+              <tr>
+                <th>Shipment / cargo</th>
+                <th>Temperature</th>
+                <th>Permitted range</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="shipment-rows"></tbody>
+          </table>
         </div>
+        <p id="register-empty" class="live-hint" hidden>
+          No shipments match these filters.
+        </p>
+        <p class="live-hint">
+          Select a shipment to inspect its telemetry and response history. IDs
+          beginning SIM identify generated records.
+        </p>
       </section>
       <section
-        class="cp-problem cp-wrap"
-        id="brief-problem"
-        aria-labelledby="problem-title"
+        class="live-panel axon-handover"
+        data-portal-view="handover"
+        hidden
       >
-        <div>
-          <p class="cp-eyebrow">01 / PROBLEM FRAMING</p>
-          <h2 id="problem-title">
-            A temperature reading is one clue.<br />A response needs the whole
-            situation.
-          </h2>
-          <p>
-            In the demonstration brief, the dispatcher works across shipment
-            records, temperature history, signed cargo requirements and
-            equipment information. Those sources can disagree. A recommendation
-            needs to explain which evidence it used and what still needs a
-            person’s judgment.
-          </p>
+        <p class="axon-kicker">SHIFT CONTINUITY</p>
+        <h2>Shift handover</h2>
+        <p class="live-hint">
+          Notes are stored only in this browser, linked to the selected shipment
+          and run seed. Export to share; no team synchronization is connected.
+        </p>
+        <label
+          >Shipment<select id="handover-shipment">
+            <option value="SIM-101">SIM-101 · Medicine delivery</option>
+            <option value="SIM-102">SIM-102 · Fresh produce</option>
+            <option value="SIM-103">SIM-103 · Frozen cargo</option>
+          </select></label
+        ><label
+          >Handover note<textarea
+            id="handover-note"
+            maxlength="5000"
+            rows="8"
+            placeholder="Current issue, actions taken and next shift follow-up…"
+          ></textarea>
+        </label>
+        <div class="decision-actions">
+          <button id="save-handover">Save handover</button
+          ><button id="download-handover">Download handover</button>
         </div>
-        <div class="cp-before-after">
-          <article>
-            <span class="cp-label"
-              >STARTING WORKFLOW · DEMONSTRATION SCENARIO</span
-            >
-            <h3>Alert → gather context → decide.</h3>
-            <p>
-              Information is separated across tools. A threshold alert alone
-              does not reconcile the rules, authorize a response or establish
-              whether it helped.
-            </p>
-          </article>
-          <article>
-            <span class="cp-label">WORKFLOW I IMPLEMENTED</span>
-            <h3>Evidence → review → action → verification.</h3>
-            <p>
-              Keep the source attached to each conclusion. Bind approval to the
-              exact proposal, reject stale context and leave an inspectable
-              outcome.
-            </p>
-          </article>
-        </div>
+        <p id="handover-status" role="status"></p>
       </section>
-      <section
-        class="cp-hero cp-wrap cp-solution-hero"
-        id="solution"
-        aria-labelledby="solution-title"
+      <div
+        class="live-grid"
+        data-portal-view="overview shipments exceptions activity"
       >
-        <div class="cp-hero-copy">
-          <p class="cp-eyebrow">
-            <span class="cp-status-dot"></span> 02 / THE IMPLEMENTED SOLUTION
-          </p>
-          <h2 id="solution-title">
-            The next move.<br /><em>With its reasoning.</em>
-          </h2>
-          <p class="cp-lede">
-            Coldpath assembles shipment context, flags conflicting requirements
-            and compares possible responses. The backend pauses for human
-            review, rechecks the evidence before execution and checks the result
-            afterward.
-          </p>
-          <div class="cp-actions">
-            <a
-              class="cp-button"
-              href="workbench.html#case=compressor&amp;chapter=2"
-              >Inspect a response <span aria-hidden="true">→</span></a
-            ><a class="cp-text-link" href="#how"
-              >Follow the delivery workflow ↓</a
-            >
-          </div>
-          <p class="cp-demo-note">
-            Interactive engineering demo · fictional shipments · recorded
-            results
-          </p>
-        </div>
-        <div
-          class="cp-delivery-art"
-          data-motion="paused"
-          data-in-view="true"
-          data-page-active="true"
-          aria-label="Illustration of a refrigerated delivery, its temperature signal and a recommended review. Not a live map."
+        <section
+          class="live-panel"
+          data-portal-view="overview shipments exceptions"
         >
-          <div class="cp-art-top">
-            <span class="cp-label">A DELIVERY, NOT JUST A DATA POINT</span
-            ><span class="cp-status-pill">Needs attention</span>
+          <div class="live-panel-heading">
+            <h2>Shipment monitor</h2>
+            <span>Condition monitoring</span>
           </div>
-          <div class="cp-art-route">
-            <span class="cp-route-point"></span
-            ><span class="cp-route-line"></span
-            ><span class="cp-route-point cp-route-destination"></span>
-            <div class="cp-truck" aria-hidden="true">
-              <span class="cp-trailer">coldpath <b>✳</b></span
-              ><span class="cp-cab"></span><i></i><i></i>
+          <div
+            id="fleet-list"
+            class="fleet-list"
+            hidden
+            role="group"
+            aria-label="Simulated shipments"
+          ></div>
+          <div class="live-detail">
+            <div class="live-panel-heading">
+              <h2 id="vehicle-title">Shipment details</h2>
+              <span id="selected-status"></span>
             </div>
-          </div>
-          <div class="cp-route-labels">
-            <span
-              >Medicine shipment<small>Temperature-sensitive cargo</small></span
-            ><span
-              >Safer next step<small>A person makes the decision</small></span
+            <label
+              >Training condition<select id="fault-select">
+                <option value="none">Normal cooling</option>
+                <option value="cooling">Cooling failure</option>
+                <option value="door">Door left open</option>
+                <option value="sensor">Sensor drift</option>
+              </select></label
             >
-          </div>
-          <div class="cp-signal-card">
-            <div>
-              <span class="cp-label">THE RECORDED SIGNAL</span
-              ><strong>Warming before the alarm.</strong>
-            </div>
-            <svg viewBox="0 0 260 76" aria-hidden="true">
-              <path class="cp-signal-limit" d="M0 22H260" />
-              <path
-                class="cp-signal-path"
-                d="M2 65L22 62L42 62L62 53L82 55L102 47L122 44L142 40L162 29L182 33L202 21L222 19L243 9L258 6"
-              />
-              <path
-                class="cp-signal-sweep"
-                d="M2 65L22 62L42 62L62 53L82 55L102 47L122 44L142 40L162 29L182 33L202 21L222 19L243 9L258 6"
-              />
-              <circle cx="162" cy="29" r="5" />
+            <p class="live-hint">
+              Review the selected shipment below. Change training conditions to
+              evaluate a response.
+            </p>
+            <svg
+              id="live-chart"
+              viewBox="0 0 700 240"
+              role="img"
+              aria-labelledby="live-chart-title"
+            >
+              <title id="live-chart-title">
+                Generated temperature readings
+              </title>
             </svg>
-            <p>
-              Illustration of the concept. Explore the actual readings inside
-              the demo.
-            </p>
+            <p id="sample-details"></p>
+            <div class="decision-card">
+              <h3>Response review</h3>
+              <p id="decision-explanation"></p>
+              <div class="decision-actions">
+                <button id="prepare-response">Prepare response</button
+                ><button id="approve-response">
+                  Approve simulated response
+                </button>
+              </div>
+              <p id="proposal-details"></p>
+            </div>
           </div>
-          <div class="cp-motion-toolbar">
-            <span>Illustration · not live telemetry</span>
-            <button type="button" id="motion-toggle" hidden>
-              Play illustration
-            </button>
-          </div>
-          <div class="cp-art-caption">
-            <span aria-hidden="true">↗</span>
-            <p>
-              <b>Spot it. Understand it. Decide.</b><br />The explanation
-              travels with the recommendation.
-            </p>
-          </div>
-        </div>
-      </section>
-      <section
-        class="cp-workflow-strip cp-wrap"
-        id="how"
-        aria-label="The end-to-end solution"
-      >
-        <p class="cp-label">THE END-TO-END SOLUTION</p>
-        <ol>
-          <li>
-            <span>01</span><b>Connect evidence</b
-            ><small>Shipment, document and telemetry context</small>
-          </li>
-          <li>
-            <span>02</span><b>Resolve the rules</b
-            ><small>Expose disagreements and retain sources</small>
-          </li>
-          <li>
-            <span>03</span><b>Compare responses</b
-            ><small>Make assumptions and alternatives visible</small>
-          </li>
-          <li>
-            <span>04</span><b>Review the action</b
-            ><small>Require a current, bound human approval</small>
-          </li>
-          <li>
-            <span>05</span><b>Verify the outcome</b
-            ><small>Record recovery, uncertainty or failure</small>
-          </li>
-        </ol>
-        <p class="cp-workflow-scope">
-          Implemented backend workflow · the public workspace is a read-only
-          demonstration.
+        </section>
+        <aside class="live-panel" data-portal-view="overview activity">
+          <h2>Event stream</h2>
+          <p class="live-hint">
+            State changes and human actions, newest first. The latest 80 events
+            and 240 readings per shipment are retained.
+          </p>
+          <ol id="live-events" aria-label="Simulation event history"></ol>
+        </aside>
+      </div>
+      <details class="live-method" data-portal-view="settings" open hidden>
+        <summary>Environment & data controls</summary>
+        <p>
+          A deterministic first-order thermal model generates readings from the
+          seed, cooling state and injected fault. It is an educational browser
+          model, separate from the Python benchmark simulator and trained risk
+          model. Review is triggered by observed threshold breaches or a rising
+          temperature trend. Cold-storage action pulls temperature toward its
+          setpoint; recovery needs five consecutive in-range, stabilizing
+          samples. Sensor-drift scenarios require inspection and cannot be
+          auto-verified. Proposals expire after five new samples or a fault
+          change. Pause freezes progression; hidden tabs suspend without
+          catching up. Reloading starts a new run. Export a run before reset to
+          retain it. Historical evidence stays in the separate evidence
+          workspace.
         </p>
-      </section>
-      <section
-        class="cp-delivery-plan cp-wrap"
-        id="delivery-plan"
-        aria-labelledby="delivery-plan-title"
+      </details>
+      <noscript
+        >This live simulation requires JavaScript.
+        <a href="workbench.html">Open recorded evidence</a>.</noscript
       >
-        <div class="cp-section-heading">
-          <p class="cp-eyebrow">03 / HOW I HANDLED IT</p>
-          <h2 id="delivery-plan-title">
-            The engineering decisions behind the interface.
-          </h2>
-          <p>
-            Each decision connects an operational need to an implementation you
-            can inspect. Expand a step for the constraint, the approach and the
-            proof.
-          </p>
-        </div>
-        <div class="cp-decision-list">
-          <details open>
-            <summary>
-              <span>01</span><b>Connect the existing systems safely.</b
-              ><span class="cp-decision-tag">INTEGRATION</span>
-            </summary>
-            <div class="cp-decision-body">
-              <p>
-                <b>The need.</b> Bring shipment context into the investigation
-                without giving the agent unrestricted ERP access.
-              </p>
-              <p>
-                <b>My approach.</b> A SQL Server integration with read-only
-                reporting views and SQL AST allowlisting; PostgreSQL stores
-                application evidence, review state and audit records.
-              </p>
-              <a
-                href="https://github.com/dilipna/axon-fde/blob/main/docs/architecture/overview.md"
-                target="_blank"
-                rel="noreferrer"
-                >Inspect the integration architecture ↗</a
-              >
-            </div>
-          </details>
-          <details>
-            <summary>
-              <span>02</span><b>Make disagreement explicit.</b
-              ><span class="cp-decision-tag">EVIDENCE</span>
-            </summary>
-            <div class="cp-decision-body">
-              <p>
-                <b>The need.</b> A signed cargo document and an ERP record can
-                specify different temperature limits.
-              </p>
-              <p>
-                <b>My approach.</b> Normalize source-backed observations into
-                typed evidence. Detect conflicts deterministically and retain
-                the source and validity window instead of letting a model
-                silently pick a value.
-              </p>
-              <a href="workbench.html#case=compressor&amp;chapter=1"
-                >Inspect the conflicting requirements →</a
-              >
-            </div>
-          </details>
-          <details>
-            <summary>
-              <span>03</span><b>Keep a human approval valid through the wait.</b
-              ><span class="cp-decision-tag">CONTROL</span>
-            </summary>
-            <div class="cp-decision-body">
-              <p>
-                <b>The need.</b> Conditions may change while a proposal waits
-                for review. An old approval must not authorize a changed
-                situation.
-              </p>
-              <p>
-                <b>My approach.</b> A checkpointed LangGraph interrupt,
-                persisted proposal and approval, fresh-context revalidation and
-                an idempotent executor. The public planning rehearsal is
-                separate from this backend path.
-              </p>
-              <a
-                href="https://github.com/dilipna/axon-fde/blob/main/docs/decision-workspace.md"
-                target="_blank"
-                rel="noreferrer"
-                >Inspect the review and restart contracts ↗</a
-              >
-            </div>
-          </details>
-          <details>
-            <summary>
-              <span>04</span><b>Verify the result, including failure.</b
-              ><span class="cp-decision-tag">VALIDATION</span>
-            </summary>
-            <div class="cp-decision-body">
-              <p>
-                <b>The need.</b> Executing a response does not prove that a
-                shipment recovered.
-              </p>
-              <p>
-                <b>My approach.</b> Separate outcome verification, check
-                freshness and recovery duration, and abstain on ambiguous sensor
-                evidence. A frozen fault pack exposes both improvements and
-                remaining failure modes.
-              </p>
-              <a href="workbench.html#case=compressor&amp;chapter=3"
-                >See the incident that stayed unresolved →</a
-              >
-            </div>
-          </details>
-        </div>
-      </section>
-      <section
-        class="cp-validation cp-wrap"
-        id="validation"
-        aria-labelledby="validation-title"
-      >
-        <div class="cp-section-heading">
-          <p class="cp-eyebrow">04 / OUTCOMES &amp; EVIDENCE</p>
-          <h2 id="validation-title">
-            A solution you can inspect.<br />A result I can explain.
-          </h2>
-          <p>
-            The public records demonstrate behavior in synthetic cases. They
-            establish engineering evidence; they do not establish customer
-            savings or production fleet performance.
-          </p>
-        </div>
-        <div class="cp-proof-cards">
-          <article>
-            <span class="cp-proof-number">35 min</span>
-            <h3>Earlier warning in one recorded incident.</h3>
-            <p>
-              The warning appears at minute 102 and the threshold alarm at
-              minute 137. That is one synthetic trajectory, not a fleet-wide
-              guarantee.
-            </p>
-            <a href="workbench.html#case=compressor">Follow the warning →</a>
-          </article>
-          <article>
-            <span class="cp-proof-number">24 cases</span>
-            <h3>A frozen outcome-verification fault pack.</h3>
-            <p>
-              False confirmations fell from 6 to 2 on constructed cases. Missed
-              recoveries rose from 0 to 4. Nonconstant sensor lies remain a
-              limitation.
-            </p>
-            <a href="engineering.html#engineering"
-              >Inspect the test evidence →</a
-            >
-          </article>
-          <article>
-            <span class="cp-proof-number">Unresolved</span>
-            <h3>A result the system must not call a success.</h3>
-            <p>
-              The recorded compressor case ends with failed verification and a
-              reopened incident. The original trajectory did not model a
-              successful reroute.
-            </p>
-            <a href="workbench.html#case=compressor&amp;chapter=3"
-              >See the honest outcome →</a
-            >
-          </article>
-        </div>
-        <div class="cp-boundary">
-          <div>
-            <b>What is deployed here</b>
-            <p>
-              A public, read-only walkthrough with source citations, private
-              browser notes and downloadable decision briefs.
-            </p>
-          </div>
-          <div>
-            <b>What is tested separately</b>
-            <p>
-              The authenticated backend, real database integrations, durable
-              approval and execution safeguards. The website cannot dispatch a
-              fleet action.
-            </p>
-          </div>
-        </div>
-        <p class="cp-validation-links">
-          <a
-            href="https://github.com/dilipna/axon-fde/actions/workflows/ci.yml"
-            target="_blank"
-            rel="noreferrer"
-            >Inspect the automated integration &amp; safety checks ↗</a
-          ><a
-            href="https://github.com/dilipna/axon-fde/blob/main/docs/verification-release-protocol.md"
-            target="_blank"
-            rel="noreferrer"
-            >Read the predeclared verification protocol ↗</a
-          >
-        </p>
-        <details class="cp-next-validation">
-          <summary>What I would validate before an operational rollout</summary>
-          <p>
-            Use authorized customer data, validate source freshness and
-            identity, calibrate alert behavior, agree escalation rules, and
-            measure operator decision time and intervention outcomes in a
-            controlled pilot. These are proposed next steps, not claims of a
-            completed rollout.
-          </p>
-        </details>
-      </section>
-      <section class="cp-story-banner cp-wrap">
-        <div>
-          <p class="cp-eyebrow">START WITH ONE DELIVERY</p>
-          <h2>
-            Could you explain the next move<br />to someone taking over your
-            shift?
-          </h2>
-          <p>
-            Walk through a medicine delivery, ask a question, try a different
-            assumption and take away a readable brief. No setup, account or AI
-            key required.
-          </p>
-          <a class="cp-button" href="workbench.html"
-            >Open the guided story <span aria-hidden="true">→</span></a
-          >
-          <p>
-            <a class="cp-text-link" href="engineering.html"
-              >Explore the system, tests &amp; limitations →</a
-            >
-          </p>
-        </div>
-        <div class="cp-mini-brief">
-          <span class="cp-label">YOUR TAKEAWAY</span>
-          <h3>A decision with its context.</h3>
-          <ul>
-            <li>What the system noticed</li>
-            <li>What needs a person’s review</li>
-            <li>What the original record actually says</li>
-            <li>Your notes and planning assumptions</li>
-          </ul>
-          <span class="cp-brief-tag"
-            >Downloadable · source-linked · yours to keep</span
-          >
-        </div>
-      </section>
     </main>
-    <footer class="cp-footer cp-wrap">
-      <a class="cp-brand" href="./"
-        >Coldpath<span class="cp-brand-dot">.</span></a
-      >
-      <p>
-        An FDE engineering case study by Dilip Nallamasa.<br />Formerly AxonFDE.
-        Fictional logistics data; no live fleet service.
-      </p>
-      <a
-        href="https://github.com/dilipna/axon-fde"
-        target="_blank"
-        rel="noreferrer"
-        >Source & reproduction ↗</a
-      >
-    </footer>
-    <script type="module" src="ui/overview.mjs?v=coldpath-intro-1"></script>
+    <script type="module" src="ui/live.mjs?v=axon-1"></script>
   </body>
 </html>

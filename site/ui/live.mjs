@@ -6,7 +6,14 @@ import {
   approve,
   exportRun,
 } from "./live-core.mjs?v=live-1";
+import { engineeringDestination } from "./overview.mjs?v=axon-1";
+const legacy = engineeringDestination(location.hash);
+if (legacy) location.replace(new URL(legacy, location.href));
 const $ = (id) => document.getElementById(id);
+let activeView = "overview";
+const acknowledged = new Set(),
+  previousStatuses = new Map();
+
 let run = createRun(),
   selected = run.vehicles[0].id,
   paused = false,
@@ -26,6 +33,7 @@ function notice(value) {
   $("live-notice").textContent = value;
 }
 function render() {
+  renderPortal();
   const v = run.vehicles.find((v) => v.id === selected);
   $("run-clock").textContent = `Minute ${run.minute}`;
   $("run-status").textContent = paused
@@ -193,7 +201,10 @@ $("reset-run").addEventListener("click", () => {
   try {
     const next = createRun(Number($("run-seed").value));
     run = next;
+    acknowledged.clear();
+    previousStatuses.clear();
     selected = run.vehicles[0].id;
+    loadNote();
     injectFault(run, selected, "cooling");
     tick(run);
     notice(
@@ -222,3 +233,170 @@ window.addEventListener("pageshow", schedule);
 injectFault(run, selected, "cooling");
 tick(run);
 schedule();
+
+function needsReview(v) {
+  return ["Review needed", "Temperature breach", "Sensor review"].includes(
+    v.status,
+  );
+}
+function changeView(view) {
+  const names = {
+    overview: "Overview",
+    shipments: "Shipments",
+    exceptions: "Exceptions",
+    activity: "Activity log",
+    handover: "Shift handover",
+    settings: "Workspace settings",
+  };
+  if (!names[view]) view = "overview";
+  activeView = view;
+  if (view === "handover") loadNote();
+  document
+    .querySelectorAll("[data-portal-view]")
+    .forEach(
+      (node) =>
+        (node.hidden = !node.dataset.portalView.split(" ").includes(view)),
+    );
+  document.querySelectorAll("[data-view]").forEach((node) => {
+    if (node.dataset.view === view) node.setAttribute("aria-current", "page");
+    else node.removeAttribute("aria-current");
+  });
+  $("view-title").textContent = names[view];
+  document.querySelector("h1").textContent =
+    view === "overview" ? "Operations overview" : names[view];
+  document.querySelector(".live-grid").dataset.active = view;
+  if (view === "exceptions") $("shipment-filter").value = "review";
+  else if (view === "shipments") $("shipment-filter").value = "all";
+  history.replaceState(null, "", "#" + view);
+  renderPortal();
+}
+function renderPortal() {
+  for (const v of run.vehicles) {
+    if (previousStatuses.get(v.id) !== v.status) acknowledged.delete(v.id);
+    previousStatuses.set(v.id, v.status);
+  }
+  $("exception-nav-count").textContent =
+    run.vehicles.filter(needsReview).length;
+  const query = $("shipment-search").value.trim().toLocaleLowerCase(),
+    filter = $("shipment-filter").value;
+  const rows = run.vehicles
+    .filter((v) => (v.id + " " + v.name).toLocaleLowerCase().includes(query))
+    .filter((v) =>
+      activeView === "exceptions"
+        ? needsReview(v)
+        : filter === "review"
+          ? needsReview(v)
+          : filter === "monitoring"
+            ? v.status === "Monitoring"
+            : filter === "recovered"
+              ? v.status === "Recovery verified"
+              : true,
+    );
+  const focus = document.activeElement?.dataset?.record;
+  $("shipment-rows").replaceChildren(
+    ...rows.map((v) => {
+      const tr = document.createElement("tr");
+      if (v.id === selected) tr.className = "selected";
+      const name = text("td", "");
+      name.append(text("b", v.id), text("small", v.name));
+      const temp = text(
+          "td",
+          (v.readings.at(-1)?.temperature ?? v.temp).toFixed(2) + " °C",
+        ),
+        range = text("td", `${v.low} to ${v.high} °C`),
+        status = text("td", "");
+      status.append(text("span", v.status));
+      if (acknowledged.has(v.id))
+        status.append(text("small", "Acknowledged · open"));
+      const action = text("td", "");
+      const inspect = text("button", "Inspect");
+      inspect.dataset.record = v.id;
+      inspect.addEventListener("click", () => {
+        selected = v.id;
+        render();
+        $("vehicle-title").scrollIntoView({ block: "start" });
+      });
+      action.append(inspect);
+      if (needsReview(v) && !acknowledged.has(v.id)) {
+        const ack = text("button", "Acknowledge");
+        ack.addEventListener("click", () => {
+          acknowledged.add(v.id);
+          run.events.unshift({
+            sequence: run.sequence,
+            minute: run.minute,
+            vehicle: v.id,
+            text: "Exception acknowledged locally; condition remains open.",
+          });
+          run.events.length = Math.min(80, run.events.length);
+          notice(
+            "Exception acknowledged. Monitoring and review remain active.",
+          );
+          render();
+        });
+        action.append(ack);
+      }
+      tr.append(name, temp, range, status, action);
+      return tr;
+    }),
+  );
+  if (focus)
+    $("shipment-rows")
+      .querySelector(`[data-record="${focus}"]`)
+      ?.focus({ preventScroll: true });
+  $("register-count").textContent =
+    `${rows.length} of ${run.vehicles.length} shipments`;
+  $("register-empty").hidden = rows.length > 0;
+}
+function noteKey() {
+  return `axon-handover-v1:${run.seed}:${$("handover-shipment").value}`;
+}
+function loadNote() {
+  try {
+    $("handover-note").value = localStorage.getItem(noteKey()) || "";
+    $("handover-status").textContent = "Stored on this browser only.";
+  } catch {
+    $("handover-note").value = "";
+    $("handover-status").textContent =
+      "Browser storage unavailable. Download notes to keep them.";
+  }
+}
+function saveFile(contents, name, type) {
+  const url = URL.createObjectURL(new Blob([contents], { type }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+document
+  .querySelectorAll("[data-view]")
+  .forEach((button) =>
+    button.addEventListener("click", () => changeView(button.dataset.view)),
+  );
+$("open-settings").addEventListener("click", () => changeView("settings"));
+$("shipment-search").addEventListener("input", renderPortal);
+$("shipment-filter").addEventListener("change", renderPortal);
+$("clear-filters").addEventListener("click", () => {
+  $("shipment-search").value = "";
+  $("shipment-filter").value = activeView === "exceptions" ? "review" : "all";
+  renderPortal();
+});
+$("handover-shipment").addEventListener("change", loadNote);
+$("save-handover").addEventListener("click", () => {
+  try {
+    localStorage.setItem(noteKey(), $("handover-note").value);
+    $("handover-status").textContent = "Handover saved on this browser.";
+  } catch {
+    $("handover-status").textContent =
+      "Storage unavailable. Use Download handover.";
+  }
+});
+$("download-handover").addEventListener("click", () =>
+  saveFile(
+    `Axon Services — shift handover\nShipment: ${$("handover-shipment").value}\nTraining run seed: ${run.seed}\nSimulated minute: ${run.minute}\n\n${$("handover-note").value}\n\nTraining environment; browser-local note, no team delivery.`,
+    "axon-services-handover.txt",
+    "text/plain",
+  ),
+);
+changeView(location.hash.slice(1));
+loadNote();

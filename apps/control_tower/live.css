@@ -286,3 +286,346 @@
     min-height: 32px;
   }
 }
+
+/* Axon Services: one client operations portal, no presentation layer. */
+.axon-portal {
+  background: #080d17;
+  color: #e5ecf8;
+  padding-left: 236px;
+}
+.axon-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 236px;
+  background: #0a1120;
+  border-right: 1px solid #263651;
+  padding: 26px 18px;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  overflow: auto;
+}
+.axon-logo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  text-decoration: none;
+  font: 700 13px var(--font-display);
+  letter-spacing: 1px;
+}
+.axon-logo > span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #1d438c;
+  color: #fff;
+  font-size: 24px;
+}
+.axon-logo small {
+  display: block;
+  color: #8fa4c6;
+  font: 500 8px var(--font);
+  letter-spacing: 2px;
+  margin-top: 5px;
+}
+.axon-tenant {
+  border: 1px solid #2b3c58;
+  padding: 13px;
+  border-radius: 8px;
+  margin: 32px 0 22px;
+}
+.axon-tenant b,
+.axon-tenant span {
+  display: block;
+  font-size: 11px;
+}
+.axon-tenant span {
+  color: #91a7c8;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.axon-sidebar nav {
+  display: grid;
+  gap: 7px;
+}
+.axon-sidebar nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #a8b9d5;
+  text-align: left;
+  padding: 12px;
+  border-radius: 7px;
+  font: 500 12px var(--font);
+  cursor: pointer;
+}
+.axon-sidebar nav button[aria-current="page"] {
+  background: #172e57;
+  border-color: #304d7c;
+  color: #f0f5ff;
+}
+.axon-sidebar nav button:hover {
+  background: #132440;
+}
+.axon-sidebar nav b {
+  margin-left: auto;
+  background: #263d64;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 10px;
+}
+.axon-sidebar-foot {
+  margin-top: auto;
+  padding-top: 36px;
+  font-size: 10px;
+  color: #8ea3c2;
+}
+.axon-sidebar-foot b {
+  color: #bfd0eb;
+}
+.axon-sidebar-foot a {
+  display: inline-block;
+  margin-top: 10px;
+  color: #a9c9ff;
+}
+.axon-topbar {
+  height: 66px;
+  border-bottom: 1px solid #25354e;
+  padding: 0 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  font-size: 11px;
+  background: #0a111e;
+}
+.axon-topbar span {
+  color: #8fa7c9;
+}
+.axon-topbar b {
+  margin-left: 10px;
+}
+.axon-environment {
+  border: 1px solid #34466b;
+  border-radius: 5px;
+  padding: 6px 10px;
+}
+.axon-portal .live-wrap {
+  padding: 28px 30px;
+  max-width: 1600px;
+}
+.axon-portal .live-heading h1 {
+  font-size: 32px;
+  letter-spacing: -1.2px;
+  margin: 8px 0;
+}
+.axon-portal .live-heading p {
+  font-size: 12px;
+}
+.axon-portal .live-heading .cp-eyebrow {
+  font-size: 9px;
+  color: #8fa7c9;
+}
+.axon-portal .live-disclosure {
+  align-items: center;
+  margin: 20px 0 16px;
+  padding: 10px 14px;
+  font-size: 10px;
+}
+.axon-portal .live-disclosure button {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 10px;
+  padding: 7px;
+  min-height: 32px;
+  background: transparent;
+}
+.axon-portal .live-toolbar {
+  margin: 16px 0;
+}
+.axon-register {
+  margin: 22px 0;
+}
+.axon-kicker {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #8ea7ce;
+  margin: 0 0 10px;
+}
+.axon-filters {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+}
+.axon-filters label:first-child {
+  flex: 1;
+}
+.axon-portal input,
+.axon-portal select,
+.axon-portal textarea {
+  font-family: var(--font);
+}
+.axon-table-wrap {
+  overflow: auto;
+}
+.axon-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+  text-align: left;
+  font-size: 12px;
+}
+.axon-table th {
+  color: #8da6c9;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  background: #101d32;
+  padding: 12px;
+}
+.axon-table td {
+  border-bottom: 1px solid #23354f;
+  padding: 14px 12px;
+  vertical-align: middle;
+}
+.axon-table td small {
+  display: block;
+  color: #8fa8cd;
+  font-size: 10px;
+  margin-top: 6px;
+}
+.axon-table td button {
+  padding: 6px 9px;
+  min-height: 34px;
+  margin: 3px;
+  font-size: 10px;
+}
+.axon-table .selected td {
+  background: #10223c;
+}
+.axon-handover {
+  max-width: 900px;
+}
+.axon-handover label {
+  margin: 18px 0;
+}
+.axon-handover textarea {
+  background: #0b182b;
+  border: 1px solid #3a5077;
+  color: #e4edfb;
+  border-radius: 7px;
+  padding: 14px;
+  resize: vertical;
+  font-size: 13px;
+}
+.axon-handover #handover-status {
+  font-size: 12px;
+  color: #abc6ee;
+}
+.live-grid[data-active="activity"] {
+  grid-template-columns: 1fr;
+}
+.axon-portal .live-grid {
+  margin-top: 20px;
+}
+.axon-portal .live-panel {
+  background: #0d1727;
+}
+.axon-portal #vehicle-title {
+  scroll-margin-top: 25px;
+}
+@media (max-width: 1100px) {
+  .axon-portal {
+    padding-left: 202px;
+  }
+  .axon-sidebar {
+    width: 202px;
+    padding: 22px 12px;
+  }
+  .axon-logo {
+    font-size: 11px;
+    gap: 8px;
+  }
+  .axon-portal .live-grid {
+    grid-template-columns: 1fr;
+  }
+  .axon-portal .live-wrap {
+    padding: 24px;
+  }
+}
+@media (max-width: 760px) {
+  .axon-portal {
+    padding-left: 0;
+  }
+  .axon-sidebar {
+    position: static;
+    width: auto;
+    padding: 18px;
+    display: block;
+    border-right: 0;
+    border-bottom: 1px solid #2b3b55;
+  }
+  .axon-sidebar .axon-tenant,
+  .axon-sidebar-foot {
+    display: none;
+  }
+  .axon-sidebar nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 7px;
+    margin-top: 18px;
+    padding-bottom: 4px;
+  }
+  .axon-sidebar nav button {
+    width: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 11px;
+    padding: 10px;
+    gap: 8px;
+  }
+  .axon-topbar {
+    padding: 0 20px;
+    height: 52px;
+    font-size: 10px;
+  }
+  .axon-portal .live-wrap {
+    padding: 20px;
+  }
+  .axon-portal .live-heading {
+    gap: 15px;
+  }
+  .axon-portal .live-heading h1 {
+    font-size: 28px;
+  }
+  .axon-portal .live-disclosure {
+    align-items: flex-start;
+  }
+  .axon-portal .live-disclosure button {
+    margin-left: 0;
+  }
+  .axon-filters {
+    flex-wrap: wrap;
+  }
+  .axon-filters label:first-child {
+    min-width: 100%;
+  }
+}
+
+.axon-filters input {
+  width: 100%;
+}
+.axon-handover textarea {
+  width: 100%;
+  max-width: 100%;
+}
