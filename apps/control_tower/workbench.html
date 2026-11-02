@@ -7,7 +7,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
     />
-    <title>Coldpath — Follow the delivery</title>
+    <title>Coldpath — Operations workspace</title>
     <meta
       name="description"
       content="A guided cold-chain delivery story: understand the warning, compare the next move and keep a source-linked brief."
@@ -26,10 +26,10 @@
       type="font/ttf"
       crossorigin
     />
-    <link rel="stylesheet" href="ui/coldpath.css?v=coldpath-intro-1" />
-    <link rel="stylesheet" href="ui/workbench.css?v=coldpath-intro-1" />
+    <link rel="stylesheet" href="ui/coldpath.css?v=coldpath-operations-1" />
+    <link rel="stylesheet" href="ui/workbench.css?v=coldpath-operations-1" />
   </head>
-  <body class="cp-page">
+  <body class="cp-page cp-operations">
     <a class="cp-skip" href="#workspace">Skip to the delivery</a>
     <header class="cp-header">
       <a class="cp-brand" href="./"
@@ -39,11 +39,11 @@
       <nav aria-label="Main navigation">
         <a href="./#engagement">Case study</a
         ><a href="engineering.html">Engineering</a
-        ><button id="about-open" class="quiet">About Coldpath</button>
+        ><button id="about-open" class="quiet">Workspace information</button>
       </nav>
     </header>
     <div id="load-status" role="status" class="load-status">
-      Getting the recorded story ready…
+      Loading the operations workspace…
     </div>
     <noscript
       ><p class="load-status">
@@ -53,19 +53,38 @@
       </p></noscript
     >
     <div id="app-shell" class="app-shell" hidden>
-      <main id="workspace" tabindex="-1">
-        <div class="workspace-heading">
+      <aside class="ops-rail" aria-label="Operations navigation">
+        <div class="ops-workspace">
+          <span class="ops-workspace-icon" aria-hidden="true">C</span>
           <div>
-            <p class="cp-eyebrow">CASE STUDY / INSPECT THE DELIVERY WORKFLOW</p>
-            <h1>An alert is just the beginning.</h1>
-            <p class="muted">
-              The public walkthrough of my FDE solution: follow the evidence,
-              review the proposed response and inspect the outcome.
-            </p>
+            <b>Coldpath workspace</b><small>Shipment intelligence</small>
           </div>
-          <span class="demo-label">Interactive demo · fictional data</span>
         </div>
-        <div class="case-list" role="group" aria-label="Choose a study">
+        <p class="ops-nav-label">WORKSPACE</p>
+        <nav aria-label="Workspace sections">
+          <a href="#workspace">◫ <span>Overview</span></a
+          ><a href="#telemetry-panel">⌁ <span>Telemetry</span></a
+          ><a href="#decision-panel">↗ <span>Response review</span></a
+          ><a href="#handover-panel">▤ <span>Handover & exports</span></a
+          ><a href="#assistant-panel">⌕ <span>Incident assistant</span></a
+          ><a href="#technical-details" id="ops-evidence-link"
+            >◇ <span>Evidence register</span></a
+          >
+        </nav>
+        <div class="ops-inbox-heading">
+          <p class="ops-nav-label">INCIDENT INBOX</p>
+          <span>2 records</span>
+        </div>
+        <label class="ops-search-label" for="incident-search"
+          >Find an incident</label
+        ><input
+          id="incident-search"
+          type="search"
+          placeholder="Search incidents…"
+          autocomplete="off"
+          maxlength="100"
+        />
+        <div class="case-list" role="group" aria-label="Incident inbox">
           <button
             class="case-button"
             data-case="compressor"
@@ -74,15 +93,37 @@
             <span class="case-icon" aria-hidden="true">↗</span
             ><span
               ><b>Medicine delivery</b
-              ><small>A cooling problem, step by step</small></span
+              ><small>Cooling failure · response review</small></span
             ></button
           ><button class="case-button" data-case="sensor" aria-pressed="false">
             <span class="case-icon" aria-hidden="true">≈</span
             ><span
-              ><b>Can we trust the sensor?</b
-              ><small>When a reading needs a second look</small></span
+              ><b>Sensor integrity</b
+              ><small>Sensor drift · evidence review</small></span
             >
           </button>
+        </div>
+        <p id="incident-empty" class="fine" role="status" hidden>
+          No matching incidents. Try “medicine” or “sensor”.
+        </p>
+        <div class="ops-rail-bottom">
+          <span class="ops-source-dot" aria-hidden="true"></span
+          ><b>Recorded environment</b>
+          <p>Source-linked historical records. No live fleet connection.</p>
+          <a href="./#engagement">Project & delivery case study ↗</a>
+        </div>
+      </aside>
+      <main id="workspace" tabindex="-1">
+        <div class="workspace-heading">
+          <div>
+            <p class="cp-eyebrow">OPERATIONS / SHIPMENT INTELLIGENCE</p>
+            <h1>Cold-chain operations.</h1>
+            <p class="muted">
+              Review shipment signals, investigate exceptions and prepare the
+              next response.
+            </p>
+          </div>
+          <span class="demo-label">Recorded workspace · synthetic data</span>
         </div>
         <p id="notice" class="notice" role="status" aria-live="polite"></p>
         <div class="case-summary">
@@ -99,7 +140,7 @@
           <div class="primary-column">
             <section class="panel story-panel" aria-labelledby="story-title">
               <div class="panel-top">
-                <p class="cp-eyebrow">THE STORY IN FOUR STEPS</p>
+                <p class="cp-eyebrow">INCIDENT WORKFLOW</p>
                 <span id="story-counter" class="fine"></span>
               </div>
               <div class="story-tabs" role="group" aria-label="Story chapters">
@@ -137,12 +178,13 @@
             </section>
             <section
               class="panel telemetry-panel"
+              id="telemetry-panel"
               aria-labelledby="telemetry-title"
             >
               <div class="panel-top">
                 <div>
-                  <p class="cp-eyebrow">SEE THE SIGNAL</p>
-                  <h2 id="telemetry-title">The temperature, in context.</h2>
+                  <p class="cp-eyebrow">SHIPMENT TELEMETRY</p>
+                  <h2 id="telemetry-title">Temperature history</h2>
                 </div>
                 <span class="data-label">Recorded readings</span>
               </div>
@@ -188,12 +230,11 @@
             </section>
             <section
               class="panel assistant-panel"
+              id="assistant-panel"
               aria-labelledby="assistant-title"
             >
               <p class="cp-eyebrow">ASK ABOUT THIS DELIVERY</p>
-              <h2 id="assistant-title">
-                A simple question. A traceable answer.
-              </h2>
+              <h2 id="assistant-title">Incident assistant</h2>
               <p class="muted small">
                 Short explanations from this recording. Open a source to check
                 the original wording. No new AI model is called.
@@ -222,8 +263,8 @@
             </section>
           </div>
           <aside class="secondary-column">
-            <section class="panel next-move-panel">
-              <p class="cp-eyebrow">THE NEXT MOVE</p>
+            <section class="panel next-move-panel" id="decision-panel">
+              <p class="cp-eyebrow">RECOMMENDED RESPONSE</p>
               <span id="move-status" class="move-status"></span>
               <h2 id="move-title"></h2>
               <p id="move-copy" class="muted small"></p>
@@ -302,9 +343,13 @@
                 </p>
               </details>
             </section>
-            <section class="panel notebook-panel" aria-labelledby="notes-title">
-              <p class="cp-eyebrow">YOUR TAKEAWAY</p>
-              <h2 id="notes-title">Leave a clearer handover.</h2>
+            <section
+              class="panel notebook-panel"
+              id="handover-panel"
+              aria-labelledby="notes-title"
+            >
+              <p class="cp-eyebrow">NOTES & EXPORTS</p>
+              <h2 id="notes-title">Shift handover</h2>
               <p class="muted small">
                 Keep what you learned, what you would check and what is still
                 uncertain.
@@ -432,8 +477,8 @@
           <a class="cp-brand" href="./"
             >Coldpath<span class="cp-brand-dot">.</span></a
           ><span
-            >FDE case study. Public recorded walkthrough.<br />No live fleet
-            action or new model call takes place here.</span
+            >Recorded environment · source-linked decisions.<br />Private notes
+            stay in this browser.</span
           ><a href="./">Back to the overview ↗</a>
         </footer>
       </main>
@@ -448,7 +493,7 @@
         </button>
       </form>
       <p class="cp-eyebrow">THE FDE CASE STUDY</p>
-      <h2>A delivery story you can check.</h2>
+      <h2>Your operations workspace</h2>
       <p>
         <b>Cold-chain</b> means keeping medicines or food within the temperature
         range required for delivery.
@@ -474,6 +519,9 @@
         original names and dates.
       </p>
     </dialog>
-    <script type="module" src="ui/workbench.mjs?v=coldpath-intro-1"></script>
+    <script
+      type="module"
+      src="ui/workbench.mjs?v=coldpath-operations-1"
+    ></script>
   </body>
 </html>

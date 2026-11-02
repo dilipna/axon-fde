@@ -66,14 +66,14 @@ for (const width of [1440, 768, 390, 360])
       .getByRole("link", { name: "Explore a delivery", exact: true })
       .click();
     await expect(
-      page.getByRole("heading", { name: "An alert is just the beginning." }),
+      page.getByRole("heading", { name: "Cold-chain operations." }),
     ).toBeVisible();
     await expect(page.locator("#fact-value")).toHaveText("35 min");
     expect(
       await page
         .locator("body")
         .evaluate((node) => getComputedStyle(node).backgroundColor),
-    ).toBe("rgb(3, 4, 7)");
+    ).toBe("rgb(8, 12, 20)");
     expect(
       await page
         .locator('[data-chapter="0"]')
@@ -139,7 +139,7 @@ for (const width of [1440, 768, 390, 360])
     expect(packet.planning.calibrated_probability).toBe(false);
     expect(packet.recorded_steps).toHaveLength(14);
     await download.saveAs(info.outputPath(`decision-${width}.json`));
-    await page.getByRole("button", { name: /Can we trust the sensor/ }).click();
+    await page.getByRole("button", { name: /Sensor integrity/ }).click();
     await expect(page.locator("#notes")).toHaveValue("");
     await expect(page.locator("#record-steps")).toContainText(
       "No decision history is invented",
@@ -327,7 +327,7 @@ test("workspace information and model record are keyboard accessible", async ({
 }) => {
   await open(page);
   await page
-    .getByRole("button", { name: "About Coldpath", exact: true })
+    .getByRole("button", { name: "Workspace information", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("dialog")).toContainText(
@@ -893,7 +893,9 @@ for (const width of [1440, 768, 390, 360])
     await expect(dialog).not.toBeVisible();
     await page.getByRole("button", { name: "Start here", exact: true }).click();
     await expect(dialog).toBeVisible();
-    await dialog.getByRole("link", { name: "Try the delivery demo" }).click();
+    await dialog
+      .getByRole("link", { name: "Open operations workspace" })
+      .click();
     await expect(page.locator("#app-shell")).toBeVisible();
   });
 async function documentFonts(page) {
@@ -944,4 +946,27 @@ test("Intro dismissal works when browser storage is unavailable", async ({
   await page.getByRole("button", { name: "Close introduction" }).click();
   await expect(page.locator("#intro-dialog")).not.toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("Operations inbox search and section navigation work without invented records", async ({
+  page,
+}) => {
+  await open(page);
+  await expect(page.locator(".ops-rail [data-case]")).toHaveCount(2);
+  await page.getByLabel("Find an incident").fill("sensor");
+  await expect(
+    page.locator('.ops-rail [data-case="compressor"]'),
+  ).not.toBeVisible();
+  await page.locator('.ops-rail [data-case="sensor"]').click();
+  await expect(page.locator("#case-title")).toContainText("sensor");
+  await page.getByLabel("Find an incident").fill("nothing matches");
+  await expect(page.locator("#incident-empty")).toBeVisible();
+  await page.getByLabel("Find an incident").fill("");
+  await expect(
+    page.locator('.ops-rail [data-case="compressor"]'),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Evidence register" }).click();
+  await expect(page.locator("#technical-details")).toHaveAttribute("open", "");
+  await page.getByRole("link", { name: "Handover & exports" }).click();
+  await expect(page.locator("#handover-panel")).toBeInViewport();
 });

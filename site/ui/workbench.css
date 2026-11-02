@@ -1268,3 +1268,310 @@ dialog::backdrop {
   border: 1px solid #202c43;
   border-radius: 8px;
 }
+
+/* Product workspace: persistent navigation, a real inbox, and working surfaces. */
+.cp-operations {
+  background: #080c14;
+}
+.cp-operations .cp-header {
+  max-width: none;
+  padding: 16px 30px;
+  background: #080d18;
+  border-bottom: 1px solid #253149;
+}
+.cp-operations .cp-header .cp-brand {
+  font-size: 25px;
+}
+.cp-operations .app-shell {
+  max-width: 1680px;
+  padding: 0 28px 0 256px;
+}
+.ops-rail {
+  position: fixed;
+  left: 0;
+  top: 82px;
+  bottom: 0;
+  width: 228px;
+  padding: 24px 16px;
+  border-right: 1px solid #253149;
+  background: #080d18;
+  overflow: auto;
+}
+.ops-workspace {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 24px;
+}
+.ops-workspace-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #142654;
+  border: 1px solid #47618e;
+  color: #dbe7ff;
+  font-weight: 750;
+}
+.ops-workspace b {
+  display: block;
+  font-size: 12px;
+}
+.ops-workspace small {
+  display: block;
+  font-size: 10px;
+  color: #96a7c4;
+}
+.ops-nav-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-weight: 750;
+  color: #8c9dbb;
+  margin: 14px 0 10px;
+}
+.ops-rail nav {
+  display: grid;
+  gap: 5px;
+}
+.ops-rail nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #a8b8d3;
+  font-size: 12px;
+}
+.ops-rail nav a:hover,
+.ops-rail nav a:focus-visible {
+  color: #f1f4fc;
+  background: #14213b;
+}
+.ops-inbox-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+}
+.ops-inbox-heading > span {
+  color: #8c9dbb;
+  font-size: 9px;
+}
+.ops-search-label {
+  display: block;
+  font-size: 10px;
+  color: #a8b8d3;
+  margin: 8px 0;
+}
+#incident-search {
+  width: 100%;
+  padding: 10px;
+  background: #0e1626;
+  color: #f1f4fc;
+  border: 1px solid #344664;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.ops-rail .case-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+.ops-rail .case-button {
+  width: 100%;
+  text-align: left;
+  padding: 12px 10px;
+}
+.ops-rail .case-button b {
+  font-size: 11px;
+}
+.ops-rail .case-button small {
+  font-size: 9px;
+}
+.ops-rail .case-icon {
+  font-size: 17px;
+}
+.ops-rail-bottom {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid #253149;
+  font-size: 10px;
+  color: #8c9dbb;
+}
+.ops-rail-bottom b {
+  color: #c7d6ee;
+  font-size: 10px;
+}
+.ops-rail-bottom a {
+  display: block;
+  margin-top: 16px;
+  color: #afc9ff;
+}
+.ops-source-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8baef4;
+  margin-right: 6px;
+}
+.cp-operations .workspace-heading {
+  padding-top: 30px;
+  margin-bottom: 22px;
+}
+.cp-operations .workspace-heading h1 {
+  font-size: clamp(27px, 3vw, 38px);
+  letter-spacing: -1.4px;
+  margin-bottom: 8px;
+}
+.cp-operations .workspace-heading .muted {
+  font-size: 13px;
+  max-width: 680px;
+}
+.cp-operations .workspace-heading .cp-eyebrow {
+  font-size: 9px;
+  color: #91a7cb;
+}
+.cp-operations .demo-label {
+  border-radius: 5px;
+  font-size: 10px;
+}
+.cp-operations .case-summary {
+  border: 1px solid #304364;
+  border-left: 3px solid #6795e8;
+  background: #0e182b;
+  border-radius: 8px;
+  padding: 22px;
+  margin: 0 0 22px;
+}
+.cp-operations .case-summary h2 {
+  font-size: 20px;
+  letter-spacing: -0.6px;
+}
+.cp-operations .case-summary p {
+  font-size: 12px;
+}
+.cp-operations .workspace-columns {
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+}
+.cp-operations .primary-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.cp-operations .telemetry-panel {
+  order: -1;
+}
+.cp-operations .panel {
+  border-radius: 8px;
+  background: #0c1321;
+  border-color: #263751;
+  padding: 22px;
+}
+.cp-operations .panel h2 {
+  font-size: 20px;
+  letter-spacing: -0.5px;
+}
+.cp-operations .panel .cp-eyebrow {
+  font-size: 9px;
+  color: #91a7cb;
+}
+.cp-operations .story-panel {
+  background: #0e192d;
+}
+.cp-operations .secondary-column {
+  gap: 20px;
+}
+.cp-operations .story-tabs button {
+  border-radius: 5px;
+}
+.cp-operations #telemetry-panel,
+.cp-operations #decision-panel,
+.cp-operations #handover-panel,
+.cp-operations #assistant-panel {
+  scroll-margin-top: 24px;
+}
+.cp-operations .workspace-footer {
+  padding-top: 25px;
+  margin-top: 30px;
+}
+@media (min-width: 1680px) {
+  .ops-rail {
+    left: max(0px, calc((100vw - 1680px) / 2));
+  }
+}
+@media (max-width: 1150px) {
+  .cp-operations .workspace-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cp-operations .secondary-column {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+@media (max-width: 800px) {
+  .cp-operations .cp-header {
+    padding: 16px 20px;
+  }
+  .cp-operations .app-shell {
+    padding: 0 20px;
+  }
+  .ops-rail {
+    position: static;
+    width: auto;
+    padding: 18px 0;
+    background: transparent;
+    border-right: 0;
+    border-bottom: 1px solid #253149;
+  }
+  .ops-workspace,
+  .ops-rail > .ops-nav-label,
+  .ops-rail-bottom {
+    display: none;
+  }
+  .ops-rail nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .ops-rail nav a {
+    flex-shrink: 0;
+    white-space: nowrap;
+    border: 1px solid #253149;
+    font-size: 11px;
+  }
+  .ops-inbox-heading {
+    margin-top: 8px;
+  }
+  .ops-rail .case-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cp-operations .workspace-heading {
+    padding-top: 24px;
+  }
+}
+@media (max-width: 550px) {
+  .cp-operations .secondary-column {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cp-operations .case-summary {
+    padding: 18px;
+  }
+  .cp-operations .panel {
+    padding: 18px;
+  }
+  .cp-operations .case-summary h2 {
+    font-size: 19px;
+  }
+  .cp-operations .workspace-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
