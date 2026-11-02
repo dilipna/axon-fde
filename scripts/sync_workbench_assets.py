@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ROOT_ASSETS = ("index.html", "workbench.html", "engineering.html", "live.html")
 UI_ASSETS = (
+    "axon-mark.svg",
     "live-core.mjs",
     "live.mjs",
     "live.css",

@@ -34,6 +34,10 @@ function notice(value) {
 }
 function render() {
   renderPortal();
+  $("header-freshness").textContent =
+    `Sample ${run.sequence} · simulated minute ${run.minute}`;
+  $("header-exception-count").textContent =
+    run.vehicles.filter(needsReview).length;
   const v = run.vehicles.find((v) => v.id === selected);
   $("run-clock").textContent = `Minute ${run.minute}`;
   $("run-status").textContent = paused
@@ -77,6 +81,9 @@ function render() {
       ?.focus({ preventScroll: true });
   $("vehicle-title").textContent = v.id + " / " + v.name;
   $("selected-status").textContent = v.status;
+  $("selected-status").dataset.state = v.status
+    .toLowerCase()
+    .replaceAll(" ", "-");
   $("fault-select").value = v.fault;
   const samples = v.readings.slice(-60),
     low = Math.min(v.low - 1, ...samples.map((p) => p.temperature)) - 1,
@@ -305,7 +312,10 @@ function renderPortal() {
         ),
         range = text("td", `${v.low} to ${v.high} °C`),
         status = text("td", "");
-      status.append(text("span", v.status));
+      const badge = text("span", v.status);
+      badge.className = "axon-status";
+      badge.dataset.state = v.status.toLowerCase().replaceAll(" ", "-");
+      status.append(badge);
       if (acknowledged.has(v.id))
         status.append(text("small", "Acknowledged · open"));
       const action = text("td", "");
@@ -400,3 +410,79 @@ $("download-handover").addEventListener("click", () =>
 );
 changeView(location.hash.slice(1));
 loadNote();
+
+// Local workspace controls: no remote account, notifications or support delivery implied.
+const viewNames = {
+  overview: "Overview",
+  shipments: "Shipments",
+  exceptions: "Exceptions",
+  activity: "Activity log",
+  handover: "Shift handover",
+  settings: "Workspace settings",
+};
+function commandResults() {
+  const query = $("command-query").value.trim().toLowerCase();
+  const matches = Object.entries(viewNames).filter(([, name]) =>
+    name.toLowerCase().includes(query),
+  );
+  $("command-results").replaceChildren(
+    ...matches.map(([view, name]) => {
+      const button = text("button", name);
+      button.type = "button";
+      button.addEventListener("click", () => {
+        $("command-dialog").close();
+        changeView(view);
+        document.querySelector("h1").setAttribute("tabindex", "-1");
+        document.querySelector("h1").focus();
+      });
+      return button;
+    }),
+  );
+  $("command-empty").hidden = matches.length > 0;
+}
+function openCommand() {
+  $("command-query").value = "";
+  commandResults();
+  if (!$("command-dialog").open) $("command-dialog").showModal();
+  $("command-query").focus();
+}
+$("command-open").addEventListener("click", openCommand);
+$("command-query").addEventListener("input", commandResults);
+$("command-query").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    $("command-results").querySelector("button")?.click();
+  }
+});
+document.addEventListener("keydown", (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    if (!$("help-dialog").open) openCommand();
+  }
+});
+$("header-exceptions").addEventListener("click", () =>
+  changeView("exceptions"),
+);
+for (const id of ["help-open", "footer-help"])
+  $(id).addEventListener("click", () => $("help-dialog").showModal());
+for (const dialog of document.querySelectorAll(".axon-dialog")) {
+  dialog
+    .querySelector("[data-modal-close]")
+    .addEventListener("click", () => dialog.close());
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const controls = [
+      ...dialog.querySelectorAll("button:not(:disabled),input"),
+    ].filter((node) => !node.hidden);
+    if (!controls.length) return;
+    const first = controls[0],
+      last = controls.at(-1);
+    if (
+      (event.shiftKey && document.activeElement === first) ||
+      (!event.shiftKey && document.activeElement === last)
+    ) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+    }
+  });
+}
