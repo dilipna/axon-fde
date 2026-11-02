@@ -473,7 +473,7 @@ for (const width of [1440, 768, 390, 360])
         .evaluate((node) => getComputedStyle(node).backgroundColor),
     ).toBe("rgb(212, 255, 36)");
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      "A delivery at risk.",
+      "An operations problem.",
     );
     await expect(
       page.getByText(
@@ -488,6 +488,24 @@ for (const width of [1440, 768, 390, 360])
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
+    await expect(page.locator(".cp-brief-cards article")).toHaveCount(3);
+    await expect(page.locator(".cp-client-context")).toContainText(
+      "AXON TRUCK SERVICES",
+    );
+    await expect(page.locator(".cp-client-context")).toContainText(
+      "Hyderabad, India",
+    );
+    const cards = await page.locator(".cp-brief-cards").boundingBox();
+    expect(cards.y).toBeLessThan(1000);
+    await expect(page.locator("#solution-title")).toContainText(
+      "With its reasoning.",
+    );
+    await expect(page.locator("#validation")).toContainText(
+      "Missed recoveries rose from 0 to 4",
+    );
+    await expect(page.locator("#validation")).toContainText(
+      "failed verification",
+    );
     await expectTypography(page);
     await page.screenshot({
       path: info.outputPath(`coldpath-overview-${width}.png`),
@@ -778,4 +796,52 @@ test("illustration respects reduced motion from the initial load", async ({
   await expect(
     art.getByText("Illustration · not live telemetry", { exact: true }),
   ).toBeVisible();
+});
+
+test("FDE case study connects the opening brief to the solution and original proof", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "An operations problem.An engineered response.",
+  );
+  await page
+    .getByRole("link", { name: "See what I built", exact: false })
+    .click();
+  await expect(page).toHaveURL(/#solution$/);
+  await expect(page.locator("#solution-title")).toBeInViewport();
+  await page
+    .getByRole("link", {
+      name: "Walk through my engineering decisions",
+      exact: false,
+    })
+    .click();
+  const review = page.locator(".cp-decision-list details").nth(2);
+  await review.locator("summary").focus();
+  await review.locator("summary").press("Enter");
+  await expect(review).toHaveAttribute("open", "");
+  await expect(review).toContainText("checkpointed LangGraph interrupt");
+  await expect(review).toContainText("separate from this backend path");
+  await expect(
+    page.getByRole("link", {
+      name: "Inspect the review and restart contracts",
+      exact: false,
+    }),
+  ).toHaveAttribute(
+    "href",
+    "https://github.com/dilipna/axon-fde/blob/main/docs/decision-workspace.md",
+  );
+  const verification = page.locator(".cp-decision-list details").nth(3);
+  await verification.locator("summary").click();
+  await expect(verification).toHaveAttribute("open", "");
+  await page
+    .getByRole("link", {
+      name: "See the incident that stayed unresolved",
+      exact: false,
+    })
+    .click();
+  await expect(page.locator("#story-title")).toContainText("incident reopened");
+  await page.getByRole("link", { name: "Case study", exact: true }).click();
+  await expect(page).toHaveURL(/#engagement$/);
+  await expect(page.locator("#case-study-title")).toBeInViewport();
 });

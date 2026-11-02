@@ -7,10 +7,10 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
     />
-    <title>Coldpath — A clearer next move for cold deliveries</title>
+    <title>Coldpath — Forward deployed engineering case study</title>
     <meta
       name="description"
-      content="An AI decision-assistant project for temperature-sensitive deliveries. Follow one shipment from early warning to human review, with the evidence always in reach."
+      content="Dilip Nallamasa’s forward deployed engineering case study: framing a logistics problem, integrating legacy data, building a reviewable decision workflow and validating it with inspectable evidence."
     />
     <link
       rel="preload"
@@ -26,7 +26,7 @@
       type="font/ttf"
       crossorigin
     />
-    <link rel="stylesheet" href="ui/coldpath.css?v=coldpath-motion-1" />
+    <link rel="stylesheet" href="ui/coldpath.css?v=coldpath-fde-1" />
   </head>
   <body class="cp-page" id="top">
     <a class="cp-skip" href="#main">Skip to the project</a>
@@ -36,29 +36,159 @@
         >Coldpath<span class="cp-brand-dot">.</span></a
       >
       <nav aria-label="Main navigation">
-        <a href="#how">How it works</a><a href="engineering.html">Engineering</a
+        <a href="#engagement">Case study</a><a href="#solution">Solution</a
+        ><a href="engineering.html">Engineering</a
         ><a class="cp-button cp-button-small" href="workbench.html"
           >Try the demo <span aria-hidden="true">↗</span></a
         >
       </nav>
     </header>
     <main id="main">
-      <section class="cp-hero cp-wrap">
+      <section
+        class="cp-engagement cp-wrap"
+        id="engagement"
+        aria-labelledby="case-study-title"
+      >
+        <div class="cp-engagement-top">
+          <div>
+            <p class="cp-eyebrow">
+              <span class="cp-status-dot"></span>FORWARD DEPLOYED ENGINEERING ·
+              DILIP NALLAMASA
+            </p>
+            <h1 id="case-study-title">
+              An operations problem.<br /><em>An engineered response.</em>
+            </h1>
+            <p class="cp-case-lede">
+              I built Coldpath to connect shipment evidence, explain the next
+              move and keep consequential decisions under human control. This
+              case study follows my work from problem framing to integration,
+              workflow engineering, evaluation and deployment.
+            </p>
+          </div>
+          <aside class="cp-client-context" aria-label="Engagement context">
+            <span class="cp-label">ENGAGEMENT CONTEXT</span>
+            <b>AXON TRUCK SERVICES</b>
+            <span>Hyderabad, India</span>
+            <p>
+              The public walkthrough uses synthetic shipment records. Customer
+              systems and operational data are not connected to this website.
+            </p>
+          </aside>
+        </div>
+        <div class="cp-brief-cards" aria-label="Why I built Coldpath">
+          <article>
+            <span class="cp-card-index">01 / THE PROBLEM</span>
+            <h2>An alarm leaves the decision unfinished.</h2>
+            <p>
+              A dispatcher still needs the shipment rules, equipment context and
+              response options. The engineering brief was to turn those
+              scattered clues into a timely, reviewable decision.
+            </p>
+            <a href="#brief-problem"
+              >Understand the problem <span aria-hidden="true">↘</span></a
+            >
+          </article>
+          <article class="cp-brief-solution">
+            <span class="cp-card-index">02 / MY SOLUTION</span>
+            <h2>One evidence-backed decision workflow.</h2>
+            <p>
+              Connect legacy data and documents, identify conflicts, compare
+              responses, require a bound human approval and check the outcome.
+            </p>
+            <a href="#solution"
+              >See what I built <span aria-hidden="true">↘</span></a
+            >
+          </article>
+          <article>
+            <span class="cp-card-index">03 / THE PROOF</span>
+            <h2>Inspect the decision. Test the safeguards.</h2>
+            <p>
+              Follow the recorded incident, change a planning assumption and
+              inspect the failure cases. The evidence includes what did not
+              work.
+            </p>
+            <a href="#validation"
+              >Inspect the evidence <span aria-hidden="true">↘</span></a
+            >
+          </article>
+        </div>
+        <div class="cp-case-actions">
+          <a class="cp-button" href="workbench.html"
+            >Explore a delivery <span aria-hidden="true">→</span></a
+          >
+          <a class="cp-text-link" href="#delivery-plan"
+            >Walk through my engineering decisions ↓</a
+          >
+          <span>Case study → working demo → source evidence</span>
+        </div>
+      </section>
+      <section
+        class="cp-problem cp-wrap"
+        id="brief-problem"
+        aria-labelledby="problem-title"
+      >
+        <div>
+          <p class="cp-eyebrow">01 / PROBLEM FRAMING</p>
+          <h2 id="problem-title">
+            A temperature reading is one clue.<br />A response needs the whole
+            situation.
+          </h2>
+          <p>
+            In the demonstration brief, the dispatcher works across shipment
+            records, temperature history, signed cargo requirements and
+            equipment information. Those sources can disagree. A recommendation
+            needs to explain which evidence it used and what still needs a
+            person’s judgment.
+          </p>
+        </div>
+        <div class="cp-before-after">
+          <article>
+            <span class="cp-label"
+              >STARTING WORKFLOW · DEMONSTRATION SCENARIO</span
+            >
+            <h3>Alert → gather context → decide.</h3>
+            <p>
+              Information is separated across tools. A threshold alert alone
+              does not reconcile the rules, authorize a response or establish
+              whether it helped.
+            </p>
+          </article>
+          <article>
+            <span class="cp-label">WORKFLOW I IMPLEMENTED</span>
+            <h3>Evidence → review → action → verification.</h3>
+            <p>
+              Keep the source attached to each conclusion. Bind approval to the
+              exact proposal, reject stale context and leave an inspectable
+              outcome.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section
+        class="cp-hero cp-wrap cp-solution-hero"
+        id="solution"
+        aria-labelledby="solution-title"
+      >
         <div class="cp-hero-copy">
           <p class="cp-eyebrow">
-            <span class="cp-status-dot"></span> COLD-CHAIN DECISION ASSISTANT
+            <span class="cp-status-dot"></span> 02 / THE IMPLEMENTED SOLUTION
           </p>
-          <h1>A delivery at risk.<br />A clearer <em>next move.</em></h1>
+          <h2 id="solution-title">
+            The next move.<br /><em>With its reasoning.</em>
+          </h2>
           <p class="cp-lede">
-            When medicines or fresh food start getting too warm, a temperature
-            alert is only the beginning. Coldpath brings the clues, the rules
-            and the response options into one understandable story.
+            Coldpath assembles shipment context, flags conflicting requirements
+            and compares possible responses. The backend pauses for human
+            review, rechecks the evidence before execution and checks the result
+            afterward.
           </p>
           <div class="cp-actions">
-            <a class="cp-button" href="workbench.html"
-              >Explore a delivery <span aria-hidden="true">→</span></a
+            <a
+              class="cp-button"
+              href="workbench.html#case=compressor&amp;chapter=2"
+              >Inspect a response <span aria-hidden="true">→</span></a
             ><a class="cp-text-link" href="#how"
-              >Understand it in 30 seconds ↓</a
+              >Follow the delivery workflow ↓</a
             >
           </div>
           <p class="cp-demo-note">
@@ -131,69 +261,239 @@
         </div>
       </section>
       <section
-        class="cp-value-strip cp-wrap"
-        aria-label="What this project demonstrates"
+        class="cp-workflow-strip cp-wrap"
+        id="how"
+        aria-label="The end-to-end solution"
       >
-        <div>
-          <b>Clues, connected.</b
-          ><span>Readings and delivery rules, together.</span>
-        </div>
-        <div>
-          <b>You stay in control.</b><span>Approval belongs to a person.</span>
-        </div>
-        <div>
-          <b>Proof, one click away.</b
-          ><span>Follow the source of each conclusion.</span>
-        </div>
+        <p class="cp-label">THE END-TO-END SOLUTION</p>
+        <ol>
+          <li>
+            <span>01</span><b>Connect evidence</b
+            ><small>Shipment, document and telemetry context</small>
+          </li>
+          <li>
+            <span>02</span><b>Resolve the rules</b
+            ><small>Expose disagreements and retain sources</small>
+          </li>
+          <li>
+            <span>03</span><b>Compare responses</b
+            ><small>Make assumptions and alternatives visible</small>
+          </li>
+          <li>
+            <span>04</span><b>Review the action</b
+            ><small>Require a current, bound human approval</small>
+          </li>
+          <li>
+            <span>05</span><b>Verify the outcome</b
+            ><small>Record recovery, uncertainty or failure</small>
+          </li>
+        </ol>
+        <p class="cp-workflow-scope">
+          Implemented backend workflow · the public workspace is a read-only
+          demonstration.
+        </p>
       </section>
-      <section class="cp-how cp-wrap" id="how">
+      <section
+        class="cp-delivery-plan cp-wrap"
+        id="delivery-plan"
+        aria-labelledby="delivery-plan-title"
+      >
         <div class="cp-section-heading">
-          <p class="cp-eyebrow">THE IDEA, WITHOUT THE JARGON</p>
-          <h2>
-            From “something is wrong”<br />to “here’s what to check next.”
+          <p class="cp-eyebrow">03 / HOW I HANDLED IT</p>
+          <h2 id="delivery-plan-title">
+            The engineering decisions behind the interface.
           </h2>
           <p>
-            Think of Coldpath as a careful operations assistant. It helps
-            organize a decision; it does not replace the person responsible for
-            it.
+            Each decision connects an operational need to an implementation you
+            can inspect. Expand a step for the constraint, the approach and the
+            proof.
           </p>
         </div>
-        <div class="cp-how-grid">
+        <div class="cp-decision-list">
+          <details open>
+            <summary>
+              <span>01</span><b>Connect the existing systems safely.</b
+              ><span class="cp-decision-tag">INTEGRATION</span>
+            </summary>
+            <div class="cp-decision-body">
+              <p>
+                <b>The need.</b> Bring shipment context into the investigation
+                without giving the agent unrestricted ERP access.
+              </p>
+              <p>
+                <b>My approach.</b> A SQL Server integration with read-only
+                reporting views and SQL AST allowlisting; PostgreSQL stores
+                application evidence, review state and audit records.
+              </p>
+              <a
+                href="https://github.com/dilipna/axon-fde/blob/main/docs/architecture/overview.md"
+                target="_blank"
+                rel="noreferrer"
+                >Inspect the integration architecture ↗</a
+              >
+            </div>
+          </details>
+          <details>
+            <summary>
+              <span>02</span><b>Make disagreement explicit.</b
+              ><span class="cp-decision-tag">EVIDENCE</span>
+            </summary>
+            <div class="cp-decision-body">
+              <p>
+                <b>The need.</b> A signed cargo document and an ERP record can
+                specify different temperature limits.
+              </p>
+              <p>
+                <b>My approach.</b> Normalize source-backed observations into
+                typed evidence. Detect conflicts deterministically and retain
+                the source and validity window instead of letting a model
+                silently pick a value.
+              </p>
+              <a href="workbench.html#case=compressor&amp;chapter=1"
+                >Inspect the conflicting requirements →</a
+              >
+            </div>
+          </details>
+          <details>
+            <summary>
+              <span>03</span><b>Keep a human approval valid through the wait.</b
+              ><span class="cp-decision-tag">CONTROL</span>
+            </summary>
+            <div class="cp-decision-body">
+              <p>
+                <b>The need.</b> Conditions may change while a proposal waits
+                for review. An old approval must not authorize a changed
+                situation.
+              </p>
+              <p>
+                <b>My approach.</b> A checkpointed LangGraph interrupt,
+                persisted proposal and approval, fresh-context revalidation and
+                an idempotent executor. The public planning rehearsal is
+                separate from this backend path.
+              </p>
+              <a
+                href="https://github.com/dilipna/axon-fde/blob/main/docs/decision-workspace.md"
+                target="_blank"
+                rel="noreferrer"
+                >Inspect the review and restart contracts ↗</a
+              >
+            </div>
+          </details>
+          <details>
+            <summary>
+              <span>04</span><b>Verify the result, including failure.</b
+              ><span class="cp-decision-tag">VALIDATION</span>
+            </summary>
+            <div class="cp-decision-body">
+              <p>
+                <b>The need.</b> Executing a response does not prove that a
+                shipment recovered.
+              </p>
+              <p>
+                <b>My approach.</b> Separate outcome verification, check
+                freshness and recovery duration, and abstain on ambiguous sensor
+                evidence. A frozen fault pack exposes both improvements and
+                remaining failure modes.
+              </p>
+              <a href="workbench.html#case=compressor&amp;chapter=3"
+                >See the incident that stayed unresolved →</a
+              >
+            </div>
+          </details>
+        </div>
+      </section>
+      <section
+        class="cp-validation cp-wrap"
+        id="validation"
+        aria-labelledby="validation-title"
+      >
+        <div class="cp-section-heading">
+          <p class="cp-eyebrow">04 / OUTCOMES &amp; EVIDENCE</p>
+          <h2 id="validation-title">
+            A solution you can inspect.<br />A result I can explain.
+          </h2>
+          <p>
+            The public records demonstrate behavior in synthetic cases. They
+            establish engineering evidence; they do not establish customer
+            savings or production fleet performance.
+          </p>
+        </div>
+        <div class="cp-proof-cards">
           <article>
-            <span class="cp-step-number">01</span>
-            <h3>Notice the warning.</h3>
+            <span class="cp-proof-number">35 min</span>
+            <h3>Earlier warning in one recorded incident.</h3>
             <p>
-              Read a shipment’s temperature trend and compare it with the
-              delivery rules. An early clue can matter before an ordinary alarm
-              fires.
+              The warning appears at minute 102 and the threshold alarm at
+              minute 137. That is one synthetic trajectory, not a fleet-wide
+              guarantee.
             </p>
-            <a href="workbench.html#case=compressor"
-              >See the recorded warning ↗</a
+            <a href="workbench.html#case=compressor">Follow the warning →</a>
+          </article>
+          <article>
+            <span class="cp-proof-number">24 cases</span>
+            <h3>A frozen outcome-verification fault pack.</h3>
+            <p>
+              False confirmations fell from 6 to 2 on constructed cases. Missed
+              recoveries rose from 0 to 4. Nonconstant sensor lies remain a
+              limitation.
+            </p>
+            <a href="engineering.html#engineering"
+              >Inspect the test evidence →</a
             >
           </article>
           <article>
-            <span class="cp-step-number">02</span>
-            <h3>Make the options clear.</h3>
+            <span class="cp-proof-number">Unresolved</span>
+            <h3>A result the system must not call a success.</h3>
             <p>
-              Compare possible responses and their assumptions. If the evidence
-              changes after approval, stop and ask for a fresh review.
-            </p>
-            <a href="workbench.html#case=compressor&amp;chapter=2"
-              >Follow the decision ↗</a
-            >
-          </article>
-          <article>
-            <span class="cp-step-number">03</span>
-            <h3>Check what happened.</h3>
-            <p>
-              A response is not the same as a recovery. Keep the observations,
-              the outcome and the limits—even when the result is disappointing.
+              The recorded compressor case ends with failed verification and a
+              reopened incident. The original trajectory did not model a
+              successful reroute.
             </p>
             <a href="workbench.html#case=compressor&amp;chapter=3"
-              >See the honest outcome ↗</a
+              >See the honest outcome →</a
             >
           </article>
         </div>
+        <div class="cp-boundary">
+          <div>
+            <b>What is deployed here</b>
+            <p>
+              A public, read-only walkthrough with source citations, private
+              browser notes and downloadable decision briefs.
+            </p>
+          </div>
+          <div>
+            <b>What is tested separately</b>
+            <p>
+              The authenticated backend, real database integrations, durable
+              approval and execution safeguards. The website cannot dispatch a
+              fleet action.
+            </p>
+          </div>
+        </div>
+        <p class="cp-validation-links">
+          <a
+            href="https://github.com/dilipna/axon-fde/actions/workflows/ci.yml"
+            target="_blank"
+            rel="noreferrer"
+            >Inspect the automated integration &amp; safety checks ↗</a
+          ><a
+            href="https://github.com/dilipna/axon-fde/blob/main/docs/verification-release-protocol.md"
+            target="_blank"
+            rel="noreferrer"
+            >Read the predeclared verification protocol ↗</a
+          >
+        </p>
+        <details class="cp-next-validation">
+          <summary>What I would validate before an operational rollout</summary>
+          <p>
+            Use authorized customer data, validate source freshness and
+            identity, calibrate alert behavior, agree escalation rules, and
+            measure operator decision time and intervention outcomes in a
+            controlled pilot. These are proposed next steps, not claims of a
+            completed rollout.
+          </p>
+        </details>
       </section>
       <section class="cp-story-banner cp-wrap">
         <div>
@@ -210,6 +510,11 @@
           <a class="cp-button" href="workbench.html"
             >Open the guided story <span aria-hidden="true">→</span></a
           >
+          <p>
+            <a class="cp-text-link" href="engineering.html"
+              >Explore the system, tests &amp; limitations →</a
+            >
+          </p>
         </div>
         <div class="cp-mini-brief">
           <span class="cp-label">YOUR TAKEAWAY</span>
@@ -225,28 +530,14 @@
           >
         </div>
       </section>
-      <section class="cp-proof-intro cp-wrap">
-        <div>
-          <p class="cp-eyebrow">CURIOUS ABOUT THE ENGINEERING?</p>
-          <h2>Simple on the surface.<br />Inspectable underneath.</h2>
-          <p>
-            The code uses AI for analysis and explanation, with separate rules
-            for approval, execution and outcome checks. This public demo shows
-            recorded evidence; it does not control real vehicles.
-          </p>
-        </div>
-        <a class="cp-text-link" href="engineering.html"
-          >Explore the system, tests & limitations →</a
-        >
-      </section>
     </main>
     <footer class="cp-footer cp-wrap">
       <a class="cp-brand" href="./"
         >Coldpath<span class="cp-brand-dot">.</span></a
       >
       <p>
-        A personal engineering project by Dilip Nallamasa.<br />Formerly
-        AxonFDE. Fictional logistics data; no live fleet service.
+        An FDE engineering case study by Dilip Nallamasa.<br />Formerly AxonFDE.
+        Fictional logistics data; no live fleet service.
       </p>
       <a
         href="https://github.com/dilipna/axon-fde"
@@ -255,6 +546,6 @@
         >Source & reproduction ↗</a
       >
     </footer>
-    <script type="module" src="ui/overview.mjs?v=coldpath-motion-1"></script>
+    <script type="module" src="ui/overview.mjs?v=coldpath-fde-1"></script>
   </body>
 </html>
