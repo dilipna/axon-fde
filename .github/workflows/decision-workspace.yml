@@ -28,7 +28,7 @@ jobs:
           python -m scripts.build_workbench_data --check
           python -m scripts.sync_workbench_assets --check
       - name: Check browser policy against backend arithmetic and grounding contracts
-        run: node --test tests/web/workbench.test.mjs
+        run: node --test tests/web/workbench.test.mjs tests/web/live.test.mjs
       - name: Attach exact source identity
         run: |
           python scripts/site_identity.py

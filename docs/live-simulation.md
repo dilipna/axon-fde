@@ -1,0 +1,9 @@
+# Browser-local live simulation
+
+The live.html workspace generates new telemetry while the tab is visible. It does not replay the original record and does not connect to a fleet, backend approval service or paid model. A deterministic seed and first-order thermal relaxation model produce three bounded shipment streams. This educational browser model is separate from the Python simulator, ML model and historical benchmark artifacts; its decisions are rule-based.
+
+One timer step advances one simulated minute. At normal speed a step runs each second; fast speed runs every 250 ms. Hidden tabs suspend with no elapsed-time catch-up. Pausing freezes simulation time. Reload starts a new run; exports preserve a seed, current state, the latest 240 readings per vehicle and 80 state/action events. This is per-tab execution, not a shared or persistent cloud service.
+
+A cooling or door fault warms cargo toward its threshold. Observed breaches or a rising observed trend trigger review. Explicit human approval applies simulated cold storage to future readings. Five successive in-range stabilizing samples are required for recovery. Sensor faults cannot be approved as thermal recovery. Proposals expire after five new samples, and changing a fault clears approval context. Duplicate approval rejects. The graph consumes reported readings; no historical ground-truth files are served or modified.
+
+Local engine tests cover seed reproducibility, healthy baseline, fault escalation, sustained recovery, expired/context-changed/repeated approval, sensor uncertainty, bounds and invalid inputs. Four GitHub-only responsive browser journeys cover clock advancement, pause/resume, review/action/recovery, exports and sensor/invalid-seed handling. All 40 existing browser cases are retained, totaling 44. Source/release and production verification must pass before public deployment. No cloud resources, model calls or hosting-policy changes are needed.

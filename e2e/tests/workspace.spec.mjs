@@ -901,7 +901,7 @@ for (const width of [1440, 768, 390, 360])
     await dialog
       .getByRole("link", { name: "Open operations workspace" })
       .click();
-    await expect(page.locator("#app-shell")).toBeVisible();
+    await expect(page.locator("#run-status")).toContainText("simulated");
   });
 async function documentFonts(page) {
   await page.evaluate(() => document.fonts.ready);
@@ -975,3 +975,53 @@ test("Operations inbox search and section navigation work without invented recor
   await page.getByRole("link", { name: "Handover & exports" }).click();
   await expect(page.locator("#handover-panel")).toBeInViewport();
 });
+
+for (const width of [1440, 768, 390, 360])
+  test(`Live simulation updates, pauses and reviews at ${width}px`, async ({
+    page,
+  }, info) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.clock.install();
+    await page.goto("live.html");
+    await expect(page.locator("#run-status")).toContainText(
+      "Streaming · simulated",
+    );
+    await expect(page.locator(".live-disclosure")).toContainText("SIMULATED");
+    await page.clock.runFor(12000);
+    await expect(page.locator("#run-clock")).toHaveText("Minute 13");
+    await page.locator("#pause-run").click();
+    await page.clock.runFor(5000);
+    await expect(page.locator("#run-clock")).toHaveText("Minute 13");
+    await page.locator("#prepare-response").click();
+    await page.locator("#approve-response").click();
+    await expect(page.locator("#live-notice")).toContainText(
+      "Simulated response approved",
+    );
+    await page.locator("#pause-run").click();
+    await page.clock.runFor(60000);
+    await expect(page.locator("#selected-status")).toHaveText(
+      "Recovery verified",
+    );
+    await page.locator("#pause-run").click();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: info.outputPath(`live-${width}.png`),
+      fullPage: true,
+    });
+    const pending = page.waitForEvent("download");
+    await page.locator("#export-run").click();
+    const download = await pending;
+    expect(download.suggestedFilename()).toContain("simulated-run");
+    await page.locator("#fault-select").selectOption("sensor");
+    await page.locator("#pause-run").click();
+    await page.clock.runFor(1000);
+    await expect(page.locator("#selected-status")).toHaveText("Sensor review");
+    await expect(page.locator("#prepare-response")).toBeDisabled();
+    await page.locator("#run-seed").fill("0");
+    await page.locator("#reset-run").click();
+    await expect(page.locator("#live-notice")).toContainText("Seed must");
+  });
