@@ -1,4 +1,8 @@
-import { getStory, readStudyLocation, studyHash } from "./story.mjs?v=coldpath-midnight-2";
+import {
+  getStory,
+  readStudyLocation,
+  studyHash,
+} from "./story.mjs?v=coldpath-midnight-2";
 import {
   verifyBundle,
   rankPlanning,
@@ -714,3 +718,21 @@ async function start() {
 }
 $("about-open").addEventListener("click", () => $("about-dialog").showModal());
 start();
+
+// Search only the available recorded inbox; never fabricate additional shipments.
+const inboxSearch = document.querySelector("#incident-search");
+if (inboxSearch) {
+  inboxSearch.addEventListener("input", () => {
+    const query = inboxSearch.value.trim().toLocaleLowerCase();
+    let matches = 0;
+    document.querySelectorAll(".case-list [data-case]").forEach((button) => {
+      const match = button.textContent.toLocaleLowerCase().includes(query);
+      button.hidden = !match;
+      if (match) matches++;
+    });
+    document.querySelector("#incident-empty").hidden = matches > 0;
+  });
+  document.querySelector("#ops-evidence-link").addEventListener("click", () => {
+    document.querySelector("#technical-details").open = true;
+  });
+}
