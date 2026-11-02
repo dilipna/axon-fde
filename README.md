@@ -1,8 +1,8 @@
 # Coldpath
 
-**A clearer next move for temperature-sensitive deliveries.**
+**Forward deployed engineering: from a logistics decision problem to an inspectable solution.**
 
-Coldpath (formerly AxonFDE) turns a recorded logistics incident into a guided story: notice the warning, understand the rule, review the response and check the outcome. [Explore the overview](https://dilipna.github.io/axon-fde/) or [open the guided workspace](https://dilipna.github.io/axon-fde/workbench.html). The existing repository, AXON_ configuration names and historical evidence identifiers are preserved for compatibility.
+Coldpath (formerly AxonFDE) presents an end-to-end FDE case study: problem framing, legacy integration, source reconciliation, durable human review, evaluation and a deployed public walkthrough. Its technical narrative is grounded in the implementation and synthetic demonstration brief, rather than unrecorded customer interviews or claimed production business outcomes. The recorded logistics incident follows a guided story: notice the warning, understand the rule, review the response and check the outcome. [Explore the overview](https://dilipna.github.io/axon-fde/) or [open the guided workspace](https://dilipna.github.io/axon-fde/workbench.html). The existing repository, AXON_ configuration names and historical evidence identifiers are preserved for compatibility.
 
 See [the clarity/branding design and acceptance](docs/coldpath-experience.md). Deployment status is established by the release PR and Actions, not by a fabricated live-fleet claim.
 
