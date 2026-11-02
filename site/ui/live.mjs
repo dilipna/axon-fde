@@ -181,7 +181,9 @@ $("prepare-response").addEventListener("click", () => {
 $("approve-response").addEventListener("click", () => {
   try {
     approve(run, selected);
-    notice("Simulated response approved. Waiting for fresh recovery evidence.");
+    notice(
+      "Simulated response approved. Recovery is determined by subsequent readings.",
+    );
   } catch (e) {
     notice(e.message);
   }
@@ -195,7 +197,7 @@ $("reset-run").addEventListener("click", () => {
     injectFault(run, selected, "cooling");
     tick(run);
     notice(
-      "New run started. Previous run cleared; export before resetting to keep a copy.",
+      "New run created. Previous run cleared; export before resetting to keep a copy.",
     );
     schedule();
   } catch (e) {

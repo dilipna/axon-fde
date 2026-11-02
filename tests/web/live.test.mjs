@@ -51,6 +51,7 @@ test("approval changes future samples and requires sustained verification", () =
   assert.notEqual(r.vehicles[0].status, "Recovery verified");
   advance(r, 40);
   assert.equal(r.vehicles[0].status, "Recovery verified");
+  assert.equal(r.vehicles[0].hold, 5);
   assert.ok(r.events.some((e) => e.text.includes("Human approved")));
 });
 test("expired proposals cannot execute", () => {

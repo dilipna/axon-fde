@@ -67,7 +67,8 @@ export function tick(run) {
       v.status = "Sensor review";
       v.hold = 0;
     } else if (v.action) {
-      v.hold = !breach && Math.abs(v.temp - old) < 0.12 ? v.hold + 1 : 0;
+      v.hold =
+        !breach && Math.abs(v.temp - old) < 0.12 ? Math.min(5, v.hold + 1) : 0;
       v.status = v.hold >= 5 ? "Recovery verified" : "Verifying response";
     } else
       v.status = breach

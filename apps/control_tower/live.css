@@ -271,3 +271,18 @@
     align-items: stretch;
   }
 }
+
+@media (max-width: 600px) {
+  .cp-live .cp-header {
+    flex-wrap: wrap;
+  }
+  .cp-live .cp-header nav {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .cp-live .cp-header nav > a:not(.cp-button) {
+    display: inline;
+    font-size: 12px;
+    min-height: 32px;
+  }
+}
