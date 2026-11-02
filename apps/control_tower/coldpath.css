@@ -1995,3 +1995,26 @@ body {
     gap: 8px;
   }
 }
+
+/* Keep the layered deck readable on tablets as well as phones. */
+@media (min-width: 601px) and (max-width: 850px) {
+  .cp-intro-deck {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+    margin: auto;
+  }
+  .cp-intro-card + .cp-intro-card {
+    margin-left: 0;
+    margin-top: -8px;
+  }
+  .cp-intro-why {
+    transform: rotate(-1deg);
+  }
+  .cp-intro-solution {
+    transform: rotate(1deg);
+  }
+  .cp-intro-usage {
+    transform: rotate(-1deg);
+    z-index: 4;
+  }
+}
