@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    />
+    <title>Coldpath — Live simulation</title>
+    <link rel="stylesheet" href="ui/coldpath.css?v=live-1" />
+    <link rel="stylesheet" href="ui/live.css?v=live-1" />
+  </head>
+  <body class="cp-page cp-live">
+    <a class="cp-skip" href="#live-main">Skip to live workspace</a>
+    <header class="cp-header">
+      <a class="cp-brand" href="./"
+        >Coldpath<span class="cp-brand-dot">.</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="workbench.html">Evidence workspace</a
+        ><a href="./#engagement">Case study</a>
+      </nav>
+    </header>
+    <main id="live-main" class="live-wrap">
+      <div class="live-heading">
+        <div>
+          <p class="cp-eyebrow">OPERATIONS / LIVE SIMULATION</p>
+          <h1>Your fleet. A moving picture.</h1>
+          <p>Fresh readings, visible decisions and outcomes you can follow.</p>
+        </div>
+        <span class="live-badge" id="run-status"
+          >Starting simulated stream</span
+        >
+      </div>
+      <div class="live-disclosure">
+        <b>SIMULATED · browser-local</b
+        ><span
+          >Generated now, not a recording. One second = one simulated minute.
+          Rule-based decisions; no model calls or real dispatch. Runs while this
+          tab is visible.</span
+        >
+      </div>
+      <section class="live-toolbar" aria-label="Simulation controls">
+        <button id="pause-run" class="cp-button">Pause stream</button
+        ><label
+          >Speed<select id="run-speed">
+            <option value="1000">1× · 1 minute/sec</option>
+            <option value="250">4× · 4 minutes/sec</option>
+          </select></label
+        ><label
+          >Run seed<input
+            id="run-seed"
+            type="number"
+            min="1"
+            max="999999"
+            value="42" /></label
+        ><button id="reset-run">Reset run</button
+        ><button id="export-run">Download run</button
+        ><span id="run-clock" role="timer">Minute 0</span>
+      </section>
+      <p id="live-notice" role="status" aria-live="polite"></p>
+      <div class="live-metrics">
+        <div><span>Simulated shipments</span><b>3</b></div>
+        <div><span>Need review</span><b id="review-count">0</b></div>
+        <div><span>Verified recoveries</span><b id="recovery-count">0</b></div>
+        <div><span>Samples generated</span><b id="sample-count">0</b></div>
+      </div>
+      <div class="live-grid">
+        <section class="live-panel">
+          <div class="live-panel-heading">
+            <h2>Shipment monitor</h2>
+            <span>Click a shipment to investigate</span>
+          </div>
+          <div
+            id="fleet-list"
+            class="fleet-list"
+            role="group"
+            aria-label="Simulated shipments"
+          ></div>
+          <div class="live-detail">
+            <div class="live-panel-heading">
+              <h2 id="vehicle-title">Shipment details</h2>
+              <span id="selected-status"></span>
+            </div>
+            <label
+              >Inject a fault<select id="fault-select">
+                <option value="none">Normal cooling</option>
+                <option value="cooling">Cooling failure</option>
+                <option value="door">Door left open</option>
+                <option value="sensor">Sensor drift</option>
+              </select></label
+            >
+            <p class="live-hint">
+              Start with Cooling failure. Watch the warning develop, prepare a
+              response, then approve it to observe recovery.
+            </p>
+            <svg
+              id="live-chart"
+              viewBox="0 0 700 240"
+              role="img"
+              aria-labelledby="live-chart-title"
+            >
+              <title id="live-chart-title">
+                Generated temperature readings
+              </title>
+            </svg>
+            <p id="sample-details"></p>
+            <div class="decision-card">
+              <h3>Response review</h3>
+              <p id="decision-explanation"></p>
+              <div class="decision-actions">
+                <button id="prepare-response">Prepare response</button
+                ><button id="approve-response">
+                  Approve simulated response
+                </button>
+              </div>
+              <p id="proposal-details"></p>
+            </div>
+          </div>
+        </section>
+        <aside class="live-panel">
+          <h2>Event stream</h2>
+          <p class="live-hint">
+            State changes and human actions, newest first. The latest 80 events
+            and 240 readings per shipment are retained.
+          </p>
+          <ol id="live-events" aria-label="Simulation event history"></ol>
+        </aside>
+      </div>
+      <details class="live-method">
+        <summary>How this simulation works</summary>
+        <p>
+          A deterministic first-order thermal model generates readings from the
+          seed, cooling state and injected fault. It is an educational browser
+          model, separate from the Python benchmark simulator and trained risk
+          model. Review is triggered by observed threshold breaches or a rising
+          temperature trend. Cold-storage action pulls temperature toward its
+          setpoint; recovery needs five consecutive in-range, stabilizing
+          samples. Sensor-drift scenarios require inspection and cannot be
+          auto-verified. Proposals expire after five new samples or a fault
+          change. Pause freezes progression; hidden tabs suspend without
+          catching up. Reloading starts a new run. Export a run before reset to
+          retain it. Historical evidence stays in the separate evidence
+          workspace.
+        </p>
+      </details>
+      <noscript
+        >This live simulation requires JavaScript.
+        <a href="workbench.html">Open recorded evidence</a>.</noscript
+      >
+    </main>
+    <script type="module" src="ui/live.mjs?v=live-1"></script>
+  </body>
+</html>
