@@ -118,7 +118,7 @@ function renderSignal() {
   );
   chart.append(
     svg("line", { x1: x(i), y1: 20, x2: x(i), y2: 215, class: "chart-cursor" }),
-    svg("circle", { cx: x(i), cy: y(p.cargo_temp_c), r: 5, fill: "#D4FF24" }),
+    svg("circle", { cx: x(i), cy: y(p.cargo_temp_c), r: 5, fill: "#AAC6FF" }),
   );
   chart.append(
     svg(
