@@ -1575,3 +1575,30 @@ dialog::backdrop {
     gap: 12px;
   }
 }
+
+/* Keep navigation in the page grid, including full-page captures and zoom. */
+.cp-operations .app-shell {
+  display: grid;
+  grid-template-columns: 228px minmax(0, 1fr);
+  gap: 28px;
+  padding: 0 28px 0 0;
+}
+.ops-rail {
+  position: sticky;
+  top: 20px;
+  bottom: auto;
+  left: auto;
+  width: auto;
+  align-self: start;
+  height: calc(100dvh - 110px);
+}
+@media (max-width: 800px) {
+  .cp-operations .app-shell {
+    display: block;
+    padding: 0 20px;
+  }
+  .ops-rail {
+    position: static;
+    height: auto;
+  }
+}
