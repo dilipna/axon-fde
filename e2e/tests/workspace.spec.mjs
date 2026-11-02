@@ -810,3 +810,58 @@ test("Axon Services handover handles denied browser storage", async ({
     "Storage unavailable",
   );
 });
+
+test("Axon identity logo loads and keyboard workspace search navigates", async ({
+  page,
+}) => {
+  await page.goto("./");
+  const logo = page.getByAltText("Axon Services logo");
+  await expect(logo).toBeVisible();
+  expect(
+    await logo.evaluate((img) => img.complete && img.naturalWidth > 0),
+  ).toBe(true);
+  await page.keyboard.press("Control+k");
+  await expect(
+    page.getByRole("dialog", { name: "Go to workspace" }),
+  ).toBeVisible();
+  await expect(page.locator("#command-query")).toBeFocused();
+  await page.locator("#command-query").fill("no matching view");
+  await expect(page.locator("#command-empty")).toBeVisible();
+  await page.locator("#command-query").fill("handover");
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".axon-handover")).toBeVisible();
+  await expect(page.locator("#command-dialog")).not.toBeVisible();
+});
+test("Workspace guide supports keyboard containment, Escape and footer reopening", async ({
+  page,
+}, info) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: "Help", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Workspace guide" });
+  await expect(dialog).toBeVisible();
+  for (let i = 0; i < 4; i++) {
+    await page.keyboard.press("Tab");
+    expect(
+      await dialog.evaluate((node) => node.contains(document.activeElement)),
+    ).toBe(true);
+  }
+  await page.screenshot({ path: info.outputPath("axon-workspace-guide.png") });
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(page.locator("#help-open")).toBeFocused();
+  await page.locator("#footer-help").click();
+  await expect(dialog).toBeVisible();
+});
+test("Header exception shortcut reflects generated conditions", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.goto("./");
+  await page.clock.runFor(10000);
+  await page.locator("#pause-run").click();
+  await expect(page.locator("#header-exception-count")).toHaveText("1");
+  await page.locator("#header-exceptions").click();
+  await expect(page.locator("h1")).toHaveText("Exceptions");
+  await expect(page.locator("#shipment-rows tr")).toHaveCount(1);
+  await expect(page.locator("#header-freshness")).toContainText("Sample 11");
+});

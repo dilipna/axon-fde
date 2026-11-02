@@ -8,14 +8,21 @@
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
     />
     <title>Axon Services — Operations</title>
+    <meta name="theme-color" content="#111e36" />
+    <link rel="icon" type="image/svg+xml" href="ui/axon-mark.svg" />
     <link rel="stylesheet" href="ui/coldpath.css?v=live-1" />
-    <link rel="stylesheet" href="ui/live.css?v=axon-1" />
+    <link rel="stylesheet" href="ui/live.css?v=brand-1" />
   </head>
   <body class="cp-page cp-live axon-portal">
     <a class="cp-skip" href="#live-main">Skip to live workspace</a>
     <aside class="axon-sidebar" aria-label="Axon Services navigation">
       <a class="axon-logo" href="./"
-        ><span aria-hidden="true">A</span>
+        ><img
+          src="ui/axon-mark.svg"
+          width="42"
+          height="42"
+          alt="Axon Services logo"
+        />
         <div>AXON SERVICES<small>OPERATIONS PLATFORM</small></div></a
       >
       <div class="axon-tenant">
@@ -44,13 +51,37 @@
         <span>Axon Services</span><span aria-hidden="true"> / </span
         ><b id="view-title">Overview</b>
       </div>
-      <span class="axon-environment">Training environment</span>
+      <div class="axon-header-actions">
+        <button
+          id="command-open"
+          type="button"
+          aria-label="Find a workspace view"
+        >
+          Search workspace <kbd>Ctrl K</kbd></button
+        ><button
+          id="header-exceptions"
+          type="button"
+          aria-label="Open current exceptions"
+        >
+          Exceptions <b id="header-exception-count">0</b></button
+        ><button id="help-open" type="button">Help</button
+        ><span
+          class="axon-operator"
+          title="Browser-local operator; no account is signed in"
+          ><span aria-hidden="true">OP</span
+          ><span>Local operator<small>Training environment</small></span></span
+        >
+      </div>
     </div>
     <main id="live-main" class="live-wrap">
       <div class="live-heading">
         <div>
           <p class="cp-eyebrow">AXON SERVICES / CONTROL TOWER</p>
           <h1>Operations overview</h1>
+          <div class="axon-page-meta">
+            <span>Hyderabad workspace</span
+            ><span id="header-freshness">Waiting for first sample</span>
+          </div>
           <p>
             Track shipment conditions, prioritize exceptions and keep every
             response accountable.
@@ -270,6 +301,95 @@
         <a href="workbench.html">Open recorded evidence</a>.</noscript
       >
     </main>
-    <script type="module" src="ui/live.mjs?v=axon-1"></script>
+    <footer class="axon-app-footer">
+      <span
+        ><img src="ui/axon-mark.svg" width="18" height="18" alt="" />Axon
+        Services · Operations</span
+      ><span>Browser-local training workspace</span
+      ><button id="footer-help" type="button">Workspace guide ↗</button>
+    </footer>
+    <dialog
+      id="command-dialog"
+      class="axon-dialog"
+      aria-labelledby="command-title"
+    >
+      <div class="axon-dialog-heading">
+        <h2 id="command-title">Go to workspace</h2>
+        <button
+          type="button"
+          data-modal-close
+          aria-label="Close workspace search"
+        >
+          ×
+        </button>
+      </div>
+      <label for="command-query">Find a view</label
+      ><input
+        id="command-query"
+        type="search"
+        placeholder="Search shipments, exceptions, handover…"
+        autofocus
+        autocomplete="off"
+      />
+      <div id="command-results" class="axon-command-results"></div>
+      <p id="command-empty" hidden>No matching views.</p>
+      <p class="axon-dialog-hint">
+        Enter opens the first result. Escape closes search.
+      </p>
+    </dialog>
+    <dialog id="help-dialog" class="axon-dialog" aria-labelledby="help-title">
+      <div class="axon-dialog-heading">
+        <div>
+          <p class="axon-kicker">AXON SERVICES</p>
+          <h2 id="help-title">Workspace guide</h2>
+        </div>
+        <button
+          type="button"
+          data-modal-close
+          aria-label="Close workspace guide"
+          autofocus
+        >
+          ×
+        </button>
+      </div>
+      <ol class="axon-guide">
+        <li>
+          <b>Track a shipment</b>
+          <p>
+            Search the register or filter by status. Select Inspect to open its
+            condition history and response panel.
+          </p>
+        </li>
+        <li>
+          <b>Handle an exception</b>
+          <p>
+            Acknowledge that it has been seen, then review its evidence.
+            Acknowledgement does not resolve the underlying condition.
+          </p>
+        </li>
+        <li>
+          <b>Prepare a response</b>
+          <p>
+            Review and approve the simulated action. Subsequent readings
+            determine recovery.
+          </p>
+        </li>
+        <li>
+          <b>Hand over the shift</b>
+          <p>
+            Save browser-local notes or download a handover. Use Download run to
+            retain a simulation snapshot.
+          </p>
+        </li>
+      </ol>
+      <div class="axon-guide-note">
+        Training environment: generated telemetry, rule-based decisions and
+        simulated actions. No real carrier or team account is connected.
+      </div>
+      <p class="axon-dialog-hint">
+        Ctrl/Cmd + K: workspace search · Escape: close this guide
+      </p>
+    </dialog>
+    <script type="module" src="ui/live.mjs?v=brand-1"></script>
   </body>
 </html>
