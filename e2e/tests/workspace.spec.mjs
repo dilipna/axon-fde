@@ -679,7 +679,9 @@ for (const width of [1440, 768, 390, 360])
     await expect(page.locator("#run-status")).toContainText(
       "Streaming · simulated",
     );
-    await expect(page.locator(".live-disclosure")).toContainText("SIMULATED");
+    await expect(page.locator(".live-disclosure")).toContainText(
+      /simulated telemetry/i,
+    );
     await page.clock.runFor(12000);
     await expect(page.locator("#run-clock")).toHaveText("Minute 13");
     await page.locator("#pause-run").click();

@@ -629,3 +629,56 @@
   width: 100%;
   max-width: 100%;
 }
+
+/* Turn dense register rows into complete, readable shipment cards on narrow views. */
+@media (max-width: 1000px) {
+  .axon-table {
+    min-width: 0;
+  }
+  .axon-table thead {
+    display: none;
+  }
+  .axon-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+  .axon-table tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: #0e1d33;
+    border: 1px solid #304867;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .axon-table td {
+    display: block;
+    border: 0;
+    padding: 10px 12px;
+    min-width: 0;
+  }
+  .axon-table td:first-child,
+  .axon-table td:last-child {
+    grid-column: 1/-1;
+  }
+  .axon-table td:nth-child(2)::before {
+    content: "Temperature";
+  }
+  .axon-table td:nth-child(3)::before {
+    content: "Permitted range";
+  }
+  .axon-table td:nth-child(4)::before {
+    content: "Status";
+  }
+  .axon-table td::before {
+    display: block;
+    font-size: 9px;
+    color: #91a9cb;
+    margin-bottom: 7px;
+  }
+  .axon-table td button {
+    margin: 0 8px 3px 0;
+  }
+  .axon-table-wrap {
+    overflow: visible;
+  }
+}
