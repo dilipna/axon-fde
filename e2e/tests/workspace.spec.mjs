@@ -160,6 +160,11 @@ for (const width of [1440, 768, 390, 360])
       "Check facility capacity before approving.",
     );
     await expectTypography(page);
+    await page.evaluate(() => {
+      document.activeElement?.blur();
+      window.scrollTo(0, 0);
+    });
+    await expect(page.locator("h1")).toBeInViewport();
     await page.screenshot({
       path: info.outputPath(`workspace-${width}.png`),
       fullPage: true,
