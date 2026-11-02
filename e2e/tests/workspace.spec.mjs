@@ -24,7 +24,11 @@ test.beforeAll(async ({ request }) => {
   expect(identity.dirty_source).toBe(false);
   expect(identity.source_tree).toBe(process.env.AXON_EXPECTED_TREE);
 });
-test.beforeEach(async ({ page, baseURL }) => {
+test.beforeEach(async ({ page, baseURL }, info) => {
+  if (!info.title.startsWith("Intro "))
+    await page.addInitScript(() =>
+      sessionStorage.setItem("coldpath-intro-v1", "seen"),
+    );
   await page.route("**/*", (route) =>
     new URL(route.request().url()).origin === new URL(baseURL).origin
       ? route.continue()
@@ -79,12 +83,12 @@ for (const width of [1440, 768, 390, 360])
       await page
         .locator("#export-brief")
         .evaluate((node) => getComputedStyle(node).backgroundColor),
-    ).toBe("rgb(212, 255, 36)");
+    ).toBe("rgb(20, 38, 84)");
     expect(
       await page
         .locator("#export-brief")
         .evaluate((node) => getComputedStyle(node).color),
-    ).toBe("rgb(3, 4, 7)");
+    ).toBe("rgb(241, 244, 252)");
     await expect(page.locator("#fact-label")).toContainText(
       "Not a fleet average",
     );
@@ -471,7 +475,7 @@ for (const width of [1440, 768, 390, 360])
       await page
         .getByRole("link", { name: "Explore a delivery", exact: true })
         .evaluate((node) => getComputedStyle(node).backgroundColor),
-    ).toBe("rgb(212, 255, 36)");
+    ).toBe("rgb(20, 38, 84)");
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       "An operations problem.",
     );
@@ -844,4 +848,100 @@ test("FDE case study connects the opening brief to the solution and original pro
   await page.getByRole("link", { name: "Case study", exact: true }).click();
   await expect(page).toHaveURL(/#engagement$/);
   await expect(page.locator("#case-study-title")).toBeInViewport();
+});
+
+for (const width of [1440, 768, 390, 360])
+  test(`Intro overlapped cards are readable and dismissible at ${width}px`, async ({
+    page,
+  }, info) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("./");
+    const dialog = page.getByRole("dialog", { name: /A clearer route/ });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator(".cp-intro-card")).toHaveCount(3);
+    for (const title of [
+      "Why I developed this",
+      "The solution",
+      "How to use it",
+    ])
+      await expect(
+        dialog.getByRole("heading", { name: title, exact: true }),
+      ).toBeVisible();
+    await expect(dialog).toContainText("synthetic shipment records");
+    const geometry = await dialog.evaluate((node) => ({
+      width: node.clientWidth,
+      scroll: node.scrollWidth,
+      modal: node.matches(":modal"),
+    }));
+    expect(geometry.modal).toBe(true);
+    expect(geometry.scroll).toBeLessThanOrEqual(geometry.width + 1);
+    await documentFonts(page);
+    await page.screenshot({ path: info.outputPath(`intro-${width}.png`) });
+    await dialog
+      .getByRole("button", { name: "Read the case study" })
+      .scrollIntoViewIfNeeded();
+    if (width < 600)
+      await page.screenshot({
+        path: info.outputPath(`intro-${width}-bottom.png`),
+      });
+    await dialog.getByRole("button", { name: "Read the case study" }).click();
+    await expect(dialog).not.toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Start here", exact: true }),
+    ).toBeFocused();
+    await page.reload();
+    await expect(dialog).not.toBeVisible();
+    await page.getByRole("button", { name: "Start here", exact: true }).click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("link", { name: "Try the delivery demo" }).click();
+    await expect(page.locator("#app-shell")).toBeVisible();
+  });
+async function documentFonts(page) {
+  await page.evaluate(() => document.fonts.ready);
+}
+
+test("Intro traps keyboard focus, closes with Escape and respects direct bookmarks", async ({
+  page,
+}) => {
+  await page.goto("./");
+  const dialog = page.locator("#intro-dialog");
+  await expect(dialog).toBeVisible();
+  await expect(
+    dialog.getByRole("button", { name: "Close introduction" }),
+  ).toBeFocused();
+  for (let i = 0; i < 6; i++) {
+    await page.keyboard.press("Tab");
+    expect(
+      await dialog.evaluate((node) => node.contains(document.activeElement)),
+    ).toBe(true);
+  }
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Start here", exact: true }),
+  ).toBeFocused();
+  await page.evaluate(() => sessionStorage.clear());
+  await page.goto("./#solution");
+  await expect(dialog).not.toBeVisible();
+  await expect(page.locator("#solution")).toBeInViewport();
+});
+
+test("Intro dismissal works when browser storage is unavailable", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Storage.prototype.getItem = () => {
+      throw new DOMException("Blocked", "SecurityError");
+    };
+    Storage.prototype.setItem = () => {
+      throw new DOMException("Blocked", "SecurityError");
+    };
+  });
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./");
+  await expect(page.locator("#intro-dialog")).toBeVisible();
+  await page.getByRole("button", { name: "Close introduction" }).click();
+  await expect(page.locator("#intro-dialog")).not.toBeVisible();
+  expect(errors).toEqual([]);
 });

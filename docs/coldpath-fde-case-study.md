@@ -24,3 +24,10 @@ The visible technical problem and solution are reconstructed from the existing i
 Preserve midnight/cobalt/lime theme, geometric fonts, pausable illustration, notes, exports, backend decisions and original evidence. Three opening cards must appear early in the first viewport; use a readable responsive layout. Keep legacy #problem routing to engineering by naming the new anchor #brief-problem. Native details expose integration, reconciliation, human control and verification choices. Proof links must lead to actual original evidence and source docs. Existing browser suite gains one case-study journey (33 total), while responsive checks assert opening context/cards and balanced evidence language. Real browser/screenshot qualification runs only on GitHub after exact-source approval. Do not claim it passed based on local static tests.
 
 This iteration is local until its exact public-release approval. No desktop/local-browser control, paid services, hosting-policy changes, actual customer-data integration or unrelated project edits.
+
+
+## Overlapping introduction cards
+
+On the first homepage visit in a tab, a native modal introduces why the project was developed, the solution and how to use the recorded demo. The three cards overlap above the page. They form a scrollable stack on small screens. Close, Escape and Read the case study dismiss the introduction; Try the delivery demo opens the workspace. Start here reopens it. Session storage remembers dismissal only for the tab; storage denial does not prevent dismissal. Direct fragment links bypass it. Without dialog support, visitors retain the ordinary case study.
+
+Midnight-blue action surfaces (#142654) replace neon lime across all three pages. Pale blue and white retain readable text and focus indicators. Original evidence and outcome claims are preserved. Six additional runner browser cases cover four responsive intro journeys, keyboard and direct-link behavior, and storage-denied dismissal. Browser checks remain GitHub-only.

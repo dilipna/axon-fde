@@ -26,7 +26,7 @@
       type="font/ttf"
       crossorigin
     />
-    <link rel="stylesheet" href="ui/coldpath.css?v=coldpath-fde-1" />
+    <link rel="stylesheet" href="ui/coldpath.css?v=coldpath-intro-1" />
   </head>
   <body class="cp-page" id="top">
     <a class="cp-skip" href="#main">Skip to the project</a>
@@ -36,13 +36,109 @@
         >Coldpath<span class="cp-brand-dot">.</span></a
       >
       <nav aria-label="Main navigation">
-        <a href="#engagement">Case study</a><a href="#solution">Solution</a
+        <button class="cp-intro-reopen" type="button" data-intro-open hidden>
+          Start here</button
+        ><a href="#engagement">Case study</a><a href="#solution">Solution</a
         ><a href="engineering.html">Engineering</a
         ><a class="cp-button cp-button-small" href="workbench.html"
           >Try the demo <span aria-hidden="true">↗</span></a
         >
       </nav>
     </header>
+
+    <dialog
+      class="cp-intro"
+      id="intro-dialog"
+      aria-labelledby="intro-title"
+      aria-describedby="intro-description"
+    >
+      <div class="cp-intro-heading">
+        <div>
+          <p class="cp-eyebrow">COLDPATH / THE PROJECT IN THREE CARDS</p>
+          <h2 id="intro-title">
+            A clearer route from<br /><em>problem to solution.</em>
+          </h2>
+          <p id="intro-description">
+            Why I built it. What it does. Where you can try it.
+          </p>
+        </div>
+        <button
+          class="cp-intro-close"
+          type="button"
+          data-intro-close
+          aria-label="Close introduction"
+          autofocus
+        >
+          ✕
+        </button>
+      </div>
+      <div class="cp-intro-deck">
+        <article class="cp-intro-card cp-intro-why">
+          <span class="cp-intro-number" aria-hidden="true">01</span>
+          <span class="cp-intro-topic">THE REASON</span>
+          <h3>Why I developed this</h3>
+          <p>
+            An alert tells you something is wrong. It does not tell you what to
+            do next.
+          </p>
+          <p>
+            I built Coldpath to turn scattered shipment records, cargo rules and
+            sensor readings into a decision a person can understand and review.
+          </p>
+          <div class="cp-intro-foot">
+            <b>AXON TRUCK SERVICES</b
+            ><span>Engagement context · Hyderabad, India</span>
+          </div>
+        </article>
+        <article class="cp-intro-card cp-intro-solution">
+          <span class="cp-intro-number" aria-hidden="true">02</span>
+          <span class="cp-intro-topic">THE RESPONSE</span>
+          <h3>The solution</h3>
+          <p>One connected workflow. Evidence at every step.</p>
+          <ol>
+            <li>Bring the right information together.</li>
+            <li>Explain conflicts and compare options.</li>
+            <li>Require human review before action.</li>
+            <li>Check whether the response helped.</li>
+          </ol>
+          <div class="cp-intro-foot">
+            <b>Built to be inspected</b
+            ><span>Integration → reasoning → review → verification</span>
+          </div>
+        </article>
+        <article class="cp-intro-card cp-intro-usage">
+          <span class="cp-intro-number" aria-hidden="true">03</span>
+          <span class="cp-intro-topic">YOUR FIRST LOOK</span>
+          <h3>How to use it</h3>
+          <p>
+            Start with one medicine delivery. Follow the warning all the way to
+            its outcome.
+          </p>
+          <ol>
+            <li>Open the demo and follow its four steps.</li>
+            <li>Ask a question or change an assumption.</li>
+            <li>Inspect the sources and download your brief.</li>
+          </ol>
+          <div class="cp-intro-foot">
+            <b>No setup. No account.</b
+            ><span>A recorded walkthrough you can explore.</span>
+          </div>
+        </article>
+      </div>
+      <div class="cp-intro-bottom">
+        <p>
+          Public demo: synthetic shipment records. No customer systems or live
+          fleet actions.
+        </p>
+        <div>
+          <button class="cp-intro-secondary" type="button" data-intro-close>
+            Read the case study</button
+          ><a class="cp-button" data-intro-dismiss href="workbench.html"
+            >Try the delivery demo <span aria-hidden="true">↗</span></a
+          >
+        </div>
+      </div>
+    </dialog>
     <main id="main">
       <section
         class="cp-engagement cp-wrap"
@@ -546,6 +642,6 @@
         >Source & reproduction ↗</a
       >
     </footer>
-    <script type="module" src="ui/overview.mjs?v=coldpath-fde-1"></script>
+    <script type="module" src="ui/overview.mjs?v=coldpath-intro-1"></script>
   </body>
 </html>
